@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx supabase *)",
+      "Bash(supabase *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(pnpm *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git branch *)",
+      "Bash(git show *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

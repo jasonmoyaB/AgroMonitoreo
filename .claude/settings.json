@@ -1,0 +1,19 @@
+{
+  "enabledPlugins": {
+    "superpowers@superpowers-dev": true,
+    "ponytail@ponytail": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -NonInteractive -File .claude/hooks/migration-reminder.ps1"
+          }
+        ]
+      }
+    ]
+  }
+}
