@@ -14,7 +14,7 @@ import { PASO_HORAS, TIEMPO_CONFIRMACION_MS } from '../constants/captura.constan
 import { vibrarConfirmacion } from '../../../shared/lib/vibrate'
 import { construirRegistro } from '../utils/construir-registro'
 
-const TOTAL_PASOS_CAPTURA = 3
+const TOTAL_PASOS_CAPTURA = 2
 
 export function CapturaRegistroScreen() {
   const { tipoLaborId = '', trabajadorId = '' } = useParams<{ tipoLaborId: string; trabajadorId: string }>()
@@ -57,7 +57,7 @@ export function CapturaRegistroScreen() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between gap-6 p-6">
       <WizardHeader
-        paso={3}
+        paso={2}
         totalPasos={TOTAL_PASOS_CAPTURA}
         titulo={trabajador.nombreCompleto}
         onAtras={() => navigate(`/captura/labor/${tipoLaborId}/trabajadores`)}

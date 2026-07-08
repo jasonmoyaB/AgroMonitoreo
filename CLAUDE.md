@@ -60,7 +60,7 @@ Hard limits carried over from the same skill file (still binding for any new cod
 
 ### Capture flow
 
-Route chain: `/captura/labor` (pick labor type, icon grid) → `/captura/labor/:tipoLaborId/trabajadores` (worker grid, photo/initials, green check if already logged today) → `/captura/labor/:tipoLaborId/trabajadores/:trabajadorId` (hours + quantity steppers → confirm). Farm selection is skipped because only Birrisito exists (`shared/constants/finca.constants.ts`), but `Finca` is modeled as a real entity so an admin can add more later.
+Route chain: labor type is picked from the supervisor dashboard task list (`/supervisor`) → `/captura/labor/:tipoLaborId/trabajadores` (worker grid, photo/initials, green check if already logged today) → `/captura/labor/:tipoLaborId/trabajadores/:trabajadorId` (hours + quantity steppers → confirm). Farm selection is skipped because only Birrisito exists (`shared/constants/finca.constants.ts`), but `Finca` is modeled as a real entity so an admin can add more later.
 
 ### Data / persistence today
 

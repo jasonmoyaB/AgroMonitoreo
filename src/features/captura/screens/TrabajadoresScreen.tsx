@@ -15,7 +15,7 @@ import { UMBRAL_INDICE_ALFABETO } from '../constants/captura.constants'
 import { ordenarTrabajadoresAlfabeticamente } from '../utils/ordenar-trabajadores-alfabeticamente'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
-const TOTAL_PASOS_CAPTURA = 3
+const TOTAL_PASOS_CAPTURA = 2
 
 export function TrabajadoresScreen() {
   const { tipoLaborId = '' } = useParams<{ tipoLaborId: string }>()
@@ -40,10 +40,10 @@ export function TrabajadoresScreen() {
   return (
     <main className="flex min-h-screen flex-col">
       <WizardHeader
-        paso={2}
+        paso={1}
         totalPasos={TOTAL_PASOS_CAPTURA}
         titulo={tipoLabor?.nombre ?? 'Trabajadores'}
-        onAtras={() => navigate('/captura/labor')}
+        onAtras={() => navigate('/supervisor')}
       />
       <div className="flex flex-col gap-3 py-2">
         <BuscadorTrabajador valor={busqueda} onChange={setBusqueda} />

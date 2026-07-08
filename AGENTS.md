@@ -13,7 +13,7 @@
 
 ## Architecture Boundaries
 - Entry points: `src/main.tsx` -> `src/App.tsx` -> `src/app/router.tsx`.
-- Capture routes: `/captura/labor` -> `/captura/labor/:tipoLaborId/trabajadores` -> `/captura/labor/:tipoLaborId/trabajadores/:trabajadorId`.
+- Capture routes: `/captura/labor/:tipoLaborId/trabajadores` -> `/captura/labor/:tipoLaborId/trabajadores/:trabajadorId`. Labor type is picked from the `/supervisor` dashboard task list, not a dedicated capture screen.
 - Layering rule: components render only; hooks own state/effects/query; services own data access; utils are pure; constants are fixed seed data; stores are global Zustand state.
 - Do not import components across feature boundaries. Shared UI primitives belong under `src/shared/components`.
 - Keep files/functions small per `CLAUDE.md`: roughly 150 lines/file, 30 lines/function, max 5 component props, no `any`.

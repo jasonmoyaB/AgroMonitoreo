@@ -29,9 +29,9 @@ export function SupervisorDashboardScreen() {
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:flex">
-                <span className="neu-pressed flex min-h-14 items-center justify-center gap-2 rounded-2xl px-4 font-black text-slate-700">
+                <span className="neu-pressed flex min-h-14 items-center justify-center gap-2 rounded-2xl px-4 font-black capitalize text-slate-700">
                   <CalendarDays className="h-5 w-5 text-green-800" aria-hidden="true" />
-                  Hoy
+                  {dashboard.fechaHoy}
                 </span>
                 <span className="neu-pressed flex min-h-14 items-center justify-center gap-2 rounded-2xl px-4 font-black text-slate-700">
                   <CheckCircle2 className="h-5 w-5 text-green-800" aria-hidden="true" />
