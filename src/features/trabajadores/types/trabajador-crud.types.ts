@@ -8,7 +8,6 @@ export interface TrabajadoresCrudState {
   finca: Finca
   trabajadorEditando: Trabajador | null
   error: string | null
-  success: string | null
   isLoading: boolean
   isSubmitting: boolean
   isFormOpen: boolean

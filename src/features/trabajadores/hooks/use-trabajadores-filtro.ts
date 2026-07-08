@@ -11,7 +11,11 @@ export function useTrabajadoresFiltro(trabajadores: readonly Trabajador[]) {
     setFiltros((actual) => ({ ...actual, [campo]: valor }))
   }
 
+  function resetFiltros() {
+    setFiltros(FILTROS_INICIALES)
+  }
+
   const trabajadoresFiltrados = useMemo(() => filtrarTrabajadores(trabajadores, filtros), [trabajadores, filtros])
 
-  return { filtros, trabajadoresFiltrados, updateFiltro }
+  return { filtros, trabajadoresFiltrados, updateFiltro, resetFiltros }
 }

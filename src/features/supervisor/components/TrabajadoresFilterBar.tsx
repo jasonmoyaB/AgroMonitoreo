@@ -1,6 +1,4 @@
-import { Search } from 'lucide-react'
-import type { Finca } from '../../../shared/types/domain.types'
-import { FINCA_FILTRO_TODAS } from '../../trabajadores/constants/trabajador-filtro.constants'
+import { Search, X } from 'lucide-react'
 import type { EstadoFiltro, TrabajadoresFiltros } from '../../trabajadores/types/trabajador-filtro.types'
 
 const OPCIONES_ESTADO: { valor: EstadoFiltro; etiqueta: string }[] = [
@@ -11,11 +9,11 @@ const OPCIONES_ESTADO: { valor: EstadoFiltro; etiqueta: string }[] = [
 
 interface TrabajadoresFilterBarProps {
   filtros: TrabajadoresFiltros
-  fincas: readonly Finca[]
   onFiltroChange: <K extends keyof TrabajadoresFiltros>(campo: K, valor: TrabajadoresFiltros[K]) => void
+  onResetFiltros: () => void
 }
 
-export function TrabajadoresFilterBar({ filtros, fincas, onFiltroChange }: TrabajadoresFilterBarProps) {
+export function TrabajadoresFilterBar({ filtros, onFiltroChange, onResetFiltros }: TrabajadoresFilterBarProps) {
   return (
     <div className="neu-raised mb-4 flex flex-col gap-3 rounded-[2rem] p-4 sm:flex-row sm:items-center">
       <label className="neu-pressed flex min-h-14 flex-1 items-center gap-2 rounded-2xl px-4">
@@ -37,21 +35,14 @@ export function TrabajadoresFilterBar({ filtros, fincas, onFiltroChange }: Traba
         ))}
       </div>
 
-      <label className="flex min-h-14 items-center">
-        <span className="sr-only">Filtrar por finca</span>
-        <select
-          value={filtros.fincaId}
-          onChange={(event) => onFiltroChange('fincaId', event.target.value)}
-          className="neu-pressed min-h-14 w-full cursor-pointer rounded-2xl px-4 font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 sm:w-auto"
-        >
-          <option value={FINCA_FILTRO_TODAS}>Todas las fincas</option>
-          {fincas.map((finca) => (
-            <option key={finca.id} value={finca.id}>
-              {finca.nombre}
-            </option>
-          ))}
-        </select>
-      </label>
+      <button
+        type="button"
+        onClick={onResetFiltros}
+        className="neu-pressed flex min-h-14 shrink-0 cursor-pointer items-center gap-2 rounded-2xl px-4 font-black text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+      >
+        <X className="h-5 w-5" aria-hidden="true" />
+        Borrar filtros
+      </button>
     </div>
   )
 }

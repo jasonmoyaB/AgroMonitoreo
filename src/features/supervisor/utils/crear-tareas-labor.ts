@@ -7,7 +7,7 @@ const AMARRE_TASK_ID = 'amarre'
 const AMARRE_TASK_NOMBRE = 'Amarre'
 
 export function crearTareasLabor(tiposLabor: readonly TipoLabor[]): LaborTask[] {
-  const opcionesAmarre = tiposLabor.filter(esOpcionAmarre).map(crearOpcionAmarre)
+  const opcionesAmarre = tiposLabor.flatMap((tipoLabor) => (esOpcionAmarre(tipoLabor) ? [crearOpcionAmarre(tipoLabor)] : []))
   let amarreAgregado = false
 
   return tiposLabor.flatMap((tipoLabor) => {

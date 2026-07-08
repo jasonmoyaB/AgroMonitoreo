@@ -1,23 +1,29 @@
+import { useEffect, useRef } from 'react'
 import type { TrabajadoresCrudActions, TrabajadoresCrudState } from '../../trabajadores/types/trabajador-crud.types'
 
 interface TrabajadorFormProps {
-  state: Pick<TrabajadoresCrudState, 'values' | 'error' | 'success' | 'isSubmitting'>
+  state: Pick<TrabajadoresCrudState, 'values' | 'error' | 'isSubmitting'>
   actions: Pick<TrabajadoresCrudActions, 'onFieldChange' | 'onSubmit'>
 }
 
 export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
-  const { values, error, success, isSubmitting } = state
+  const { values, error, isSubmitting } = state
+  const nombreInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    nombreInputRef.current?.focus()
+  }, [])
 
   return (
     <form onSubmit={actions.onSubmit} className="flex flex-col gap-4">
       <label className="flex flex-col gap-2 font-black text-slate-800">
         Nombre completo
         <input
+          ref={nombreInputRef}
           value={values.nombreCompleto}
           onChange={(event) => actions.onFieldChange('nombreCompleto', event.target.value)}
           className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
           required
-          autoFocus
         />
       </label>
 
@@ -42,7 +48,6 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
       </div>
 
       {error && <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">{error}</p>}
-      {success && <p className="rounded-2xl bg-green-100 p-4 font-black text-green-800">{success}</p>}
 
       <button type="submit" disabled={isSubmitting} className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60">
         {isSubmitting ? 'Guardando' : 'Guardar'}

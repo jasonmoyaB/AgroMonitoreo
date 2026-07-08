@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, UserPlus } from 'lucide-react'
 
 interface SupervisorSidebarProps {
@@ -8,7 +8,13 @@ interface SupervisorSidebarProps {
   onSignOut: () => void
 }
 
+const NAV_ITEMS = [
+  { to: '/supervisor', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/supervisor/trabajadores', label: 'Trabajadores', icon: UserPlus },
+]
+
 export function SupervisorSidebar({ isCollapsed, isSigningOut, onToggle, onSignOut }: SupervisorSidebarProps) {
+  const location = useLocation()
   const labelClass = isCollapsed ? 'sr-only' : 'truncate'
   const sidebarWidth = isCollapsed ? 'md:w-20' : 'md:w-72'
 
@@ -32,14 +38,25 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, onToggle, onSignO
       </div>
 
       <nav className="mt-3 md:mt-8 md:flex md:flex-1 md:flex-col" aria-label="Supervisor">
-        <Link className="neu-pressed flex min-h-12 items-center gap-3 rounded-2xl px-3 font-black text-green-900" to="/supervisor">
-          <LayoutDashboard className="h-5 w-5 shrink-0" aria-hidden="true" />
-          <span className={labelClass}>Dashboard</span>
-        </Link>
-        <Link className="mt-2 flex min-h-12 items-center gap-3 rounded-2xl px-3 font-bold text-slate-700 transition-colors duration-200 hover:bg-white/45" to="/supervisor/trabajadores">
-          <UserPlus className="h-5 w-5 shrink-0" aria-hidden="true" />
-          <span className={labelClass}>Trabajadores</span>
-        </Link>
+        {NAV_ITEMS.map(({ to, label, icon: Icon }, index) => {
+          const isActive = to === '/supervisor' ? location.pathname === to : location.pathname.startsWith(to)
+
+          return (
+            <Link
+              key={to}
+              to={to}
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex min-h-12 items-center gap-3 rounded-2xl px-3 transition-colors duration-200 ${index > 0 ? 'mt-2' : ''} ${
+                isActive
+                  ? 'neu-pressed font-black text-green-900'
+                  : 'font-bold text-slate-700 hover:bg-white/45'
+              }`}
+            >
+              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span className={labelClass}>{label}</span>
+            </Link>
+          )
+        })}
       </nav>
 
       <button

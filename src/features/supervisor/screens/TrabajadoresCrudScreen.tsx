@@ -1,6 +1,5 @@
 import { UserPlus } from 'lucide-react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
-import { useFincas } from '../../fincas'
 import { useTrabajadoresCrud } from '../../trabajadores/hooks/use-trabajadores-crud'
 import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores-filtro'
 import { Modal } from '../../../shared/components/Modal'
@@ -13,7 +12,6 @@ import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
 export function TrabajadoresCrudScreen() {
   const dashboard = useSupervisorDashboard()
   const trabajadores = useTrabajadoresCrud()
-  const { fincas } = useFincas()
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
@@ -39,9 +37,7 @@ export function TrabajadoresCrudScreen() {
             </button>
           </header>
 
-          {trabajadores.success && !trabajadores.isFormOpen && <p className="mb-4 rounded-2xl bg-green-100 p-4 font-black text-green-800">{trabajadores.success}</p>}
-
-          <TrabajadoresFilterBar filtros={filtro.filtros} fincas={fincas} onFiltroChange={filtro.updateFiltro} />
+          <TrabajadoresFilterBar filtros={filtro.filtros} onFiltroChange={filtro.updateFiltro} onResetFiltros={filtro.resetFiltros} />
 
           <TrabajadoresTable
             trabajadores={filtro.trabajadoresFiltrados}

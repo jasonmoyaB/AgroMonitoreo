@@ -10,9 +10,7 @@ interface WorkersGridProps {
 
 export function WorkersGrid({ trabajadores, registrosDelDia, tipoLaborId, onSeleccionar }: WorkersGridProps) {
   const idsRegistrados = new Set(
-    registrosDelDia
-      .filter((registro) => registro.tipoLaborId === tipoLaborId)
-      .map((registro) => registro.trabajadorId)
+    registrosDelDia.flatMap((registro) => (registro.tipoLaborId === tipoLaborId ? [registro.trabajadorId] : []))
   )
 
   return (
