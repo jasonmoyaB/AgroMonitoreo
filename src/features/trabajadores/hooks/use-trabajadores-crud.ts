@@ -15,6 +15,7 @@ export function useTrabajadoresCrud() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isFormOpen, setIsFormOpen] = useState(false)
   const queryKey = [TRABAJADORES_QUERY_KEY, FINCA_ACTUAL.id]
   const { data: trabajadores = [], isLoading } = useQuery({ queryKey, queryFn: () => listarTodosTrabajadoresPorFinca(FINCA_ACTUAL.id) })
 
@@ -26,9 +27,18 @@ export function useTrabajadoresCrud() {
     setTrabajadorEditando(trabajador)
     setValues({ nombreCompleto: trabajador.nombreCompleto, fotoUrl: trabajador.fotoUrl ?? '', activo: trabajador.activo })
     limpiarMensajes()
+    setIsFormOpen(true)
   }
 
-  function crearNuevo() {
+  function abrirCrear() {
+    setTrabajadorEditando(null)
+    setValues(TRABAJADOR_INICIAL)
+    limpiarMensajes()
+    setIsFormOpen(true)
+  }
+
+  function cerrarForm() {
+    setIsFormOpen(false)
     setTrabajadorEditando(null)
     setValues(TRABAJADOR_INICIAL)
     limpiarMensajes()
@@ -56,7 +66,7 @@ export function useTrabajadoresCrud() {
     try {
       await guardarSegunModo()
       await queryClient.invalidateQueries({ queryKey })
-      crearNuevo()
+      cerrarForm()
       setSuccess('Trabajador guardado.')
     } catch (unknownError) {
       mostrarError(unknownError, 'No se pudo guardar el trabajador.')
@@ -86,5 +96,21 @@ export function useTrabajadoresCrud() {
     setError(unknownError instanceof Error ? unknownError.message : fallback)
   }
 
-  return { trabajadores, values, finca: FINCA_ACTUAL, trabajadorEditando, error, success, isLoading, isSubmitting, updateField, handleSubmit, crearNuevo, editarTrabajador, alternarEstado }
+  return {
+    trabajadores,
+    values,
+    finca: FINCA_ACTUAL,
+    trabajadorEditando,
+    error,
+    success,
+    isLoading,
+    isSubmitting,
+    isFormOpen,
+    updateField,
+    handleSubmit,
+    onOpenCreate: abrirCrear,
+    onCloseForm: cerrarForm,
+    editarTrabajador,
+    alternarEstado,
+  }
 }

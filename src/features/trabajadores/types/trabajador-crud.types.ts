@@ -11,12 +11,14 @@ export interface TrabajadoresCrudState {
   success: string | null
   isLoading: boolean
   isSubmitting: boolean
+  isFormOpen: boolean
 }
 
 export interface TrabajadoresCrudActions {
   onFieldChange: <K extends keyof TrabajadorFormValues>(field: K, value: TrabajadorFormValues[K]) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
-  onCreateNew: () => void
+  onOpenCreate: () => void
+  onCloseForm: () => void
   onEdit: (trabajador: Trabajador) => void
   onToggleActive: (trabajador: Trabajador) => void
 }
