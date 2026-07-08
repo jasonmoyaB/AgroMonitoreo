@@ -36,9 +36,9 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, onToggle, onSignO
           <LayoutDashboard className="h-5 w-5 shrink-0" aria-hidden="true" />
           <span className={labelClass}>Dashboard</span>
         </Link>
-        <Link className="mt-2 flex min-h-12 items-center gap-3 rounded-2xl px-3 font-bold text-slate-700 transition-colors duration-200 hover:bg-white/45" to="/supervisor/trabajadores/nuevo">
+        <Link className="mt-2 flex min-h-12 items-center gap-3 rounded-2xl px-3 font-bold text-slate-700 transition-colors duration-200 hover:bg-white/45" to="/supervisor/trabajadores">
           <UserPlus className="h-5 w-5 shrink-0" aria-hidden="true" />
-          <span className={labelClass}>Agregar trabajador</span>
+          <span className={labelClass}>Trabajadores</span>
         </Link>
       </nav>
 

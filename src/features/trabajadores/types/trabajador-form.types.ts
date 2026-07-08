@@ -7,3 +7,7 @@ export interface TrabajadorFormValues {
 export interface CrearTrabajadorInput extends TrabajadorFormValues {
   fincaId: string
 }
+
+export interface ActualizarTrabajadorInput extends TrabajadorFormValues {
+  id: string
+}

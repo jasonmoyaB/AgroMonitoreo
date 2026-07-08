@@ -1,1 +1,1 @@
-export { useAgregarTrabajador } from './hooks/use-agregar-trabajador'
+export { useTrabajadoresCrud } from './hooks/use-trabajadores-crud'
