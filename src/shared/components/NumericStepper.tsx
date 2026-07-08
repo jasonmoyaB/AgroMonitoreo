@@ -17,11 +17,13 @@ export function NumericStepper({ value, step, label, onChange }: NumericStepperP
   const incrementar = () => onChange(redondear(value + step))
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-4">
       <span className="text-lg font-semibold capitalize text-slate-600">{label}</span>
       <div className="flex items-center gap-6">
         <StepperButton icon={<Minus size={32} />} onClick={decrementar} disabled={value <= 0} />
-        <span className="w-24 text-center text-5xl font-black tabular-nums">{value}</span>
+        <span className="neu-well flex w-28 items-center justify-center rounded-2xl py-3 text-5xl font-black tabular-nums text-slate-800">
+          {value}
+        </span>
         <StepperButton icon={<Plus size={32} />} onClick={incrementar} />
       </div>
     </div>

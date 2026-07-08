@@ -1,4 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
 @import 'tailwindcss';
+
+:root {
+  --neu-bg: #e7ebf1;
+  --neu-shadow-dark: rgba(163, 177, 198, 0.55);
+  --neu-shadow-light: rgba(255, 255, 255, 0.85);
+}
 
 html,
 body,
@@ -7,7 +14,9 @@ body,
 }
 
 body {
-  @apply bg-slate-100 text-slate-900;
+  @apply text-slate-900;
+  background: var(--neu-bg);
+  font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
   margin: 0;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
@@ -15,4 +24,34 @@ body {
 
 button {
   touch-action: manipulation;
+}
+
+/* Neumorphic surface tokens — reused by every interactive surface so the
+   light source (top-left) and depth stay consistent across the app. */
+@utility neu-raised {
+  background: var(--neu-bg);
+  box-shadow:
+    8px 8px 16px var(--neu-shadow-dark),
+    -8px -8px 16px var(--neu-shadow-light);
+}
+
+@utility neu-raised-sm {
+  background: var(--neu-bg);
+  box-shadow:
+    4px 4px 8px var(--neu-shadow-dark),
+    -4px -4px 8px var(--neu-shadow-light);
+}
+
+@utility neu-pressed {
+  background: var(--neu-bg);
+  box-shadow:
+    inset 5px 5px 10px var(--neu-shadow-dark),
+    inset -5px -5px 10px var(--neu-shadow-light);
+}
+
+@utility neu-well {
+  background: var(--neu-bg);
+  box-shadow:
+    inset 4px 4px 8px var(--neu-shadow-dark),
+    inset -4px -4px 8px var(--neu-shadow-light);
 }
