@@ -1,32 +1,50 @@
-# React + TypeScript + Vite
+# AgroMonitoreo
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+PWA (React + TypeScript) reemplaza planilla Excel (`docs/mano de obra.xlsx`) pa' registro diario mano de obra en finca **Birrisito** (Chile).
 
-Currently, two official plugins are available:
+## Problema
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Capataz anota a mano: trabajador, labor, horas, cantidad producida. Productividad (cantidad/horas) calculada manual en Excel. Lento, error-prone, sin foto ni respaldo.
 
-## React Compiler
+## Solución
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+App captura ("features/captura") pa' capataz en campo:
 
-## Expanding the Oxlint configuration
+- Grid iconos, sin texto libre (muchos trabajadores baja alfabetización)
+- Touch targets grandes (≥88px), steppers +/- pa' números (nunca teclado)
+- Flujo: elegir labor → elegir trabajador (foto/iniciales, check verde si ya cargado hoy) → horas + cantidad → confirmar
+- App calcula productividad sola
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+Guarda en IndexedDB hoy (sin backend aún). Plan: Supabase (Postgres+Auth+RLS), aislamiento por `finca_id`.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+Resiliente a caída conexión: autosave local (300ms debounce) + retry mutación (3x) + service worker PWA.
+
+## Roles
+
+- **supervisor/capataz**: carga datos campo (único implementado)
+- **admin/oficina**: dashboard, métricas, gestión (próxima fase, no construido)
+
+Flujo un sentido: supervisor → admin. Sin flujo reverso.
+
+## Stack
+
+React + TypeScript + Vite, Tailwind v4, TanStack Query, Zustand, idb-keyval.
+
+## Comandos
+
+Package manager: **pnpm solo** (no npm/yarn).
+
+```bash
+pnpm install          # deps
+pnpm dev              # dev server
+pnpm build            # typecheck + build, debe pasar
+pnpm exec tsc -b --noEmit   # solo typecheck
+pnpm lint             # oxlint
+pnpm preview          # preview build prod
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Sin test runner configurado aún.
+
+## Estructura
+
+Ver `CLAUDE.md` pa' detalle arquitectura, capas, y convenciones.

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { NumericStepper } from '../../../shared/components/NumericStepper'
 import { ConfirmarRegistroButton } from '../components/ConfirmarRegistroButton'
 import { ConfirmacionOverlay } from '../components/ConfirmacionOverlay'
+import { WizardHeader } from '../components/WizardHeader'
 import { useRegistroDraft } from '../hooks/use-registro-draft'
 import { useCrearRegistro } from '../hooks/use-crear-registro'
 import { useTrabajadoresPorFinca } from '../hooks/use-trabajadores-por-finca'
@@ -12,6 +13,8 @@ import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { PASO_HORAS, TIEMPO_CONFIRMACION_MS } from '../constants/captura.constants'
 import { vibrarConfirmacion } from '../../../shared/lib/vibrate'
 import { construirRegistro } from '../utils/construir-registro'
+
+const TOTAL_PASOS_CAPTURA = 3
 
 export function CapturaRegistroScreen() {
   const { tipoLaborId = '', trabajadorId = '' } = useParams<{ tipoLaborId: string; trabajadorId: string }>()
@@ -52,8 +55,13 @@ export function CapturaRegistroScreen() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between gap-8 p-6">
-      <h1 className="text-center text-xl font-bold text-slate-800">{trabajador.nombreCompleto}</h1>
+    <main className="flex min-h-screen flex-col items-center justify-between gap-6 p-6">
+      <WizardHeader
+        paso={3}
+        totalPasos={TOTAL_PASOS_CAPTURA}
+        titulo={trabajador.nombreCompleto}
+        onAtras={() => navigate(`/captura/labor/${tipoLaborId}/trabajadores`)}
+      />
       <div className="flex flex-1 flex-col items-center justify-center gap-10">
         <NumericStepper
           label="Horas"

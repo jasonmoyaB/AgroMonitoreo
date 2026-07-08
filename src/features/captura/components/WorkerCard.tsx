@@ -3,14 +3,16 @@ import { Avatar } from '../../../shared/components/Avatar'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 interface WorkerCardProps {
+  id?: string
   trabajador: Trabajador
   yaRegistrado: boolean
   onClick: () => void
 }
 
-export function WorkerCard({ trabajador, yaRegistrado, onClick }: WorkerCardProps) {
+export function WorkerCard({ id, trabajador, yaRegistrado, onClick }: WorkerCardProps) {
   return (
     <button
+      id={id}
       type="button"
       onClick={onClick}
       className="neu-raised relative flex min-h-[88px] cursor-pointer flex-col items-center gap-2 rounded-2xl p-4 transition-all duration-150 hover:scale-[1.04] active:neu-pressed active:scale-[0.98] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-slate-700"

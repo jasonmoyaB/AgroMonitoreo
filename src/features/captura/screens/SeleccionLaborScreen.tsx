@@ -1,15 +1,17 @@
 import { useNavigate } from 'react-router-dom'
 import { LaborGrid } from '../components/LaborGrid'
-import { SupervisorProfileButton } from '../components/SupervisorProfileButton'
-import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
+import { WizardHeader } from '../components/WizardHeader'
+import { SelectorFechaChip } from '../components/SelectorFechaChip'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
 import type { TipoLabor } from '../../../shared/types/domain.types'
 
+const TOTAL_PASOS_CAPTURA = 3
+
 export function SeleccionLaborScreen() {
   const navigate = useNavigate()
+  const fecha = useCapturaSessionStore((state) => state.fecha)
   const seleccionarLabor = useCapturaSessionStore((state) => state.seleccionarLabor)
-  const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
   function manejarSeleccion(tipoLabor: TipoLabor) {
     seleccionarLabor(tipoLabor.id)
@@ -18,10 +20,10 @@ export function SeleccionLaborScreen() {
 
   return (
     <main className="min-h-screen">
-      <header className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-center text-2xl font-black text-slate-800 sm:text-left">¿Qué labor?</h1>
-        <SupervisorProfileButton isSigningOut={isSigningOut} onSignOut={handleCerrarSesion} />
-      </header>
+      <WizardHeader paso={1} totalPasos={TOTAL_PASOS_CAPTURA} titulo="¿Qué labor?" onAtras={() => navigate('/supervisor')} />
+      <div className="flex flex-wrap items-center gap-3 px-4">
+        <SelectorFechaChip fecha={fecha} onClick={() => navigate('/captura/fecha')} />
+      </div>
       <LaborGrid tiposLabor={TIPOS_LABOR} onSeleccionar={manejarSeleccion} />
     </main>
   )

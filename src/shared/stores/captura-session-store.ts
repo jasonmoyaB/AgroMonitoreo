@@ -4,6 +4,7 @@ interface CapturaSessionState {
   tipoLaborId: string | null
   fecha: string
   seleccionarLabor: (tipoLaborId: string) => void
+  establecerFecha: (fecha: string) => void
   reiniciar: () => void
 }
 
@@ -15,5 +16,6 @@ export const useCapturaSessionStore = create<CapturaSessionState>((set) => ({
   tipoLaborId: null,
   fecha: obtenerFechaDeHoy(),
   seleccionarLabor: (tipoLaborId) => set({ tipoLaborId }),
+  establecerFecha: (fecha) => set({ fecha }),
   reiniciar: () => set({ tipoLaborId: null, fecha: obtenerFechaDeHoy() }),
 }))

@@ -8,9 +8,10 @@ interface TrabajadoresTableProps {
   isLoading: boolean
   onEdit: (trabajador: Trabajador) => void
   onToggleActive: (trabajador: Trabajador) => void
+  onSelectTrabajador: (trabajador: Trabajador) => void
 }
 
-export function TrabajadoresTable({ trabajadores, isLoading, onEdit, onToggleActive }: TrabajadoresTableProps) {
+export function TrabajadoresTable({ trabajadores, isLoading, onEdit, onToggleActive, onSelectTrabajador }: TrabajadoresTableProps) {
   if (isLoading) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">Cargando trabajadores.</p>
   if (!trabajadores.length) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">No se encontraron trabajadores.</p>
 
@@ -33,7 +34,13 @@ export function TrabajadoresTable({ trabajadores, isLoading, onEdit, onToggleAct
           </thead>
           <tbody>
             {trabajadores.map((trabajador) => (
-              <TrabajadoresTableRow key={trabajador.id} trabajador={trabajador} onEdit={onEdit} onToggleActive={onToggleActive} />
+              <TrabajadoresTableRow
+                key={trabajador.id}
+                trabajador={trabajador}
+                onEdit={onEdit}
+                onToggleActive={onToggleActive}
+                onSelectTrabajador={onSelectTrabajador}
+              />
             ))}
           </tbody>
         </table>
@@ -46,11 +53,15 @@ interface TrabajadoresTableRowProps {
   trabajador: Trabajador
   onEdit: (trabajador: Trabajador) => void
   onToggleActive: (trabajador: Trabajador) => void
+  onSelectTrabajador: (trabajador: Trabajador) => void
 }
 
-function TrabajadoresTableRow({ trabajador, onEdit, onToggleActive }: TrabajadoresTableRowProps) {
+function TrabajadoresTableRow({ trabajador, onEdit, onToggleActive, onSelectTrabajador }: TrabajadoresTableRowProps) {
   return (
-    <tr className="border-b border-slate-900/5 last:border-b-0 hover:bg-white/45">
+    <tr
+      onClick={() => onSelectTrabajador(trabajador)}
+      className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45"
+    >
       <td className="px-5 py-3">
         <div className="flex min-w-0 items-center gap-3">
           <Avatar nombre={trabajador.nombreCompleto} fotoUrl={trabajador.fotoUrl} size={AVATAR_SIZE_PX} />
@@ -68,12 +79,22 @@ function TrabajadoresTableRow({ trabajador, onEdit, onToggleActive }: Trabajador
       </td>
       <td className="px-5 py-3">
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={() => onEdit(trabajador)} className="neu-pressed min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-slate-800">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              onEdit(trabajador)
+            }}
+            className="neu-pressed min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-slate-800"
+          >
             Editar
           </button>
           <button
             type="button"
-            onClick={() => onToggleActive(trabajador)}
+            onClick={(event) => {
+              event.stopPropagation()
+              onToggleActive(trabajador)
+            }}
             className={`min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-white shadow-lg ${
               trabajador.activo ? 'bg-red-700 shadow-red-900/20' : 'bg-green-700 shadow-green-900/20'
             }`}

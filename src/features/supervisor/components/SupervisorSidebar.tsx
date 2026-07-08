@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, UserPlus } from 'lucide-react'
+import { ClipboardList, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, UserPlus } from 'lucide-react'
 
 interface SupervisorSidebarProps {
   isCollapsed: boolean
@@ -9,7 +9,8 @@ interface SupervisorSidebarProps {
 }
 
 const NAV_ITEMS = [
-  { to: '/supervisor', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/supervisor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/supervisor', label: 'Labores', icon: ClipboardList },
   { to: '/supervisor/trabajadores', label: 'Trabajadores', icon: UserPlus },
 ]
 

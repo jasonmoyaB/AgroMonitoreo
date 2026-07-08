@@ -12,6 +12,10 @@ export async function listarRegistrosPorFecha(fecha: string): Promise<RegistroTr
   return registros.filter((registro) => registro.fecha === fecha)
 }
 
+export async function listarTodosRegistros(): Promise<RegistroTrabajo[]> {
+  return readLocalValue<RegistroTrabajo[]>(CLAVE_ALMACENAMIENTO_REGISTROS, [])
+}
+
 export async function crearRegistro(registro: RegistroTrabajo): Promise<RegistroTrabajo> {
   const registros = await readLocalValue<RegistroTrabajo[]>(CLAVE_ALMACENAMIENTO_REGISTROS, [])
   const siguientes = [...registros.filter((existente) => !esMismoRegistro(existente, registro)), registro]

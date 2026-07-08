@@ -5,14 +5,17 @@ import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores
 import { Modal } from '../../../shared/components/Modal'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { TrabajadorForm } from '../components/TrabajadorForm'
+import { TrabajadorMetricasModal } from '../components/TrabajadorMetricasModal'
 import { TrabajadoresFilterBar } from '../components/TrabajadoresFilterBar'
 import { TrabajadoresTable } from '../components/TrabajadoresTable'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
+import { useTrabajadorMetricasModal } from '../hooks/use-trabajador-metricas-modal'
 
 export function TrabajadoresCrudScreen() {
   const dashboard = useSupervisorDashboard()
   const trabajadores = useTrabajadoresCrud()
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
+  const metricasModal = useTrabajadorMetricasModal()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
   return (
@@ -44,12 +47,18 @@ export function TrabajadoresCrudScreen() {
             isLoading={trabajadores.isLoading}
             onEdit={trabajadores.editarTrabajador}
             onToggleActive={trabajadores.alternarEstado}
+            onSelectTrabajador={metricasModal.abrir}
           />
         </section>
 
         <Modal isOpen={trabajadores.isFormOpen} title={trabajadores.trabajadorEditando ? 'Editar trabajador' : 'Agregar trabajador'} onClose={trabajadores.onCloseForm}>
           <TrabajadorForm state={trabajadores} actions={{ onFieldChange: trabajadores.updateField, onSubmit: trabajadores.handleSubmit }} />
         </Modal>
+
+        <TrabajadorMetricasModal
+          state={metricasModal}
+          actions={{ onFiltroChange: metricasModal.updateFiltro, onResetFiltros: metricasModal.resetFiltros, onClose: metricasModal.cerrar }}
+        />
       </div>
     </main>
   )

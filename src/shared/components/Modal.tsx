@@ -2,14 +2,22 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
+export type ModalSize = 'md' | 'lg'
+
+const MAX_WIDTH_POR_TAMANO: Record<ModalSize, string> = {
+  md: 'max-w-lg',
+  lg: 'max-w-5xl',
+}
+
 interface ModalProps {
   isOpen: boolean
   title: string
   onClose: () => void
   children: React.ReactNode
+  size?: ModalSize
 }
 
-export function Modal({ isOpen, title, onClose, children }: ModalProps) {
+export function Modal({ isOpen, title, onClose, children, size = 'md' }: ModalProps) {
   useEffect(() => {
     if (!isOpen) return
     function handleKeyDown(event: KeyboardEvent) {
@@ -28,7 +36,7 @@ export function Modal({ isOpen, title, onClose, children }: ModalProps) {
         aria-modal="true"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
-        className="neu-raised max-h-full w-full max-w-lg overflow-y-auto rounded-[2rem] p-5 sm:p-6"
+        className={`neu-raised max-h-full w-full overflow-y-auto rounded-[2rem] p-5 sm:p-6 ${MAX_WIDTH_POR_TAMANO[size]}`}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <h2 className="text-2xl font-black text-slate-900">{title}</h2>
