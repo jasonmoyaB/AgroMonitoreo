@@ -11,10 +11,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      devOptions: { enabled: true, type: 'module' },
       manifest: {
-        name: 'AgroMonitoreo Birrisito',
+        name: 'AgroMonitoreo',
         short_name: 'AgroMonitoreo',
-        description: 'Control de labores agrícolas — Finca Birrisito',
+        description: 'Control de labores agrícolas — Fincas',
         theme_color: '#16a34a',
         background_color: '#ffffff',
         display: 'standalone',
