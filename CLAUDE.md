@@ -44,12 +44,13 @@ Package manager is **pnpm only** — do not use npm or yarn.
 pnpm install          # install deps
 pnpm dev              # start dev server (Vite)
 pnpm build            # tsc -b (typecheck) && vite build — must pass before considering work done
-pnpm exec tsc -b --noEmit   # typecheck only, no build output
+pnpm exec tsc -b --noEmit   # typecheck only, no build output — fast check while iterating on types, still run pnpm build before calling work done
+pnpm exec vitest run  # run all tests once
 pnpm lint             # oxlint
 pnpm preview          # serve the production build locally
 ```
 
-There is no test runner configured yet.
+Tests (vitest) live under root `/test`, mirroring `src/` paths — not colocated (e.g. `src/features/x/utils/foo.ts` → `test/features/x/utils/foo.test.ts`). Only worth writing for utils with real branching logic (validation, calculations); skip trivial one-liners.
 
 ## Architecture
 
