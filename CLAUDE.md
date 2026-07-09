@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Can't find where something lives? Check `MAPA.md` first — quick path index, kept updated each task.
+
 ## What this is
 
 PWA (React + TypeScript) to replace an Excel-based daily labor log for the farm **Birrisito** (Chile). A capataz (foreman) logs hours and quantity produced per worker per labor type each day; the app computes productivity (quantity/hours) that used to be calculated by hand in `docs/mano de obra.xlsx`.

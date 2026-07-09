@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "test": "vitest run",
     "db:types": "supabase gen types typescript --local > src/shared/types/supabase.types.ts",
     "doctor": "npx react-doctor@latest"
   },
@@ -31,6 +32,12 @@
     "tailwindcss": "^4.3.2",
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
-    "vite-plugin-pwa": "^1.3.0"
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "@trickfilm400/rollup-plugin-off-main-thread": "npm:@surma/rollup-plugin-off-main-thread@2.2.3"
+    }
   }
 }
