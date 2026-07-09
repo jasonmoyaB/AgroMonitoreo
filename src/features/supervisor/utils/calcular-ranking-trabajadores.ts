@@ -12,8 +12,10 @@ export function calcularRankingTrabajadores(registros: readonly RegistroTrabajo[
   }
 
   return trabajadores
-    .map((trabajador) => ({ id: trabajador.id, etiqueta: trabajador.nombreCompleto, valor: totalesPorTrabajador.get(trabajador.id) ?? 0 }))
-    .filter((item) => item.valor > 0)
+    .flatMap((trabajador) => {
+      const valor = totalesPorTrabajador.get(trabajador.id) ?? 0
+      return valor > 0 ? [{ id: trabajador.id, etiqueta: trabajador.nombreCompleto, valor }] : []
+    })
     .sort((a, b) => b.valor - a.valor)
     .slice(0, MAX_TRABAJADORES_RANKING)
 }

@@ -10,7 +10,9 @@ export function calcularRankingLabores(registros: readonly RegistroTrabajo[], ti
   }
 
   return tiposLabor
-    .map((tipoLabor) => ({ id: tipoLabor.id, etiqueta: tipoLabor.nombre, valor: totalesPorLabor.get(tipoLabor.id) ?? 0 }))
-    .filter((item) => item.valor > 0)
+    .flatMap((tipoLabor) => {
+      const valor = totalesPorLabor.get(tipoLabor.id) ?? 0
+      return valor > 0 ? [{ id: tipoLabor.id, etiqueta: tipoLabor.nombre, valor }] : []
+    })
     .sort((a, b) => b.valor - a.valor)
 }

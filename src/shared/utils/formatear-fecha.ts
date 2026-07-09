@@ -1,9 +1,9 @@
-const OPCIONES_FECHA_CORTA: Intl.DateTimeFormatOptions = {
+const FORMATEADOR_FECHA_CORTA = new Intl.DateTimeFormat('es-CL', {
   weekday: 'short',
   day: 'numeric',
   month: 'short',
-}
+})
 
 export function formatearFechaCorta(fecha: Date): string {
-  return new Intl.DateTimeFormat('es-CL', OPCIONES_FECHA_CORTA).format(fecha)
+  return FORMATEADOR_FECHA_CORTA.format(fecha)
 }

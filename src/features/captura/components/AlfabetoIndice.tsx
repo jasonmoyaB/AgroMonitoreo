@@ -6,7 +6,7 @@ interface AlfabetoIndiceProps {
 
 export function AlfabetoIndice({ onSeleccionarRango }: AlfabetoIndiceProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto px-4 pb-2" role="navigation" aria-label="Saltar a un rango de nombres">
+    <nav className="flex gap-2 overflow-x-auto px-4 pb-2" aria-label="Saltar a un rango de nombres">
       {RANGOS_ALFABETO.map((rango) => (
         <button
           key={rango.etiqueta}
@@ -17,6 +17,6 @@ export function AlfabetoIndice({ onSeleccionarRango }: AlfabetoIndiceProps) {
           {rango.etiqueta}
         </button>
       ))}
-    </div>
+    </nav>
   )
 }

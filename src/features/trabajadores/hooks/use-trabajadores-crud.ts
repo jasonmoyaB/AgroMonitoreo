@@ -4,7 +4,8 @@ import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { useToastStore } from '../../../shared/stores/toast-store'
 import type { Trabajador } from '../../../shared/types/domain.types'
 import { TRABAJADORES_QUERY_KEY } from '../constants/trabajadores-query.constants'
-import { actualizarTrabajador, cambiarEstadoTrabajador, crearTrabajador, listarTodosTrabajadoresPorFinca } from '../services/trabajadores-service'
+import { actualizarTrabajador, cambiarEstadoTrabajador, crearTrabajador, listarTodosTrabajadoresPorFinca, subirFotoTrabajador } from '../services/trabajadores-service'
+import { useFotoTrabajador } from './use-foto-trabajador'
 import type { TrabajadorFormValues } from '../types/trabajador-form.types'
 
 const TRABAJADOR_INICIAL: TrabajadorFormValues = { nombreCompleto: '', fotoUrl: '', activo: true }
@@ -18,6 +19,7 @@ export function useTrabajadoresCrud() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const foto = useFotoTrabajador()
   const queryKey = TRABAJADORES_LISTADO_QUERY_KEY
   const { data: trabajadores = [], isLoading } = useQuery({ queryKey, queryFn: () => listarTodosTrabajadoresPorFinca(FINCA_ACTUAL.id) })
 
@@ -28,6 +30,7 @@ export function useTrabajadoresCrud() {
   function editarTrabajador(trabajador: Trabajador) {
     setTrabajadorEditando(trabajador)
     setValues({ nombreCompleto: trabajador.nombreCompleto, fotoUrl: trabajador.fotoUrl ?? '', activo: trabajador.activo })
+    foto.reiniciarFoto(trabajador.fotoUrl)
     setError(null)
     setIsFormOpen(true)
   }
@@ -35,6 +38,7 @@ export function useTrabajadoresCrud() {
   function abrirCrear() {
     setTrabajadorEditando(null)
     setValues(TRABAJADOR_INICIAL)
+    foto.reiniciarFoto(null)
     setError(null)
     setIsFormOpen(true)
   }
@@ -43,6 +47,7 @@ export function useTrabajadoresCrud() {
     setIsFormOpen(false)
     setTrabajadorEditando(null)
     setValues(TRABAJADOR_INICIAL)
+    foto.reiniciarFoto(null)
     setError(null)
   }
 
@@ -90,9 +95,10 @@ export function useTrabajadoresCrud() {
     return false
   }
 
-  function guardarSegunModo() {
-    if (trabajadorEditando) return actualizarTrabajador({ ...values, id: trabajadorEditando.id })
-    return crearTrabajador({ ...values, fincaId: FINCA_ACTUAL.id })
+  async function guardarSegunModo() {
+    const fotoUrl = foto.fotoArchivo ? await subirFotoTrabajador({ fincaId: FINCA_ACTUAL.id, archivo: foto.fotoArchivo }) : values.fotoUrl
+    if (trabajadorEditando) return actualizarTrabajador({ ...values, fotoUrl, id: trabajadorEditando.id })
+    return crearTrabajador({ ...values, fotoUrl, fincaId: FINCA_ACTUAL.id })
   }
 
   function mostrarError(unknownError: unknown, fallback: string) {
@@ -104,11 +110,13 @@ export function useTrabajadoresCrud() {
     values,
     finca: FINCA_ACTUAL,
     trabajadorEditando,
-    error,
+    error: error ?? foto.fotoError,
     isLoading,
     isSubmitting,
     isFormOpen,
+    fotoPreviewUrl: foto.fotoPreviewUrl,
     updateField,
+    onFotoChange: foto.seleccionarFoto,
     handleSubmit,
     onOpenCreate: abrirCrear,
     onCloseForm: cerrarForm,

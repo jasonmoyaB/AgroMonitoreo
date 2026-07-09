@@ -11,10 +11,12 @@ export interface TrabajadoresCrudState {
   isLoading: boolean
   isSubmitting: boolean
   isFormOpen: boolean
+  fotoPreviewUrl: string | null
 }
 
 export interface TrabajadoresCrudActions {
   onFieldChange: <K extends keyof TrabajadorFormValues>(field: K, value: TrabajadorFormValues[K]) => void
+  onFotoChange: (archivo: File | null) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onOpenCreate: () => void
   onCloseForm: () => void

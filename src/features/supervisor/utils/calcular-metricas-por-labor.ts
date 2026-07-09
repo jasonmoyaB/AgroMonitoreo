@@ -18,8 +18,10 @@ export function calcularMetricasPorLabor(registros: readonly RegistroTrabajo[], 
   }
 
   return tiposLabor
-    .map((tipoLabor) => crearMetrica(tipoLabor, acumuladoPorLabor.get(tipoLabor.id)))
-    .filter((metrica) => metrica.horas > 0 || metrica.cantidad > 0)
+    .flatMap((tipoLabor) => {
+      const metrica = crearMetrica(tipoLabor, acumuladoPorLabor.get(tipoLabor.id))
+      return metrica.horas > 0 || metrica.cantidad > 0 ? [metrica] : []
+    })
     .sort((a, b) => b.cantidad - a.cantidad)
 }
 

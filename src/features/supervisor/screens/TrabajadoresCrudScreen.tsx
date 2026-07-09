@@ -52,7 +52,10 @@ export function TrabajadoresCrudScreen() {
         </section>
 
         <Modal isOpen={trabajadores.isFormOpen} title={trabajadores.trabajadorEditando ? 'Editar trabajador' : 'Agregar trabajador'} onClose={trabajadores.onCloseForm}>
-          <TrabajadorForm state={trabajadores} actions={{ onFieldChange: trabajadores.updateField, onSubmit: trabajadores.handleSubmit }} />
+          <TrabajadorForm
+            state={trabajadores}
+            actions={{ onFieldChange: trabajadores.updateField, onFotoChange: trabajadores.onFotoChange, onSubmit: trabajadores.handleSubmit }}
+          />
         </Modal>
 
         <TrabajadorMetricasModal
