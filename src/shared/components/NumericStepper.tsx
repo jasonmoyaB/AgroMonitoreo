@@ -1,4 +1,6 @@
 import { Minus, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import type { ChangeEvent } from 'react'
 import { StepperButton } from './StepperButton'
 
 interface RangoNumerico {
@@ -20,18 +22,54 @@ function redondear(valor: number): number {
   return Math.round(valor * 100) / 100
 }
 
+function limitarARango(valor: number, rango: RangoNumerico): number {
+  return Math.min(rango.max, Math.max(rango.min, valor))
+}
+
 export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR_DEFECTO }: NumericStepperProps) {
-  const decrementar = () => onChange(Math.max(rango.min, redondear(value - step)))
-  const incrementar = () => onChange(Math.min(rango.max, redondear(value + step)))
+  const [texto, setTexto] = useState(String(value))
+
+  useEffect(() => {
+    setTexto(String(value))
+  }, [value])
+
+  const decrementar = () => onChange(limitarARango(redondear(value - step), rango))
+  const incrementar = () => onChange(limitarARango(redondear(value + step), rango))
+  const longitudMaxima = Number.isFinite(rango.max) ? String(Math.trunc(rango.max)).length : undefined
+
+  function manejarEscritura(evento: ChangeEvent<HTMLInputElement>) {
+    const textoEscrito =
+      longitudMaxima === undefined ? evento.target.value : evento.target.value.slice(0, longitudMaxima)
+    setTexto(textoEscrito)
+    const valorEscrito = Number(textoEscrito)
+    if (textoEscrito === '' || Number.isNaN(valorEscrito)) return
+    onChange(valorEscrito)
+  }
+
+  function manejarSalida() {
+    const valorEscrito = Number(texto)
+    const valorValido = texto === '' || Number.isNaN(valorEscrito) ? rango.min : limitarARango(redondear(valorEscrito), rango)
+    onChange(valorValido)
+    setTexto(String(valorValido))
+  }
 
   return (
     <div className="flex flex-col items-center gap-4">
       <span className="text-lg font-semibold capitalize text-slate-600">{label}</span>
       <div className="flex items-center gap-6">
         <StepperButton icon={<Minus size={32} />} onClick={decrementar} disabled={value <= rango.min} />
-        <span className="neu-well flex w-28 items-center justify-center rounded-2xl py-3 text-5xl font-black tabular-nums text-slate-800">
-          {value}
-        </span>
+        <input
+          type="number"
+          inputMode="decimal"
+          value={texto}
+          min={rango.min}
+          max={rango.max === Number.POSITIVE_INFINITY ? undefined : rango.max}
+          onChange={manejarEscritura}
+          onFocus={(evento) => evento.target.select()}
+          onBlur={manejarSalida}
+          aria-label={label}
+          className="neu-well w-28 rounded-2xl py-3 text-center text-5xl font-black tabular-nums text-slate-800 [appearance:textfield] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-slate-700 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        />
         <StepperButton icon={<Plus size={32} />} onClick={incrementar} disabled={value >= rango.max} />
       </div>
     </div>

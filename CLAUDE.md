@@ -12,12 +12,27 @@ PWA (React + TypeScript) to replace an Excel-based daily labor log for the farm 
 
 Two roles, one-way data flow:
 
-- **supervisor** (= "capataz" in the current code, e.g. `REGISTRADO_POR_LOCAL`) — logs all worker/labor/hours/quantity data in the field. This is the only role built so far (`features/captura`).
-- **admin/oficina** — receives what the supervisor logged (read/manage side: dashboard, metrics, worker/labor-type/farm management). Not built yet, next phase.
+- **supervisor** (= "capataz" in the current code, e.g. `REGISTRADO_POR_LOCAL`) — logs all worker/labor/hours/quantity data in the field, and now also manages workers (`features/trabajadores`) and views KPIs (`features/supervisor`). This is the only role with app-side screens built so far.
+- **admin/oficina** — seeded as a row in `public.roles` (`admin_oficina`), but no signup path or UI assigns it yet; every new signup is hardcoded to `supervisor`. Not built yet, next phase.
 
 Flow: supervisor logs everything for the day → once logged, it reaches admin/oficina. No reverse flow (admin/oficina doesn't log field data).
 
-Only the frontend is implemented so far, and only the supervisor-facing capture flow at that. There is no backend yet — the plan (not yet built) is Supabase (Postgres + Auth + RLS), with `finca_id` (not a multi-tenant `organizacion_id`) as the data-isolation axis and role-based RLS (`supervisor` vs `admin`), since this is one admin managing multiple farms they own, not a multi-org SaaS.
+### Backend (Supabase — live)
+
+Backend is real, not a plan anymore: Supabase (Postgres + Auth + RLS + Storage), migrations in `supabase/migrations/`. `finca_id` (not a multi-tenant `organizacion_id`) is the data-isolation axis, since this is one admin managing multiple farms they own, not a multi-org SaaS.
+
+- **Tables**: `roles` (seed: `admin_oficina`, `supervisor`), `fincas` (seed: `birrisito`), `trabajadores`, `labores` (the 11 labor types, now DB rows not just a frontend constant — see below), `usuario` (1:1 with `auth.users` via `auth_user_id`, holds `rol_id` + `finca_id`).
+- **Signup → `usuario` row**: `crear_usuario_desde_auth()` trigger (`AFTER INSERT ON auth.users`, `SECURITY DEFINER`) creates the `usuario` row. It used to read `rol`/`finca_id` from `raw_user_meta_data` (client-supplied signup payload); migration `20260708183000_no_confiar_rol_metadata_signup.sql` removed that — every signup is now hardcoded to `supervisor` + `birrisito` regardless of what the client sends, since trusting client metadata for role assignment is a privilege-escalation hole (anyone could've signed up requesting `admin_oficina`).
+- **RLS pattern**: `trabajadores` policies don't check `auth.uid()` directly — they join through `usuario` (`usuario.auth_user_id = auth.uid() and usuario.finca_id = trabajadores.finca_id and usuario.activo = true`). Any new table scoped by farm should follow this same join-through-`usuario` shape, not a bare `finca_id` column check.
+- **Storage**: `trabajador-fotos` bucket (public, 5MB limit, jpeg/png/webp only) for worker photos. Insert/update/delete scoped to the caller's `finca_id` via the same `usuario` join, using `storage.foldername(name)[1]` as the farm segment of the object path.
+- **Client**: `shared/lib/supabase-client.ts`, single `createClient` instance. Env vars `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local` (not committed).
+- **Supabase Advisors hardening** (`20260709165003`–`20260709165114`): dropped the broad public SELECT policy on `storage.objects` for `trabajador-fotos` (public bucket serves photos via direct URL, which bypasses RLS entirely — the SELECT policy only gated `.list()`/`.download()`, which the app never calls) and revoked EXECUTE on `crear_usuario_desde_auth()`/`rls_auto_enable()` (a Supabase-managed event-trigger helper, not one of ours) from `anon`/`authenticated`/`PUBLIC`. Gotcha hit while doing this: revoking from `anon`+`authenticated` alone isn't enough — Postgres grants EXECUTE to `PUBLIC` by default at function creation, and every role implicitly inherits that, so the advisor kept flagging it until `PUBLIC` was revoked too. Second gotcha: the signup trigger on `auth.users` fires as role `supabase_auth_admin`, which is not a member of `postgres`/`service_role` — revoking from `PUBLIC` broke its ability to fire until an explicit `grant execute ... to supabase_auth_admin` was added back. Verified end-to-end with a disposable signup against the live Auth API (row landed in `usuario` with `rol=supervisor`, `finca_id=birrisito`; user deleted after). Only remaining advisor: **leaked-password protection is disabled** — that one's a Dashboard → Auth → Policies toggle, not something a migration can flip.
+
+### Local dev ≠ remote unless you grant explicitly (`20260709171000`)
+
+`registros_trabajo` (the daily hours/quantity table) is now also on Supabase, not IndexedDB — `features/captura/services/registros-service.ts` and the supervisor KPI dashboard both read/write it for real.
+
+Found while first exercising that table through the real REST API (not just `tsc`): `permission denied for table trabajadores` for an authenticated user, despite a correct RLS policy. Root cause was **not RLS** — it was a missing table-level `GRANT`. The hosted Supabase project already had broad `SELECT/INSERT/UPDATE/DELETE` grants to `anon`/`authenticated` on every table (a platform default set at project creation, invisible in our migration history), but `supabase db reset` locally runs the opposite: an explicit `revoke ... from anon, authenticated, service_role` as part of the CLI's own secure-by-default init. So every table we'd created relied on an implicit grant that only exists on the remote project — local dev looked fine (schema applied) but every real query as `authenticated` would 403. **Rule going forward: every migration that creates a table must include its own `grant select, insert, update, delete on table public.x to authenticated;`** — don't rely on the hosted default, since it doesn't reproduce locally and won't reproduce on a fresh project either. (Granted to `authenticated` only, not `anon` — no policy in this schema gives `anon` anything, so an `anon` grant would be privilege without purpose.)
 
 ## Commands
 
@@ -54,9 +69,12 @@ Hard limits carried over from the same skill file (still binding for any new cod
 
 ### Structure
 
-- `src/app/router.tsx` — React Router data router, only route wiring.
-- `src/features/captura/` — the entire foreman-facing capture flow (screens → components → hooks → services → utils → types → constants), the only feature implemented today.
-- `src/shared/` — cross-feature primitives: `components/` (IconTile, Avatar, NumericStepper, StepperButton, LaborIcon), `stores/captura-session-store.ts` (Zustand: current labor type + date), `lib/` (`local-db.ts` idb-keyval wrapper, `play-sound.ts`, `vibrate.ts`), `types/domain.types.ts` (Finca, TipoLabor, Trabajador, RegistroTrabajo), `constants/` (seed data for the one farm and its 11 labor types).
+- `src/app/router.tsx` — React Router data router, only route wiring. `/login` and `/registro` are public; everything else (`/supervisor*`, `/captura/*`) sits behind `AuthGuard`.
+- `src/features/auth/` — login/register screens, `AuthGuard` (redirects to `/login` if there's no Supabase session), `use-auth-session.ts` (wraps `supabase.auth.getSession` + `onAuthStateChange`), `auth-service.ts` (`iniciarSesion`/`registrarSupervisor`/`cerrarSesion`, thin wrappers over `supabase.auth`).
+- `src/features/trabajadores/` — worker CRUD against Supabase (`trabajadores-service.ts`): list/create/update/toggle-active, plus photo upload to the `trabajador-fotos` bucket with client-side validation (`validar-foto-trabajador.ts` checks MIME + magic bytes, not just the file extension) before it ever hits Storage. Screen lives in `features/supervisor/screens/TrabajadoresCrudScreen.tsx` — the feature itself is headless (services/hooks/utils only), the CRUD screen composes it into the supervisor app shell.
+- `src/features/captura/` — the foreman-facing capture flow (screens → components → hooks → services → utils → types → constants). `features/captura/services/trabajadores-service.ts` re-exports `listarTrabajadoresPorFinca` from `features/trabajadores/services/trabajadores-service.ts` — this is the one sanctioned cross-feature service import (capture needs to read workers, but worker CRUD belongs to `trabajadores`); don't duplicate that query, and don't extend this into a components-importing-components pattern.
+- `src/features/supervisor/` — the supervisor's app shell: `SupervisorDashboardScreen` (labor-type task list, entry point after login), `DashboardScreen` (monthly KPIs/ranking/trend charts), `TrabajadoresCrudScreen` (hosts the `trabajadores` feature's form/table). KPI calculations (`calcular-kpis-mensuales.ts`, `calcular-tendencia-diaria.ts`) currently run over `RegistroTrabajo[]` read from IndexedDB (see persistence section below) — they are not yet reading from Supabase.
+- `src/shared/` — cross-feature primitives: `components/` (IconTile, Avatar, NumericStepper, StepperButton, LaborIcon), `stores/captura-session-store.ts` (Zustand: current labor type + date), `lib/` (`supabase-client.ts`, `local-db.ts` idb-keyval wrapper, `play-sound.ts`, `vibrate.ts`), `types/domain.types.ts` (Finca, TipoLabor, Trabajador, RegistroTrabajo), `constants/` (the one farm; the 11 labor types are now also DB rows in `labores` but the frontend constant hasn't been replaced by a fetch yet).
 
 ### Capture flow
 
@@ -64,13 +82,15 @@ Route chain: labor type is picked from the supervisor dashboard task list (`/sup
 
 ### Data / persistence today
 
-No backend is wired up. `features/captura/services/*-service.ts` persist to IndexedDB via `shared/lib/local-db.ts` (idb-keyval) using the same async function signatures a future Supabase-backed implementation would use — hooks and components should never need to change when that swap happens (dependency inversion: services are the only layer that knows about the storage mechanism).
+Everything that matters is on Supabase now: auth (`auth.users` + `usuario`), `trabajadores`, `fincas`, `labores`, `roles`, and `registros_trabajo` (the hours/quantity punches — the core daily-log data this app exists to replace) are all real Postgres tables with RLS, reached through `features/auth`, `features/trabajadores`, and `features/captura/services/registros-service.ts`. `registrado_por` on `registros_trabajo` defaults via `public.usuario_actual_id()` (a `stable` SQL function resolving `auth.uid()` → `usuario.id`), so the client never has to pass it. Verified end-to-end against the real REST API (insert, default fill-in, read-back), not just typechecked.
 
-Resilience against a dropped connection (not full offline-first, since wifi is normally available in the field) is three-layered: local draft autosave (`use-registro-draft.ts`, 300ms debounce to IndexedDB), an optimistic mutation with retry (`use-crear-registro.ts`, TanStack Query `retry: 3`), and the PWA service worker (`vite-plugin-pwa`, `registerType: 'autoUpdate'`).
+The one thing still IndexedDB-only is the **in-progress draft** (`use-registro-draft.ts`, 300ms debounce) — that's intentional, it's a resilience layer for a half-filled form, not the source of truth. Resilience against a dropped connection (not full offline-first, since wifi is normally available in the field) is three-layered: that local draft autosave, an optimistic mutation with retry (`use-crear-registro.ts`, TanStack Query `retry: 3`), and the PWA service worker (`vite-plugin-pwa`, `registerType: 'autoUpdate'`).
+
+`shared/lib/supabase-client.ts` is typed with the generated `Database` type (`shared/types/supabase.types.ts`, regenerate via `supabase gen types typescript`) — every `.from('table')` call is now column-checked at compile time.
 
 ### The 11 labor types
 
-Seeded in `shared/constants/tipos-labor.constants.ts` from the sheet names in `docs/mano de obra.xlsx`: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Each has an icon, a distinct color, and a unit of measure (`cajas`/`tramos`/etc.) driving whether/how the quantity stepper renders. If new labor types are added, they go here — nothing about them is hardcoded into the capture screens.
+Seeded in `shared/constants/tipos-labor.constants.ts` from the sheet names in `docs/mano de obra.xlsx`: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Each has an icon, a distinct color, and a unit of measure (`cajas`/`tramos`/etc.) driving whether/how the quantity stepper renders. If new labor types are added today, they go here — nothing about them is hardcoded into the capture screens. Note this now duplicates the seeded `public.labores` table (migration `20260708172256_crear_tabla_labores.sql`); the frontend constant hasn't been switched over to fetching from Supabase yet, so the two need to be kept in sync by hand until that migration happens.
 
 ### Styling
 

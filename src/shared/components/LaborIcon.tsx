@@ -1,4 +1,5 @@
 import { Wheat, Link2, Scissors, LeafyGreen, PocketKnife, Shovel, Sprout, Package } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import type { LaborIconName } from '../types/domain.types'
 
@@ -16,9 +17,10 @@ const ICONOS_POR_NOMBRE: Record<LaborIconName, LucideIcon> = {
 interface LaborIconProps {
   name: LaborIconName
   className?: string
+  style?: CSSProperties
 }
 
-export function LaborIcon({ name, className }: LaborIconProps) {
+export function LaborIcon({ name, className, style }: LaborIconProps) {
   const Icon = ICONOS_POR_NOMBRE[name]
-  return <Icon className={className} aria-hidden="true" />
+  return <Icon className={className} style={style} aria-hidden="true" />
 }

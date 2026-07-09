@@ -9,7 +9,7 @@ export function useCrearRegistro() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: crearRegistro,
+    mutationFn: (registro: RegistroTrabajo) => crearRegistro(registro),
     retry: INTENTOS_REINTENTO,
     onSuccess: (registro: RegistroTrabajo) => {
       playConfirmSound()

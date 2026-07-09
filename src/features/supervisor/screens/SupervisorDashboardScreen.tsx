@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2 } from 'lucide-react'
+import { CalendarDays } from 'lucide-react'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { LaborTaskList } from '../components/LaborTaskList'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
@@ -32,10 +32,6 @@ export function SupervisorDashboardScreen() {
                 <span className="neu-pressed flex min-h-14 items-center justify-center gap-2 rounded-2xl px-4 font-black capitalize text-slate-700">
                   <CalendarDays className="h-5 w-5 text-green-800" aria-hidden="true" />
                   {dashboard.fechaHoy}
-                </span>
-                <span className="neu-pressed flex min-h-14 items-center justify-center gap-2 rounded-2xl px-4 font-black text-slate-700">
-                  <CheckCircle2 className="h-5 w-5 text-green-800" aria-hidden="true" />
-                  {dashboard.totalLabores}
                 </span>
               </div>
             </div>

@@ -1,24 +1,68 @@
-import { readLocalValue, writeLocalValue } from '../../../shared/lib/local-db'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { supabase } from '../../../shared/lib/supabase-client'
 import type { RegistroTrabajo } from '../../../shared/types/domain.types'
 
-const CLAVE_ALMACENAMIENTO_REGISTROS = 'registros_trabajo'
+const REGISTROS_COLUMNS = 'id, finca_id, trabajador_id, tipo_labor_id, fecha, horas, cantidad, registrado_por, creado_en'
+const CONFLICTO_UNICO_POR_DIA = 'trabajador_id,tipo_labor_id,fecha'
 
-function esMismoRegistro(a: RegistroTrabajo, b: RegistroTrabajo): boolean {
-  return a.trabajadorId === b.trabajadorId && a.tipoLaborId === b.tipoLaborId && a.fecha === b.fecha
+export async function listarRegistrosPorFecha(fecha: string, client: SupabaseClient = supabase): Promise<RegistroTrabajo[]> {
+  const { data, error } = await client.from('registros_trabajo').select(REGISTROS_COLUMNS).eq('fecha', fecha)
+
+  if (error) throw new Error(`listarRegistrosPorFecha: ${error.message}`)
+  return data.map(mapRegistro)
 }
 
-export async function listarRegistrosPorFecha(fecha: string): Promise<RegistroTrabajo[]> {
-  const registros = await readLocalValue<RegistroTrabajo[]>(CLAVE_ALMACENAMIENTO_REGISTROS, [])
-  return registros.filter((registro) => registro.fecha === fecha)
+export async function listarTodosRegistros(client: SupabaseClient = supabase): Promise<RegistroTrabajo[]> {
+  const { data, error } = await client.from('registros_trabajo').select(REGISTROS_COLUMNS)
+
+  if (error) throw new Error(`listarTodosRegistros: ${error.message}`)
+  return data.map(mapRegistro)
 }
 
-export async function listarTodosRegistros(): Promise<RegistroTrabajo[]> {
-  return readLocalValue<RegistroTrabajo[]>(CLAVE_ALMACENAMIENTO_REGISTROS, [])
+export async function crearRegistro(registro: RegistroTrabajo, client: SupabaseClient = supabase): Promise<RegistroTrabajo> {
+  const { data, error } = await client
+    .from('registros_trabajo')
+    .upsert(
+      {
+        id: registro.id,
+        finca_id: registro.fincaId,
+        trabajador_id: registro.trabajadorId,
+        tipo_labor_id: registro.tipoLaborId,
+        fecha: registro.fecha,
+        horas: registro.horas,
+        cantidad: registro.cantidad,
+      },
+      { onConflict: CONFLICTO_UNICO_POR_DIA }
+    )
+    .select(REGISTROS_COLUMNS)
+    .single()
+
+  if (error) throw new Error(`crearRegistro: ${error.message}`)
+  return mapRegistro(data)
 }
 
-export async function crearRegistro(registro: RegistroTrabajo): Promise<RegistroTrabajo> {
-  const registros = await readLocalValue<RegistroTrabajo[]>(CLAVE_ALMACENAMIENTO_REGISTROS, [])
-  const siguientes = [...registros.filter((existente) => !esMismoRegistro(existente, registro)), registro]
-  await writeLocalValue(CLAVE_ALMACENAMIENTO_REGISTROS, siguientes)
-  return registro
+interface RegistroRow {
+  id: string
+  finca_id: string
+  trabajador_id: string
+  tipo_labor_id: string
+  fecha: string
+  horas: number
+  cantidad: number | null
+  registrado_por: string
+  creado_en: string
+}
+
+function mapRegistro(row: RegistroRow): RegistroTrabajo {
+  return {
+    id: row.id,
+    fincaId: row.finca_id,
+    trabajadorId: row.trabajador_id,
+    tipoLaborId: row.tipo_labor_id,
+    fecha: row.fecha,
+    horas: row.horas,
+    cantidad: row.cantidad,
+    registradoPor: row.registrado_por,
+    createdAt: row.creado_en,
+  }
 }
