@@ -81,8 +81,8 @@ export async function registrarAusencias(
   if (error) throw new Error(`registrarAusencias: ${error.message}`)
 }
 
-export async function quitarAusente(trabajadorId: string, fecha: string, client: SupabaseClient = supabase): Promise<void> {
-  const { error } = await client.from('asistencia').delete().eq('trabajador_id', trabajadorId).eq('fecha', fecha)
+export async function quitarAusente(fincaId: string, trabajadorId: string, fecha: string, client: SupabaseClient = supabase): Promise<void> {
+  const { error } = await client.from('asistencia').delete().eq('finca_id', fincaId).eq('trabajador_id', trabajadorId).eq('fecha', fecha)
 
   if (error) throw new Error(`quitarAusente: ${error.message}`)
 }
