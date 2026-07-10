@@ -70,3 +70,10 @@ button {
 .animate-toast-pop {
   animation: toast-pop 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

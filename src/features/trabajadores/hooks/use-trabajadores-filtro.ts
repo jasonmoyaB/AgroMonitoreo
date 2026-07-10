@@ -4,7 +4,7 @@ import { FILTROS_INICIALES } from '../constants/trabajador-filtro.constants'
 import type { TrabajadoresFiltros } from '../types/trabajador-filtro.types'
 import { filtrarTrabajadores } from '../utils/filtrar-trabajadores'
 
-export function useTrabajadoresFiltro(trabajadores: readonly Trabajador[]) {
+export function useTrabajadoresFiltro(trabajadores: readonly Trabajador[], idsAusentes?: ReadonlySet<string>) {
   const [filtros, setFiltros] = useState<TrabajadoresFiltros>(FILTROS_INICIALES)
 
   function updateFiltro<K extends keyof TrabajadoresFiltros>(campo: K, valor: TrabajadoresFiltros[K]) {
@@ -15,7 +15,7 @@ export function useTrabajadoresFiltro(trabajadores: readonly Trabajador[]) {
     setFiltros(FILTROS_INICIALES)
   }
 
-  const trabajadoresFiltrados = useMemo(() => filtrarTrabajadores(trabajadores, filtros), [trabajadores, filtros])
+  const trabajadoresFiltrados = useMemo(() => filtrarTrabajadores(trabajadores, filtros, idsAusentes), [trabajadores, filtros, idsAusentes])
 
   return { filtros, trabajadoresFiltrados, updateFiltro, resetFiltros }
 }

@@ -1,19 +1,35 @@
 import { Search, X } from 'lucide-react'
 import type { EstadoFiltro, TrabajadoresFiltros } from '../../trabajadores/types/trabajador-filtro.types'
 
+const OPCION_TODOS: { valor: EstadoFiltro; etiqueta: string } = { valor: 'todos', etiqueta: 'Todos' }
+
 const OPCIONES_ESTADO: { valor: EstadoFiltro; etiqueta: string }[] = [
-  { valor: 'todos', etiqueta: 'Todos' },
+  OPCION_TODOS,
   { valor: 'activo', etiqueta: 'Activos' },
   { valor: 'inactivo', etiqueta: 'Inactivos' },
 ]
+
+const OPCION_AUSENTES: { valor: EstadoFiltro; etiqueta: string } = { valor: 'ausente', etiqueta: 'Ausentes' }
 
 interface TrabajadoresFilterBarProps {
   filtros: TrabajadoresFiltros
   onFiltroChange: <K extends keyof TrabajadoresFiltros>(campo: K, valor: TrabajadoresFiltros[K]) => void
   onResetFiltros: () => void
+  mostrarAusentes?: boolean
+  onVerAusentes?: () => void
 }
 
-export function TrabajadoresFilterBar({ filtros, onFiltroChange, onResetFiltros }: TrabajadoresFilterBarProps) {
+export function TrabajadoresFilterBar({ filtros, onFiltroChange, onResetFiltros, mostrarAusentes = false, onVerAusentes }: TrabajadoresFilterBarProps) {
+  const opciones = mostrarAusentes ? [OPCION_TODOS, OPCION_AUSENTES] : OPCIONES_ESTADO
+
+  function handleEstadoClick(valor: EstadoFiltro) {
+    if (valor === 'ausente' && onVerAusentes) {
+      onVerAusentes()
+      return
+    }
+    onFiltroChange('estado', valor)
+  }
+
   return (
     <div className="neu-raised mb-4 flex flex-col gap-3 rounded-[2rem] p-4 sm:flex-row sm:items-center">
       <label className="neu-pressed flex min-h-14 flex-1 items-center gap-2 rounded-2xl px-4">
@@ -28,8 +44,8 @@ export function TrabajadoresFilterBar({ filtros, onFiltroChange, onResetFiltros 
       </label>
 
       <div className="flex gap-2" role="group" aria-label="Filtrar por estado">
-        {OPCIONES_ESTADO.map((opcion) => (
-          <button key={opcion.valor} type="button" onClick={() => onFiltroChange('estado', opcion.valor)} className={crearEstadoClass(filtros.estado === opcion.valor)}>
+        {opciones.map((opcion) => (
+          <button key={opcion.valor} type="button" onClick={() => handleEstadoClick(opcion.valor)} className={crearEstadoClass(filtros.estado === opcion.valor)}>
             {opcion.etiqueta}
           </button>
         ))}
