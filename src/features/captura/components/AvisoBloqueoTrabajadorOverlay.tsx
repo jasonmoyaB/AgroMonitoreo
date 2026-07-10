@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { CircleAlert } from 'lucide-react'
 
 interface AvisoBloqueoTrabajadorOverlayProps {
@@ -8,13 +9,19 @@ interface AvisoBloqueoTrabajadorOverlayProps {
 }
 
 export function AvisoBloqueoTrabajadorOverlay({ visible, nombreTrabajador, mensaje, onCerrar }: AvisoBloqueoTrabajadorOverlayProps) {
-  if (!visible) return null
+  const dialogRef = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    if (visible) dialogRef.current?.showModal()
+    else dialogRef.current?.close()
+  }, [visible])
 
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       role="alertdialog"
       aria-label={mensaje}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-amber-600/95 px-6 text-center"
+      className="m-0 h-full max-h-none w-full max-w-none border-0 bg-amber-600/95 p-0 open:flex flex-col items-center justify-center gap-6 px-6 text-center backdrop:bg-black/50"
     >
       <CircleAlert className="h-32 w-32 text-white" strokeWidth={3} aria-hidden="true" />
       <p className="text-2xl font-black text-white">{nombreTrabajador}</p>
@@ -26,6 +33,6 @@ export function AvisoBloqueoTrabajadorOverlay({ visible, nombreTrabajador, mensa
       >
         Entendido
       </button>
-    </div>
+    </dialog>
   )
 }

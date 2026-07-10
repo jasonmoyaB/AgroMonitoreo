@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { DIAS_SEMANA } from '../../asistencia/constants/calendario.constants'
+import { DIAS_SEMANA, DIAS_SEMANA_CLAVES } from '../../asistencia/constants/calendario.constants'
 import type { AsistenciaConTrabajador } from '../../asistencia/types/asistencia.types'
 import { obtenerEspaciosCalendario } from '../../asistencia/utils/obtener-espacios-calendario'
 import { construirFechaIso } from '../../captura/utils/fecha-iso'
@@ -26,14 +26,14 @@ export function CalendarioAusentesPanel({ anio, mes, registros, isLoading, onCam
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <button type="button" onClick={() => onCambiarMes(-1)} className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
+        <button type="button" onClick={() => onCambiarMes(-1)} aria-label="Mes anterior" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
           <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="text-center">
           <strong className="text-xl font-black capitalize text-slate-900">{mesNombre} {anio}</strong>
           <p className="text-sm font-bold text-slate-600">Trabajadores ausentes por dia</p>
         </div>
-        <button type="button" onClick={() => onCambiarMes(1)} className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
+        <button type="button" onClick={() => onCambiarMes(1)} aria-label="Mes siguiente" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
           <ChevronRight className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
@@ -41,7 +41,7 @@ export function CalendarioAusentesPanel({ anio, mes, registros, isLoading, onCam
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="neu-pressed rounded-3xl p-3 sm:p-4">
           <div className="grid grid-cols-7 gap-2">
-            {DIAS_SEMANA.map((dia, index) => <span key={`${dia}-${index}`} className="text-center text-xs font-black text-slate-500">{dia}</span>)}
+            {DIAS_SEMANA.map((dia, index) => <span key={DIAS_SEMANA_CLAVES[index]} className="text-center text-xs font-black text-slate-500">{dia}</span>)}
             {Array.from({ length: espacios }, (_item, index) => <span key={`vacio-${index}`} aria-hidden="true" />)}
             {Array.from({ length: dias }, (_item, index) => {
               const dia = index + 1

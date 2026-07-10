@@ -2,6 +2,8 @@ import type { RangoSemana } from '../types/asistencia.types'
 
 const DIAS_SEMANA = 7
 const DOMINGO = 0
+const FORMATO_CORTO = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short' })
+const FORMATO_LARGO = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })
 
 export function obtenerRangoSemana(offsetSemanas: number): RangoSemana {
   const hoy = new Date()
@@ -23,7 +25,5 @@ function aFechaIso(fecha: Date): string {
 }
 
 function formatearEtiqueta(inicio: Date, fin: Date): string {
-  const corto = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short' })
-  const largo = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })
-  return `${corto.format(inicio)} – ${largo.format(fin)}`
+  return `${FORMATO_CORTO.format(inicio)} – ${FORMATO_LARGO.format(fin)}`
 }

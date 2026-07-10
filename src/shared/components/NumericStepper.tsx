@@ -1,5 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { StepperButton } from './StepperButton'
 
@@ -28,10 +28,12 @@ function limitarARango(valor: number, rango: RangoNumerico): number {
 
 export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR_DEFECTO }: NumericStepperProps) {
   const [texto, setTexto] = useState(String(value))
+  const [valorPrevio, setValorPrevio] = useState(value)
 
-  useEffect(() => {
+  if (value !== valorPrevio) {
+    setValorPrevio(value)
     setTexto(String(value))
-  }, [value])
+  }
 
   const decrementar = () => onChange(limitarARango(redondear(value - step), rango))
   const incrementar = () => onChange(limitarARango(redondear(value + step), rango))
