@@ -39,7 +39,7 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, onToggle, onSignO
         </button>
       </div>
 
-      <nav className="mt-3 md:mt-8 md:flex md:flex-1 md:flex-col" aria-label="Supervisor">
+      <nav className={`${isCollapsed ? 'hidden' : 'mt-3'} md:mt-8 md:flex md:flex-1 md:flex-col`} aria-label="Supervisor">
         {NAV_ITEMS.map(({ to, label, icon: Icon }, index) => {
           const isActive = to === '/supervisor' ? location.pathname === to : location.pathname.startsWith(to)
 
@@ -65,7 +65,7 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, onToggle, onSignO
         type="button"
         onClick={onSignOut}
         disabled={isSigningOut}
-        className="mt-2 flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl px-3 font-bold text-slate-700 transition-colors duration-200 hover:bg-white/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:opacity-60 md:mt-8"
+        className={`mt-2 min-h-12 cursor-pointer items-center gap-3 rounded-2xl px-3 font-bold text-slate-700 transition-colors duration-200 hover:bg-white/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:opacity-60 md:mt-8 md:flex ${isCollapsed ? 'hidden' : 'flex'}`}
       >
         <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
         <span className={labelClass}>{isSigningOut ? 'Saliendo' : 'Salir'}</span>

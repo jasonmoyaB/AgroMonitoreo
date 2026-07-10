@@ -17,6 +17,7 @@
 | Las 11 labores (constante frontend) | `src/shared/constants/tipos-labor.constants.ts` |
 | Migraciones Supabase | `supabase/migrations/` |
 | Docs sueltos (seguridad, cambios puntuales) | `docs/` |
+| Reglas responsive (shell, sidebar, grids, tablas) | `docs/RESPONSIVE.md` |
 | Tests | `test/` (espejo de `src/`, no colocados) |
 
 ## Mantenimiento
