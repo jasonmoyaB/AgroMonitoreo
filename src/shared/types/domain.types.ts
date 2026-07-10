@@ -45,3 +45,10 @@ export interface RegistroTrabajo {
   registradoPor: string
   createdAt: string
 }
+
+export interface Ausencia {
+  id: string
+  fincaId: string
+  trabajadorId: string
+  fecha: string
+}

@@ -34,6 +34,55 @@ export type Database = {
   }
   public: {
     Tables: {
+      asistencia: {
+        Row: {
+          creado_en: string
+          fecha: string
+          finca_id: string
+          id: string
+          registrado_por: string
+          trabajador_id: string
+        }
+        Insert: {
+          creado_en?: string
+          fecha: string
+          finca_id: string
+          id?: string
+          registrado_por?: string
+          trabajador_id: string
+        }
+        Update: {
+          creado_en?: string
+          fecha?: string
+          finca_id?: string
+          id?: string
+          registrado_por?: string
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asistencia_finca_id_fkey"
+            columns: ["finca_id"]
+            isOneToOne: false
+            referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asistencia_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asistencia_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fincas: {
         Row: {
           activa: boolean
