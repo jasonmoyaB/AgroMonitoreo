@@ -53,7 +53,7 @@ export function Modal({ isOpen, title, onClose, children, size = 'md' }: ModalPr
             onClick={() => dialogRef.current?.close()}
             className="absolute inset-0 h-full w-full cursor-default"
           />
-          <div className={`neu-raised relative mx-auto max-h-full overflow-y-auto scrollbar-none rounded-[2rem] p-5 sm:p-6 ${MAX_WIDTH_POR_TAMANO[size]}`}>
+          <div className={`neu-raised relative mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto scrollbar-none rounded-[2rem] p-5 sm:max-h-[calc(100vh-3rem)] sm:p-6 ${MAX_WIDTH_POR_TAMANO[size]}`}>
             <div className="mb-4 flex items-start justify-between gap-3">
               <h2 className="text-2xl font-black text-slate-900">{title}</h2>
               <button

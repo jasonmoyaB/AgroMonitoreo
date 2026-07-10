@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { SeleccionFechaScreen, TrabajadoresScreen, CapturaRegistroScreen } from '../features/captura'
 import { AuthGuard, LoginScreen, RegisterScreen } from '../features/auth'
 import { AsistenciaScreen, DashboardScreen, SupervisorDashboardScreen, TrabajadoresCrudScreen } from '../features/supervisor'
+import { NotFoundScreen } from './NotFoundScreen'
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/supervisor" replace /> },
@@ -20,5 +21,5 @@ export const router = createBrowserRouter([
       { path: '/captura/labor/:tipoLaborId/trabajadores/:trabajadorId', element: <CapturaRegistroScreen /> },
     ],
   },
-  { path: '*', element: <Navigate to="/supervisor" replace /> },
+  { path: '*', element: <NotFoundScreen /> },
 ])
