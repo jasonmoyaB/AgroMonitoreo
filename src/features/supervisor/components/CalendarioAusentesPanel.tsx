@@ -24,7 +24,7 @@ export function CalendarioAusentesPanel({ anio, mes, registros, isLoading, onCam
   const registrosSeleccionados = fechaSeleccionada ? registrosPorFecha.get(fechaSeleccionada) ?? [] : []
 
   return (
-    <div className="space-y-4">
+    <div className="mt-2 mb-2 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <button type="button" onClick={() => onCambiarMes(-1)} aria-label="Mes anterior" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
           <ChevronLeft className="h-5 w-5" aria-hidden="true" />
