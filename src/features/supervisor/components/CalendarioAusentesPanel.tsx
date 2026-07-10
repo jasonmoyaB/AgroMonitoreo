@@ -68,13 +68,19 @@ function DiaAusentes(props: { dia: number; fecha: string; registros: readonly As
       type="button"
       disabled={!tieneAusentes}
       onClick={() => props.onSeleccionar(props.fecha)}
-      className={`min-h-28 rounded-2xl bg-white/70 p-2 text-left shadow-inner shadow-white/60 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 sm:min-h-36 ${tieneAusentes ? 'cursor-pointer hover:bg-white' : 'cursor-default'} ${selectedClass}`}
+      className={`min-h-16 rounded-2xl bg-white/70 p-2 text-left shadow-inner shadow-white/60 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 sm:min-h-36 ${tieneAusentes ? 'cursor-pointer hover:bg-white' : 'cursor-default'} ${selectedClass}`}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-sm font-black text-slate-900">{props.dia}</span>
         {tieneAusentes && <span className="rounded-full bg-rose-100 px-2 py-1 text-[0.65rem] font-black text-rose-800">{props.registros.length}</span>}
       </div>
-      {!tieneAusentes ? <p className="text-xs font-bold text-slate-400">Sin ausentes</p> : <ListaAusentes registros={props.registros} />}
+      {!tieneAusentes ? (
+        <p className="hidden text-xs font-bold text-slate-400 sm:block">Sin ausentes</p>
+      ) : (
+        <div className="hidden sm:block">
+          <ListaAusentes registros={props.registros} />
+        </div>
+      )}
     </button>
   )
 }
