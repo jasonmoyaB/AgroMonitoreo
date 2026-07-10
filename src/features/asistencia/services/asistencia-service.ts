@@ -6,8 +6,8 @@ import type { AsistenciaConTrabajador } from '../types/asistencia.types'
 const ASISTENCIA_COLUMNS = 'id, finca_id, trabajador_id, fecha'
 const ASISTENCIA_CON_TRABAJADOR_COLUMNS = 'id, fecha, trabajador_id, trabajadores!inner(nombre_completo)'
 
-export async function listarAusentesPorFecha(fecha: string, client: SupabaseClient = supabase): Promise<Ausencia[]> {
-  const { data, error } = await client.from('asistencia').select(ASISTENCIA_COLUMNS).eq('fecha', fecha)
+export async function listarAusentesPorFecha(fincaId: string, fecha: string, client: SupabaseClient = supabase): Promise<Ausencia[]> {
+  const { data, error } = await client.from('asistencia').select(ASISTENCIA_COLUMNS).eq('finca_id', fincaId).eq('fecha', fecha)
 
   if (error) throw new Error(`listarAusentesPorFecha: ${error.message}`)
   return data.map(mapAusencia)
@@ -59,6 +59,12 @@ export async function registrarAusencias(
   const { error } = await client.from('asistencia').upsert(registros, { onConflict: 'trabajador_id,fecha' })
 
   if (error) throw new Error(`registrarAusencias: ${error.message}`)
+}
+
+export async function quitarAusente(fincaId: string, trabajadorId: string, fecha: string, client: SupabaseClient = supabase): Promise<void> {
+  const { error } = await client.from('asistencia').delete().eq('finca_id', fincaId).eq('trabajador_id', trabajadorId).eq('fecha', fecha)
+
+  if (error) throw new Error(`quitarAusente: ${error.message}`)
 }
 
 interface AusenciaRow {
