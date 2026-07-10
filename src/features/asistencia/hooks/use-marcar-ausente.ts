@@ -14,7 +14,7 @@ export function useMarcarAusente() {
 
   return useMutation({
     mutationFn: ({ fincaId, trabajadorId, fecha, estaAusente }: ToggleAusenteInput) =>
-      estaAusente ? quitarAusente(trabajadorId, fecha) : marcarAusente(fincaId, trabajadorId, fecha),
+      estaAusente ? quitarAusente(fincaId, trabajadorId, fecha) : marcarAusente(fincaId, trabajadorId, fecha),
     onSuccess: (_data, { fecha }) => {
       queryClient.invalidateQueries({ queryKey: [ASISTENCIA_DIA_QUERY_KEY, fecha] })
     },
