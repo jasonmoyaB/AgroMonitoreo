@@ -6,10 +6,9 @@ interface WorkersGridProps {
   idsRegistrados: ReadonlySet<string>
   idsAusentes: ReadonlySet<string>
   onSeleccionar: (trabajador: Trabajador) => void
-  onToggleAusente: (trabajador: Trabajador) => void
 }
 
-export function WorkersGrid({ trabajadores, idsRegistrados, idsAusentes, onSeleccionar, onToggleAusente }: WorkersGridProps) {
+export function WorkersGrid({ trabajadores, idsRegistrados, idsAusentes, onSeleccionar }: WorkersGridProps) {
   if (trabajadores.length === 0) {
     return <p className="p-8 text-center text-lg font-semibold text-slate-500">Sin resultados</p>
   }
@@ -21,17 +20,16 @@ export function WorkersGrid({ trabajadores, idsRegistrados, idsAusentes, onSelec
           key={trabajador.id}
           id={`trabajador-${trabajador.id}`}
           trabajador={trabajador}
-          estado={obtenerEstado(trabajador.id, idsRegistrados, idsAusentes)}
+          estado={obtenerEstado(trabajador.id, idsRegistrados)}
+          estaAusente={idsAusentes.has(trabajador.id)}
           onClick={() => onSeleccionar(trabajador)}
-          onToggleAusente={() => onToggleAusente(trabajador)}
         />
       ))}
     </div>
   )
 }
 
-function obtenerEstado(id: string, idsRegistrados: ReadonlySet<string>, idsAusentes: ReadonlySet<string>): EstadoWorkerCard {
-  if (idsAusentes.has(id)) return 'ausente'
+function obtenerEstado(id: string, idsRegistrados: ReadonlySet<string>): EstadoWorkerCard {
   if (idsRegistrados.has(id)) return 'registrado'
   return 'pendiente'
 }

@@ -5,13 +5,12 @@ import { ProgresoDelDia } from '../components/ProgresoDelDia'
 import { WizardHeader } from '../components/WizardHeader'
 import { AlfabetoIndice } from '../components/AlfabetoIndice'
 import { BuscadorTrabajador } from '../components/BuscadorTrabajador'
-import { AvisoYaRegistradoOverlay } from '../components/AvisoYaRegistradoOverlay'
+import { AvisoBloqueoTrabajadorOverlay } from '../components/AvisoBloqueoTrabajadorOverlay'
 import { useTrabajadoresPorFinca } from '../hooks/use-trabajadores-por-finca'
 import { useRegistrosDelDia } from '../hooks/use-registros-del-dia'
 import { useSaltarATrabajador } from '../hooks/use-saltar-a-trabajador'
 import { useBusquedaTrabajadores } from '../hooks/use-busqueda-trabajadores'
 import { useAusentesDelDia } from '../../asistencia/hooks/use-ausentes-del-dia'
-import { useMarcarAusente } from '../../asistencia/hooks/use-marcar-ausente'
 import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
 import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
@@ -21,17 +20,23 @@ import { obtenerIdsRegistradosPorLabor } from '../utils/obtener-ids-registrados'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 const TOTAL_PASOS_CAPTURA = 2
+const MENSAJE_YA_REGISTRADO = 'Ya registrado hoy'
+const MENSAJE_AUSENTE = 'El trabajador esta ausente'
+
+interface TrabajadorBloqueado {
+  trabajador: Trabajador
+  mensaje: string
+}
 
 export function TrabajadoresScreen() {
   const { tipoLaborId = '' } = useParams<{ tipoLaborId: string }>()
   const navigate = useNavigate()
   const fecha = useCapturaSessionStore((state) => state.fecha)
-  const [trabajadorBloqueado, setTrabajadorBloqueado] = useState<Trabajador | null>(null)
+  const [trabajadorBloqueado, setTrabajadorBloqueado] = useState<TrabajadorBloqueado | null>(null)
 
   const { data: trabajadores = [] } = useTrabajadoresPorFinca(FINCA_ACTUAL.id)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
   const { data: ausencias = [] } = useAusentesDelDia(fecha)
-  const marcarAusente = useMarcarAusente()
   const tipoLabor = TIPOS_LABOR.find((labor) => labor.id === tipoLaborId)
 
   const trabajadoresOrdenados = ordenarTrabajadoresAlfabeticamente(trabajadores)
@@ -42,22 +47,17 @@ export function TrabajadoresScreen() {
 
   function manejarSeleccion(trabajador: Trabajador) {
     if (idsRegistrados.has(trabajador.id)) {
-      setTrabajadorBloqueado(trabajador)
+      setTrabajadorBloqueado({ trabajador, mensaje: MENSAJE_YA_REGISTRADO })
+      return
+    }
+    if (idsAusentes.has(trabajador.id)) {
+      setTrabajadorBloqueado({ trabajador, mensaje: MENSAJE_AUSENTE })
       return
     }
     navigate(`/captura/labor/${tipoLaborId}/trabajadores/${trabajador.id}`)
   }
 
-  function manejarToggleAusente(trabajador: Trabajador) {
-    marcarAusente.mutate({
-      fincaId: FINCA_ACTUAL.id,
-      trabajadorId: trabajador.id,
-      fecha,
-      estaAusente: idsAusentes.has(trabajador.id),
-    })
-  }
-
-  const registrados = registros.filter((registro) => registro.tipoLaborId === tipoLaborId).length + ausencias.length
+  const registrados = registros.filter((registro) => registro.tipoLaborId === tipoLaborId).length
   const mostrarIndiceAlfabeto = !busqueda && trabajadoresOrdenados.length > UMBRAL_INDICE_ALFABETO
 
   return (
@@ -78,13 +78,13 @@ export function TrabajadoresScreen() {
           idsRegistrados={idsRegistrados}
           idsAusentes={idsAusentes}
           onSeleccionar={manejarSeleccion}
-          onToggleAusente={manejarToggleAusente}
         />
       </div>
       <ProgresoDelDia registrados={registrados} total={trabajadores.length} />
-      <AvisoYaRegistradoOverlay
+      <AvisoBloqueoTrabajadorOverlay
         visible={trabajadorBloqueado !== null}
-        nombreTrabajador={trabajadorBloqueado?.nombreCompleto ?? ''}
+        nombreTrabajador={trabajadorBloqueado?.trabajador.nombreCompleto ?? ''}
+        mensaje={trabajadorBloqueado?.mensaje ?? ''}
         onCerrar={() => setTrabajadorBloqueado(null)}
       />
     </main>

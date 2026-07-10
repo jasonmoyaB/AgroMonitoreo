@@ -33,6 +33,29 @@ export async function listarAsistenciaPorRango(
   return (data as unknown as AsistenciaConTrabajadorRow[]).map(mapAsistenciaConTrabajador)
 }
 
+export async function listarAusenciasPorTrabajador(
+  fincaId: string,
+  trabajadorId: string,
+  client: SupabaseClient = supabase
+): Promise<Ausencia[]> {
+  const { data, error } = await client
+    .from('asistencia')
+    .select(ASISTENCIA_COLUMNS)
+    .eq('finca_id', fincaId)
+    .eq('trabajador_id', trabajadorId)
+    .order('fecha', { ascending: false })
+
+  if (error) throw new Error(`listarAusenciasPorTrabajador: ${error.message}`)
+  return data.map(mapAusencia)
+}
+
+export async function listarIdsTrabajadoresAusentes(fincaId: string, client: SupabaseClient = supabase): Promise<string[]> {
+  const { data, error } = await client.from('asistencia').select('trabajador_id').eq('finca_id', fincaId)
+
+  if (error) throw new Error(`listarIdsTrabajadoresAusentes: ${error.message}`)
+  return [...new Set(data.map((row) => row.trabajador_id))]
+}
+
 export async function marcarAusente(
   fincaId: string,
   trabajadorId: string,
@@ -44,6 +67,18 @@ export async function marcarAusente(
     .upsert({ finca_id: fincaId, trabajador_id: trabajadorId, fecha }, { onConflict: 'trabajador_id,fecha' })
 
   if (error) throw new Error(`marcarAusente: ${error.message}`)
+}
+
+export async function registrarAusencias(
+  fincaId: string,
+  trabajadorId: string,
+  fechas: readonly string[],
+  client: SupabaseClient = supabase
+): Promise<void> {
+  const registros = fechas.map((fecha) => ({ finca_id: fincaId, trabajador_id: trabajadorId, fecha }))
+  const { error } = await client.from('asistencia').upsert(registros, { onConflict: 'trabajador_id,fecha' })
+
+  if (error) throw new Error(`registrarAusencias: ${error.message}`)
 }
 
 export async function quitarAusente(trabajadorId: string, fecha: string, client: SupabaseClient = supabase): Promise<void> {

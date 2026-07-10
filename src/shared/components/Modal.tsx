@@ -1,11 +1,12 @@
 import { useEffect, useRef, useEffectEvent, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 
-export type ModalSize = 'md' | 'lg'
+export type ModalSize = 'md' | 'lg' | 'xl'
 
 const MAX_WIDTH_POR_TAMANO: Record<ModalSize, string> = {
   md: 'max-w-lg',
   lg: 'max-w-5xl',
+  xl: 'max-w-7xl',
 }
 
 interface ModalProps {

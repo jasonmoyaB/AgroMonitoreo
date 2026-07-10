@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { ASISTENCIA_SEMANA_QUERY_KEY } from '../constants/asistencia-query.constants'
 import { listarAsistenciaPorRango } from '../services/asistencia-service'
 import { obtenerRangoSemana } from '../utils/obtener-rango-semana'
 
@@ -10,7 +11,7 @@ export function useAsistenciaSemana(fincaId: string) {
   const rango = obtenerRangoSemana(offsetSemanas)
 
   const query = useQuery({
-    queryKey: ['asistencia-semana', fincaId, rango.inicio, rango.fin],
+    queryKey: [ASISTENCIA_SEMANA_QUERY_KEY, fincaId, rango.inicio, rango.fin],
     queryFn: () => listarAsistenciaPorRango(fincaId, rango.inicio, rango.fin),
   })
 

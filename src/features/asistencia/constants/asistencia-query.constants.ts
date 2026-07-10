@@ -1,0 +1,5 @@
+export const ASISTENCIA_DIA_QUERY_KEY = 'asistencia'
+export const ASISTENCIA_MES_QUERY_KEY = 'asistencia-mes'
+export const ASISTENCIA_SEMANA_QUERY_KEY = 'asistencia-semana'
+export const ASISTENCIA_TRABAJADOR_QUERY_KEY = 'asistencia-trabajador'
+export const ASISTENCIA_TRABAJADORES_AUSENTES_QUERY_KEY = 'asistencia-trabajadores-ausentes'

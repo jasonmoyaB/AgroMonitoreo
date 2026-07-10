@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { ASISTENCIA_DIA_QUERY_KEY } from '../constants/asistencia-query.constants'
 import { marcarAusente, quitarAusente } from '../services/asistencia-service'
 
 interface ToggleAusenteInput {
@@ -15,7 +16,7 @@ export function useMarcarAusente() {
     mutationFn: ({ fincaId, trabajadorId, fecha, estaAusente }: ToggleAusenteInput) =>
       estaAusente ? quitarAusente(trabajadorId, fecha) : marcarAusente(fincaId, trabajadorId, fecha),
     onSuccess: (_data, { fecha }) => {
-      queryClient.invalidateQueries({ queryKey: ['asistencia', fecha] })
+      queryClient.invalidateQueries({ queryKey: [ASISTENCIA_DIA_QUERY_KEY, fecha] })
     },
   })
 }
