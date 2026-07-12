@@ -9,6 +9,7 @@
 | Flujo de captura (foreman) | `src/features/captura/` (screens → components → hooks → services → utils → types → constants) |
 | Dashboard supervisor / KPIs | `src/features/supervisor/` |
 | CRUD de trabajadores + fotos | `src/features/trabajadores/` |
+| Asistencia / ausencias (calendario, tabla semanal, PDF) | `src/features/asistencia/` (hosteado por `src/features/supervisor/screens/AsistenciaScreen.tsx`) |
 | Componentes compartidos (IconTile, Avatar, Stepper...) | `src/shared/components/` |
 | Cliente Supabase | `src/shared/lib/supabase-client.ts` |
 | Tipos generados de Supabase (regenerar tras migración) | `src/shared/types/supabase.types.ts` |

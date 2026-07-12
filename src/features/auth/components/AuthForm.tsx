@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LockKeyhole, Mail, ShieldCheck, Sprout } from 'lucide-react'
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sprout } from 'lucide-react'
 import { useAuthForm } from '../hooks/use-auth-form'
 import type { AuthMode } from '../types/auth.types'
 
@@ -29,6 +30,7 @@ interface AuthFormProps {
 export function AuthForm({ mode }: AuthFormProps) {
   const content = CONTENT[mode]
   const form = useAuthForm(mode)
+  const [mostrarPassword, setMostrarPassword] = useState(false)
 
   return (
     <div className="neu-raised w-full rounded-[2rem] p-6 sm:p-8">
@@ -71,11 +73,11 @@ export function AuthForm({ mode }: AuthFormProps) {
 
         <label className="block" htmlFor="password">
           <span className="mb-2 block text-sm font-black text-slate-700">Contraseña</span>
-          <span className="neu-well flex min-h-14 items-center gap-3 rounded-2xl px-4">
+          <span className="neu-well flex min-h-14 items-center gap-3 rounded-2xl pl-4 pr-2">
             <LockKeyhole className="h-5 w-5 text-green-800" aria-hidden="true" />
             <input
               id="password"
-              type="password"
+              type={mostrarPassword ? 'text' : 'password'}
               value={form.password}
               onChange={(event) => form.setPassword(event.target.value)}
               className="min-h-14 flex-1 bg-transparent text-base font-bold text-slate-900 outline-none placeholder:text-slate-500"
@@ -83,6 +85,15 @@ export function AuthForm({ mode }: AuthFormProps) {
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               required
             />
+            <button
+              type="button"
+              onClick={() => setMostrarPassword((valor) => !valor)}
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-colors duration-200 hover:text-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900"
+              aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              aria-pressed={mostrarPassword}
+            >
+              {mostrarPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
+            </button>
           </span>
         </label>
 

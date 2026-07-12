@@ -26,6 +26,37 @@ button {
   touch-action: manipulation;
 }
 
+/* Browser autofill (email/password managers) paints its own background +
+   text color directly on the input, breaking the neu-well look. Force it
+   back to the app surface instead of fighting bg-transparent.
+   -internal-autofill-previewed/-selected are Chrome's *preview* state while
+   hovering a suggestion (e.g. a saved Gmail address) in the dropdown —
+   distinct from :-webkit-autofill, which only applies after the value is
+   committed. Without these, the input flashes blank during the preview. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--neu-bg) inset;
+  box-shadow: 0 0 0 1000px var(--neu-bg) inset;
+  -webkit-text-fill-color: #0f172a;
+  caret-color: #0f172a;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Separate rule: -internal-autofill-* is Chromium-only and unrecognized by
+   Firefox/Safari. Mixed into one comma-separated selector, an unknown
+   pseudo-class invalidates the whole rule in those browsers — keep it
+   isolated so it only ever risks itself. */
+input:-internal-autofill-previewed,
+input:-internal-autofill-selected {
+  -webkit-box-shadow: 0 0 0 1000px var(--neu-bg) inset;
+  box-shadow: 0 0 0 1000px var(--neu-bg) inset;
+  -webkit-text-fill-color: #0f172a;
+  caret-color: #0f172a;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* Neumorphic surface tokens — reused by every interactive surface so the
    light source (top-left) and depth stay consistent across the app. */
 @utility neu-raised {
