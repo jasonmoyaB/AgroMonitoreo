@@ -20,6 +20,7 @@ export async function crearFinca(input: CrearFincaInput, client: SupabaseClient 
     .single()
 
   if (error) throw new Error(`crearFinca: ${error.message}`)
+  if (!data) throw new Error('crearFinca: no se pudo crear la finca')
   return data
 }
 
