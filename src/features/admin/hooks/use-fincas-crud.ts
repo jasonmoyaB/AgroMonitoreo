@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { useToastStore } from '../../../shared/stores/toast-store'
 import type { Finca } from '../../../shared/types/domain.types'
 import { FINCAS_QUERY_KEY } from '../constants/fincas-query.constants'
-import { cambiarEstadoFinca, crearFinca, listarFincas } from '../services/fincas-service'
+import { actualizarFinca, cambiarEstadoFinca, crearFinca, listarFincas } from '../services/fincas-service'
 import type { CrearFincaInput } from '../types/finca-form.types'
 
 const FORM_INICIAL: CrearFincaInput = { id: '', nombre: '' }
@@ -12,6 +12,7 @@ const QUERY_KEY = [FINCAS_QUERY_KEY]
 export function useFincasCrud() {
   const queryClient = useQueryClient()
   const mostrarToast = useToastStore((state) => state.mostrarToast)
+  const [editando, setEditando] = useState<Finca | null>(null)
   const [values, setValues] = useState<CrearFincaInput>(FORM_INICIAL)
   const [error, setError] = useState<string | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -23,13 +24,22 @@ export function useFincasCrud() {
   }
 
   function abrirCrear() {
+    setEditando(null)
     setValues(FORM_INICIAL)
+    setError(null)
+    setIsFormOpen(true)
+  }
+
+  function abrirEditar(finca: Finca) {
+    setEditando(finca)
+    setValues({ id: finca.id, nombre: finca.nombre })
     setError(null)
     setIsFormOpen(true)
   }
 
   function cerrarForm() {
     setIsFormOpen(false)
+    setEditando(null)
     setValues(FORM_INICIAL)
     setError(null)
   }
@@ -43,10 +53,13 @@ export function useFincasCrud() {
 
     setIsSubmitting(true)
     try {
-      await crearFinca(values)
+      if (editando) await actualizarFinca({ id: editando.id, nombre: values.nombre })
+      else await crearFinca(values)
       await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      const descripcion = `${values.nombre.trim()} ya está disponible.`
+      const titulo = editando ? 'Finca actualizada' : 'Finca agregada'
       cerrarForm()
-      mostrarToast({ type: 'success', title: 'Finca agregada', description: `${values.nombre.trim()} ya está disponible.` })
+      mostrarToast({ type: 'success', title: titulo, description: descripcion })
     } catch (unknownError) {
       setError(unknownError instanceof Error ? unknownError.message : 'No se pudo guardar la finca.')
     } finally {
@@ -72,9 +85,11 @@ export function useFincasCrud() {
     isLoading,
     isSubmitting,
     isFormOpen,
+    isEditing: editando !== null,
     updateField,
     handleSubmit,
     onOpenCreate: abrirCrear,
+    onOpenEdit: abrirEditar,
     onCloseForm: cerrarForm,
     alternarEstado,
   }

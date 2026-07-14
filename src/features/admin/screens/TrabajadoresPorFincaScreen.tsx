@@ -5,17 +5,23 @@ import { AdminSidebar } from '../components/AdminSidebar'
 import { AdminTrabajadoresTable } from '../components/AdminTrabajadoresTable'
 import { FincaSelector } from '../components/FincaSelector'
 import { TrabajadorMetricasModal } from '../../trabajadores/components/TrabajadorMetricasModal'
+import { TrabajadoresFilterBar } from '../../trabajadores/components/TrabajadoresFilterBar'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useFincas } from '../hooks/use-fincas'
 import { useTrabajadoresFincaAdmin } from '../hooks/use-trabajadores-finca-admin'
+import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores-filtro'
 import { useTrabajadorMetricasModal } from '../../trabajadores/hooks/use-trabajador-metricas-modal'
+
+const FINCA_NOMBRE_VACIO = ''
 
 export function TrabajadoresPorFincaScreen() {
   const dashboard = useAdminDashboard()
   const { fincas } = useFincas()
   const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
   const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
+  const fincaNombre = fincas.find((finca) => finca.id === fincaId)?.nombre ?? FINCA_NOMBRE_VACIO
   const trabajadores = useTrabajadoresFincaAdmin(fincaId)
+  const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
   const metricasModal = useTrabajadorMetricasModal()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
@@ -34,8 +40,10 @@ export function TrabajadoresPorFincaScreen() {
 
           <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
 
+          <TrabajadoresFilterBar filtros={filtro.filtros} onFiltroChange={filtro.updateFiltro} onResetFiltros={filtro.resetFiltros} />
+
           <AdminTrabajadoresTable
-            trabajadores={trabajadores.trabajadores}
+            trabajadores={filtro.trabajadoresFiltrados}
             isLoading={trabajadores.isLoading}
             onSelectTrabajador={metricasModal.abrir}
           />
@@ -44,6 +52,7 @@ export function TrabajadoresPorFincaScreen() {
         <TrabajadorMetricasModal
           state={metricasModal}
           actions={{ onFiltroChange: metricasModal.updateFiltro, onResetFiltros: metricasModal.resetFiltros, onClose: metricasModal.cerrar }}
+          fincaNombre={fincaNombre}
         />
       </div>
     </main>

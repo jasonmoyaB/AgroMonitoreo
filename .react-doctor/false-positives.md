@@ -1,5 +1,12 @@
 # React Doctor — verified false positives
 
+The three entries below (`artifact-baas-authority-surface`, `no-barrel-import`,
+`js-length-check-first`) recur on every scan since they're structural to this
+codebase's real patterns (build output, feature barrels, magic-byte prefix
+check), not one-off code that gets fixed. They're now suppressed per-path via
+`ignore.overrides` in `doctor.config.json` so the score reflects only genuine
+findings — this file keeps the evidence for why each is safe to suppress.
+
 ## `react-doctor/no-impure-state-updater`
 
 ### `src/shared/components/NumericStepper.tsx:33-36`

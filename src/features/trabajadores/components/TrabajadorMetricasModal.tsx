@@ -11,12 +11,13 @@ import { TrabajadorMetricasTabla } from './TrabajadorMetricasTabla'
 interface TrabajadorMetricasModalProps {
   state: TrabajadorMetricasModalState
   actions: TrabajadorMetricasModalActions
+  fincaNombre: string
 }
 
-export function TrabajadorMetricasModal({ state, actions }: TrabajadorMetricasModalProps) {
+export function TrabajadorMetricasModal({ state, actions, fincaNombre }: TrabajadorMetricasModalProps) {
   const { trabajador, isOpen, filtros, aniosDisponibles, metricasPorLabor, totales, isLoading } = state
   const trabajadorNombre = trabajador?.nombreCompleto ?? 'Metricas del trabajador'
-  const descargarPdf = useDescargarMetricasTrabajadorPdf({ trabajadorNombre, metricasPorLabor, totales })
+  const descargarPdf = useDescargarMetricasTrabajadorPdf({ trabajadorNombre, fincaNombre, metricasPorLabor, totales })
   const cantidadesPorUnidad = agruparCantidadPorUnidad(metricasPorLabor)
 
   return (

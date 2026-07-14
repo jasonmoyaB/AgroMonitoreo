@@ -69,6 +69,7 @@ export function TrabajadoresCrudScreen() {
         <TrabajadorMetricasModal
           state={metricasModal}
           actions={{ onFiltroChange: metricasModal.updateFiltro, onResetFiltros: metricasModal.resetFiltros, onClose: metricasModal.cerrar }}
+          fincaNombre={trabajadores.finca.nombre}
         />
       </div>
     </main>

@@ -3,10 +3,11 @@ import type { Finca } from '../../../shared/types/domain.types'
 interface FincasTableProps {
   fincas: readonly Finca[]
   isLoading: boolean
+  onEdit: (finca: Finca) => void
   onToggleActive: (finca: Finca) => void
 }
 
-export function FincasTable({ fincas, isLoading, onToggleActive }: FincasTableProps) {
+export function FincasTable({ fincas, isLoading, onEdit, onToggleActive }: FincasTableProps) {
   if (isLoading) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">Cargando fincas.</p>
   if (!fincas.length) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">No hay fincas registradas.</p>
 
@@ -44,7 +45,14 @@ export function FincasTable({ fincas, isLoading, onToggleActive }: FincasTablePr
                   </span>
                 </td>
                 <td className="px-5 py-3">
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(finca)}
+                      className="neu-pressed min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-slate-800"
+                    >
+                      Editar
+                    </button>
                     <button
                       type="button"
                       onClick={() => onToggleActive(finca)}

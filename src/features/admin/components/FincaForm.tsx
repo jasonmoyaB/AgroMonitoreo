@@ -5,6 +5,7 @@ interface FincaFormProps {
   values: CrearFincaInput;
   error: string | null;
   isSubmitting: boolean;
+  isEditing: boolean;
   onFieldChange: <K extends keyof CrearFincaInput>(
     field: K,
     value: CrearFincaInput[K],
@@ -16,14 +17,16 @@ export function FincaForm({
   values,
   error,
   isSubmitting,
+  isEditing,
   onFieldChange,
   onSubmit,
 }: FincaFormProps) {
   const idInputRef = useRef<HTMLInputElement>(null);
+  const nombreInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    idInputRef.current?.focus();
-  }, []);
+    (isEditing ? nombreInputRef : idInputRef).current?.focus();
+  }, [isEditing]);
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -33,7 +36,8 @@ export function FincaForm({
           ref={idInputRef}
           value={values.id}
           onChange={(event) => onFieldChange("id", event.target.value)}
-          className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+          disabled={isEditing}
+          className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:opacity-60"
           placeholder="ej: la-esperanza"
           required
         />
@@ -42,6 +46,7 @@ export function FincaForm({
       <label className="flex flex-col gap-2 font-black text-slate-800">
         Nombre
         <input
+          ref={nombreInputRef}
           value={values.nombre}
           onChange={(event) => onFieldChange("nombre", event.target.value)}
           className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"

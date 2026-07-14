@@ -31,8 +31,16 @@ export function AdminTrabajadoresTable({ trabajadores, isLoading, onSelectTrabaj
             {trabajadores.map((trabajador) => (
               <tr
                 key={trabajador.id}
+                tabIndex={0}
+                role="button"
                 onClick={() => onSelectTrabajador(trabajador)}
-                className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    onSelectTrabajador(trabajador)
+                  }
+                }}
+                className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-green-700"
               >
                 <td className="px-5 py-3">
                   <div className="flex min-w-0 items-center gap-3">

@@ -36,11 +36,18 @@ export function FincasCrudScreen() {
             </button>
           </header>
 
-          <FincasTable fincas={fincas.fincas} isLoading={fincas.isLoading} onToggleActive={fincas.alternarEstado} />
+          <FincasTable fincas={fincas.fincas} isLoading={fincas.isLoading} onEdit={fincas.onOpenEdit} onToggleActive={fincas.alternarEstado} />
         </section>
 
-        <Modal isOpen={fincas.isFormOpen} title="Agregar finca" onClose={fincas.onCloseForm}>
-          <FincaForm values={fincas.values} error={fincas.error} isSubmitting={fincas.isSubmitting} onFieldChange={fincas.updateField} onSubmit={fincas.handleSubmit} />
+        <Modal isOpen={fincas.isFormOpen} title={fincas.isEditing ? 'Editar finca' : 'Agregar finca'} onClose={fincas.onCloseForm}>
+          <FincaForm
+            values={fincas.values}
+            error={fincas.error}
+            isSubmitting={fincas.isSubmitting}
+            isEditing={fincas.isEditing}
+            onFieldChange={fincas.updateField}
+            onSubmit={fincas.handleSubmit}
+          />
         </Modal>
       </div>
     </main>

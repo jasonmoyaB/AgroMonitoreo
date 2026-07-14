@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
 import type { Finca } from '../../../shared/types/domain.types'
-import type { CrearFincaInput } from '../types/finca-form.types'
+import type { ActualizarFincaInput, CrearFincaInput } from '../types/finca-form.types'
 
 const FINCAS_COLUMNS = 'id, nombre, activa'
 
@@ -21,6 +21,19 @@ export async function crearFinca(input: CrearFincaInput, client: SupabaseClient 
 
   if (error) throw new Error(`crearFinca: ${error.message}`)
   if (!data) throw new Error('crearFinca: no se pudo crear la finca')
+  return data
+}
+
+export async function actualizarFinca(input: ActualizarFincaInput, client: SupabaseClient = supabase): Promise<Finca> {
+  const { data, error } = await client
+    .from('fincas')
+    .update({ nombre: input.nombre.trim() })
+    .eq('id', input.id)
+    .select(FINCAS_COLUMNS)
+    .single()
+
+  if (error) throw new Error(`actualizarFinca: ${error.message}`)
+  if (!data) throw new Error('actualizarFinca: finca no encontrada')
   return data
 }
 
