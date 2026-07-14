@@ -11,6 +11,11 @@ create policy "fincas_insert_admin_oficina"
     )
   );
 
+grant select, insert, update, delete on table public.fincas to authenticated;
+grant select on table public.trabajadores to authenticated;
+grant select on table public.asistencia to authenticated;
+grant select on table public.registros_trabajo to authenticated;
+
 create policy "fincas_update_admin_oficina"
   on public.fincas for update to authenticated
   using (
