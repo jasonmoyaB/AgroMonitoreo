@@ -2,22 +2,24 @@ import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
 
+interface EstadoAuthSession {
+  session: Session | null
+  isLoading: boolean
+}
+
 export function useAuthSession() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [estado, setEstado] = useState<EstadoAuthSession>({ session: null, isLoading: true })
 
   useEffect(() => {
     let isMounted = true
 
     supabase.auth.getSession().then(({ data }) => {
       if (!isMounted) return
-      setSession(data.session)
-      setIsLoading(false)
+      setEstado({ session: data.session, isLoading: false })
     })
 
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession)
-      setIsLoading(false)
+      setEstado({ session: nextSession, isLoading: false })
     })
 
     return () => {
@@ -26,5 +28,5 @@ export function useAuthSession() {
     }
   }, [])
 
-  return { session, isLoading }
+  return estado
 }

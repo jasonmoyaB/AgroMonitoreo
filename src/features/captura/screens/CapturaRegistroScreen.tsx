@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { NumericStepper } from '../../../shared/components/NumericStepper'
 import { ConfirmarRegistroButton } from '../components/ConfirmarRegistroButton'
@@ -15,7 +15,6 @@ import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { PASO_HORAS, TIEMPO_CONFIRMACION_MS, HORAS_MAXIMAS_POR_DIA, CANTIDAD_MAXIMA_POR_REGISTRO } from '../constants/captura.constants'
 import { vibrarConfirmacion } from '../../../shared/lib/vibrate'
 import { construirRegistro } from '../utils/construir-registro'
-import { obtenerIdsRegistradosPorLabor } from '../utils/obtener-ids-registrados'
 
 const TOTAL_PASOS_CAPTURA = 2
 
@@ -24,22 +23,29 @@ export function CapturaRegistroScreen() {
   const navigate = useNavigate()
   const fecha = useCapturaSessionStore((state) => state.fecha)
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
+  const draftPrecargado = useRef(false)
 
   const { data: trabajadores = [] } = useTrabajadoresPorFinca(FINCA_ACTUAL.id)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
   const crearRegistro = useCrearRegistro()
-  const { draft, setDraft, limpiarDraft } = useRegistroDraft(trabajadorId, tipoLaborId, fecha)
+  const { draft, setDraft, limpiarDraft, cargado } = useRegistroDraft(trabajadorId, tipoLaborId, fecha)
 
   const tipoLabor = TIPOS_LABOR.find((labor) => labor.id === tipoLaborId)
   const trabajador = trabajadores.find((persona) => persona.id === trabajadorId)
-  const yaRegistrado = obtenerIdsRegistradosPorLabor(registros, tipoLaborId).has(trabajadorId)
-  const bloqueadoPorRegistroPrevio = yaRegistrado && !mostrarConfirmacion
+  const registroExistente = registros.find(
+    (registro) => registro.trabajadorId === trabajadorId && registro.tipoLaborId === tipoLaborId
+  )
 
   useEffect(() => {
-    if (bloqueadoPorRegistroPrevio) navigate(`/captura/labor/${tipoLaborId}/trabajadores`, { replace: true })
-  }, [bloqueadoPorRegistroPrevio, navigate, tipoLaborId])
+    if (!cargado || !registroExistente || draftPrecargado.current) return
+    draftPrecargado.current = true
+    // Solo pisa el borrador local si sigue en su valor inicial (0/0 = nada sin enviar todavia).
+    if (draft.horas === 0 && draft.cantidad === 0) {
+      setDraft({ horas: registroExistente.horas, cantidad: registroExistente.cantidad ?? 0 })
+    }
+  }, [cargado, registroExistente, draft, setDraft])
 
-  if (!tipoLabor || !trabajador || bloqueadoPorRegistroPrevio) return null
+  if (!tipoLabor || !trabajador) return null
 
   function manejarExito() {
     vibrarConfirmacion()
@@ -92,7 +98,11 @@ export function CapturaRegistroScreen() {
       </div>
       <div className="flex w-full max-w-md flex-col items-center gap-4">
         <LaborActualBadge icono={tipoLabor.icono} nombre={tipoLabor.nombre} color={tipoLabor.color} />
-        <ConfirmarRegistroButton onClick={confirmarRegistro} disabled={crearRegistro.isPending} />
+        <ConfirmarRegistroButton
+          onClick={confirmarRegistro}
+          disabled={crearRegistro.isPending}
+          texto={registroExistente ? 'Guardar cambios' : 'Confirmar'}
+        />
       </div>
       <ConfirmacionOverlay visible={mostrarConfirmacion} />
     </main>

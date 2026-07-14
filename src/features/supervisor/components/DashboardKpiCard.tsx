@@ -13,7 +13,7 @@ export function DashboardKpiCard({ icon: Icon, etiqueta, valor }: DashboardKpiCa
         <Icon className="h-6 w-6" aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-sm font-bold text-slate-600">{etiqueta}</span>
+        <span className="block text-sm font-bold leading-tight text-slate-600">{etiqueta}</span>
         <span className="block text-xl font-black tracking-tight text-slate-900">{valor}</span>
       </span>
     </div>

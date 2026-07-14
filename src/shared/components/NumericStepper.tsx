@@ -26,13 +26,17 @@ function limitarARango(valor: number, rango: RangoNumerico): number {
   return Math.min(rango.max, Math.max(rango.min, valor))
 }
 
-export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR_DEFECTO }: NumericStepperProps) {
-  const [texto, setTexto] = useState(String(value))
-  const [valorPrevio, setValorPrevio] = useState(value)
+interface EstadoTexto {
+  texto: string
+  valorPrevio: number
+}
 
-  if (value !== valorPrevio) {
-    setValorPrevio(value)
-    setTexto(String(value))
+export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR_DEFECTO }: NumericStepperProps) {
+  const [estado, setEstado] = useState<EstadoTexto>({ texto: String(value), valorPrevio: value })
+  const { texto } = estado
+
+  if (value !== estado.valorPrevio) {
+    setEstado({ texto: String(value), valorPrevio: value })
   }
 
   const decrementar = () => onChange(limitarARango(redondear(value - step), rango))
@@ -42,7 +46,7 @@ export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR
   function manejarEscritura(evento: ChangeEvent<HTMLInputElement>) {
     const textoEscrito =
       longitudMaxima === undefined ? evento.target.value : evento.target.value.slice(0, longitudMaxima)
-    setTexto(textoEscrito)
+    setEstado((actual) => ({ ...actual, texto: textoEscrito }))
     const valorEscrito = Number(textoEscrito)
     if (textoEscrito === '' || Number.isNaN(valorEscrito)) return
     onChange(valorEscrito)
@@ -52,7 +56,7 @@ export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR
     const valorEscrito = Number(texto)
     const valorValido = texto === '' || Number.isNaN(valorEscrito) ? rango.min : limitarARango(redondear(valorEscrito), rango)
     onChange(valorValido)
-    setTexto(String(valorValido))
+    setEstado((actual) => ({ ...actual, texto: String(valorValido) }))
   }
 
   return (

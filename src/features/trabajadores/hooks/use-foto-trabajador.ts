@@ -5,18 +5,19 @@ function revocarSiEsBlob(url: string | null) {
   if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
 }
 
+interface EstadoFoto {
+  fotoArchivo: File | null
+  fotoPreviewUrl: string | null
+  fotoError: string | null
+}
+
 export function useFotoTrabajador() {
-  const [fotoArchivo, setFotoArchivo] = useState<File | null>(null)
-  const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null)
-  const [fotoError, setFotoError] = useState<string | null>(null)
+  const [estado, setEstado] = useState<EstadoFoto>({ fotoArchivo: null, fotoPreviewUrl: null, fotoError: null })
+  const { fotoArchivo, fotoPreviewUrl, fotoError } = estado
 
   function reiniciarFoto(fotoUrlActual: string | null) {
-    setFotoPreviewUrl((previa) => {
-      revocarSiEsBlob(previa)
-      return fotoUrlActual
-    })
-    setFotoArchivo(null)
-    setFotoError(null)
+    revocarSiEsBlob(fotoPreviewUrl)
+    setEstado({ fotoArchivo: null, fotoPreviewUrl: fotoUrlActual, fotoError: null })
   }
 
   async function seleccionarFoto(archivo: File | null) {
@@ -26,15 +27,11 @@ export function useFotoTrabajador() {
     }
     const validacion = await validarFotoTrabajador(archivo)
     if (!validacion.valido) {
-      setFotoError(validacion.error)
+      setEstado((actual) => ({ ...actual, fotoError: validacion.error }))
       return
     }
-    setFotoError(null)
-    setFotoArchivo(archivo)
-    setFotoPreviewUrl((previa) => {
-      revocarSiEsBlob(previa)
-      return URL.createObjectURL(archivo)
-    })
+    revocarSiEsBlob(fotoPreviewUrl)
+    setEstado({ fotoArchivo: archivo, fotoPreviewUrl: URL.createObjectURL(archivo), fotoError: null })
   }
 
   return { fotoArchivo, fotoPreviewUrl, fotoError, seleccionarFoto, reiniciarFoto }

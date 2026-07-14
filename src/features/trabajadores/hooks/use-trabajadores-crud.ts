@@ -11,44 +11,52 @@ import type { TrabajadorFormValues } from '../types/trabajador-form.types'
 const TRABAJADOR_INICIAL: TrabajadorFormValues = { nombreCompleto: '', fotoUrl: '', activo: true }
 const TRABAJADORES_LISTADO_QUERY_KEY = [TRABAJADORES_QUERY_KEY, FINCA_ACTUAL.id]
 
+interface EstadoFormularioTrabajador {
+  values: TrabajadorFormValues
+  trabajadorEditando: Trabajador | null
+  error: string | null
+  isFormOpen: boolean
+}
+
+const FORM_INICIAL: EstadoFormularioTrabajador = {
+  values: TRABAJADOR_INICIAL,
+  trabajadorEditando: null,
+  error: null,
+  isFormOpen: false,
+}
+
 export function useTrabajadoresCrud() {
   const queryClient = useQueryClient()
   const mostrarToast = useToastStore((state) => state.mostrarToast)
-  const [values, setValues] = useState<TrabajadorFormValues>(TRABAJADOR_INICIAL)
-  const [trabajadorEditando, setTrabajadorEditando] = useState<Trabajador | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [form, setForm] = useState<EstadoFormularioTrabajador>(FORM_INICIAL)
+  const { values, trabajadorEditando, error, isFormOpen } = form
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isFormOpen, setIsFormOpen] = useState(false)
   const foto = useFotoTrabajador()
   const queryKey = TRABAJADORES_LISTADO_QUERY_KEY
   const { data: trabajadores = [], isLoading } = useQuery({ queryKey, queryFn: () => listarTodosTrabajadoresPorFinca(FINCA_ACTUAL.id) })
 
   function updateField<K extends keyof TrabajadorFormValues>(field: K, value: TrabajadorFormValues[K]) {
-    setValues((current) => ({ ...current, [field]: value }))
+    setForm((current) => ({ ...current, values: { ...current.values, [field]: value } }))
   }
 
   function editarTrabajador(trabajador: Trabajador) {
-    setTrabajadorEditando(trabajador)
-    setValues({ nombreCompleto: trabajador.nombreCompleto, fotoUrl: trabajador.fotoUrl ?? '', activo: trabajador.activo })
+    setForm({
+      trabajadorEditando: trabajador,
+      values: { nombreCompleto: trabajador.nombreCompleto, fotoUrl: trabajador.fotoUrl ?? '', activo: trabajador.activo },
+      error: null,
+      isFormOpen: true,
+    })
     foto.reiniciarFoto(trabajador.fotoUrl)
-    setError(null)
-    setIsFormOpen(true)
   }
 
   function abrirCrear() {
-    setTrabajadorEditando(null)
-    setValues(TRABAJADOR_INICIAL)
+    setForm({ trabajadorEditando: null, values: TRABAJADOR_INICIAL, error: null, isFormOpen: true })
     foto.reiniciarFoto(null)
-    setError(null)
-    setIsFormOpen(true)
   }
 
   function cerrarForm() {
-    setIsFormOpen(false)
-    setTrabajadorEditando(null)
-    setValues(TRABAJADOR_INICIAL)
+    setForm(FORM_INICIAL)
     foto.reiniciarFoto(null)
-    setError(null)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -89,9 +97,11 @@ export function useTrabajadoresCrud() {
   }
 
   function validarNombre() {
-    setError(null)
-    if (values.nombreCompleto.trim()) return true
-    setError('Escribe el nombre del trabajador.')
+    if (values.nombreCompleto.trim()) {
+      setForm((current) => ({ ...current, error: null }))
+      return true
+    }
+    setForm((current) => ({ ...current, error: 'Escribe el nombre del trabajador.' }))
     return false
   }
 
@@ -102,7 +112,8 @@ export function useTrabajadoresCrud() {
   }
 
   function mostrarError(unknownError: unknown, fallback: string) {
-    setError(unknownError instanceof Error ? unknownError.message : fallback)
+    const description = unknownError instanceof Error ? unknownError.message : fallback
+    setForm((current) => ({ ...current, error: description }))
   }
 
   return {

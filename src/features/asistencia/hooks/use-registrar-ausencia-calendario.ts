@@ -13,21 +13,26 @@ import {
 } from '../constants/asistencia-query.constants'
 import { registrarAusencias } from '../services/asistencia-service'
 
+interface EstadoModalCalendario {
+  trabajador: Trabajador | null
+  fechas: string[]
+  error: string | null
+}
+
+const ESTADO_MODAL_INICIAL: EstadoModalCalendario = { trabajador: null, fechas: [], error: null }
+
 export function useRegistrarAusenciaCalendario() {
   const queryClient = useQueryClient()
   const mostrarToast = useToastStore((state) => state.mostrarToast)
   const hoy = new Date()
-  const [trabajador, setTrabajador] = useState<Trabajador | null>(null)
+  const [estado, setEstado] = useState<EstadoModalCalendario>(ESTADO_MODAL_INICIAL)
   const [anio, setAnio] = useState(hoy.getFullYear())
   const [mes, setMes] = useState(hoy.getMonth() + 1)
-  const [fechas, setFechas] = useState<string[]>([])
-  const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { trabajador, fechas, error } = estado
 
   function abrir(trabajadorSeleccionado: Trabajador) {
-    setTrabajador(trabajadorSeleccionado)
-    setFechas([])
-    setError(null)
+    setEstado({ trabajador: trabajadorSeleccionado, fechas: [], error: null })
   }
 
   function cerrar() {
@@ -36,13 +41,14 @@ export function useRegistrarAusenciaCalendario() {
   }
 
   function limpiar() {
-    setTrabajador(null)
-    setFechas([])
-    setError(null)
+    setEstado(ESTADO_MODAL_INICIAL)
   }
 
   function toggleFecha(fecha: string) {
-    setFechas((actuales) => (actuales.includes(fecha) ? actuales.filter((item) => item !== fecha) : [...actuales, fecha].sort()))
+    setEstado((actual) => ({
+      ...actual,
+      fechas: actual.fechas.includes(fecha) ? actual.fechas.filter((item) => item !== fecha) : [...actual.fechas, fecha].sort(),
+    }))
   }
 
   function cambiarMes(direccion: -1 | 1) {
@@ -58,9 +64,11 @@ export function useRegistrarAusenciaCalendario() {
   }
 
   function validarFechas() {
-    setError(null)
-    if (fechas.length > 0) return true
-    setError('Selecciona al menos un dia en el calendario.')
+    if (fechas.length > 0) {
+      setEstado((actual) => ({ ...actual, error: null }))
+      return true
+    }
+    setEstado((actual) => ({ ...actual, error: 'Selecciona al menos un dia en el calendario.' }))
     return false
   }
 
@@ -88,7 +96,7 @@ export function useRegistrarAusenciaCalendario() {
 
   function mostrarError(unknownError: unknown) {
     const description = unknownError instanceof Error ? unknownError.message : 'No se pudo registrar la ausencia.'
-    setError(description)
+    setEstado((actual) => ({ ...actual, error: description }))
     mostrarToast({ type: 'error', title: 'No se pudo registrar la ausencia', description })
   }
 

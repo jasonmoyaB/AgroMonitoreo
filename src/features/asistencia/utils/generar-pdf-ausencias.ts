@@ -1,9 +1,10 @@
 import { DIAS_SEMANA } from '../constants/calendario.constants'
 import type { AsistenciaConTrabajador } from '../types/asistencia.types'
 import { obtenerEspaciosCalendario } from './obtener-espacios-calendario'
-import { construirFechaIso } from '../../captura/utils/fecha-iso'
+import { construirFechaIso, formatearFechaIsoDdMmAaaa } from '../../captura/utils/fecha-iso'
 import { MESES } from '../../captura/constants/meses.constants'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
+import { textoPdf as texto, crearBlobPdf } from '../../../shared/lib/pdf-doc'
 
 const PAGE = { width: 595, height: 842, margin: 40 }
 const GRID = { x: 40, y: 102, width: 515, rowHeight: 92 }
@@ -17,9 +18,7 @@ interface GenerarPdfAusenciasInput {
 }
 
 export function generarPdfAusencias(input: GenerarPdfAusenciasInput): Blob {
-  const stream = crearStream(input)
-  const objetos = crearObjetos(stream)
-  return new Blob([crearDocumentoPdf(objetos)], { type: 'application/pdf' })
+  return crearBlobPdf(crearStream(input), PAGE.width, PAGE.height)
 }
 
 function crearStream(input: GenerarPdfAusenciasInput): string {
@@ -89,15 +88,7 @@ function pintarNombreAusente(x: number, y: number, nombre: string): string {
 }
 
 function pintarPie(): string {
-  return texto(`Generado: ${formatearFecha(new Date().toISOString().slice(0, 10))}`, PAGE.margin, 42, 9, '0.35 0.35 0.35')
-}
-
-function crearObjetos(stream: string): string[] {
-  return ['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [4 0 R] /Count 1 >>', '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>', `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE.width} ${PAGE.height}] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>`, `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`]
-}
-
-function texto(valor: string, x: number, y: number, size: number, color: string): string {
-  return `${color} rg\nBT\n/F1 ${size} Tf\n${x} ${y} Td\n(${escaparTextoPdf(valor)}) Tj\nET`
+  return texto(`Generado: ${formatearFechaIsoDdMmAaaa(new Date().toISOString().slice(0, 10))}`, PAGE.margin, 42, 9, '0.35 0.35 0.35')
 }
 
 function agruparPorFecha(registros: readonly AsistenciaConTrabajador[]): Map<string, AsistenciaConTrabajador[]> {
@@ -110,32 +101,6 @@ function contarDias(registros: readonly AsistenciaConTrabajador[]): number {
   return new Set(registros.map((registro) => registro.fecha)).size
 }
 
-function crearDocumentoPdf(objetos: readonly string[]): string {
-  const partes = ['%PDF-1.4\n']
-  const offsets: number[] = []
-  objetos.forEach((objeto, index) => {
-    offsets.push(partes.join('').length)
-    partes.push(`${index + 1} 0 obj\n${objeto}\nendobj\n`)
-  })
-  const inicioXref = partes.join('').length
-  partes.push(crearXref(offsets), `trailer\n<< /Size ${objetos.length + 1} /Root 1 0 R >>\nstartxref\n${inicioXref}\n%%EOF`)
-  return partes.join('')
-}
-
-function crearXref(offsets: readonly number[]): string {
-  const filas = offsets.map((offset) => `${String(offset).padStart(10, '0')} 00000 n `).join('\n')
-  return `xref\n0 ${offsets.length + 1}\n0000000000 65535 f \n${filas}\n`
-}
-
 function acortar(textoCompleto: string): string {
   return textoCompleto.length > 16 ? `${textoCompleto.slice(0, 14)}...` : textoCompleto
-}
-
-function escaparTextoPdf(textoPdf: string): string {
-  return textoPdf.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[()\\]/g, '\\$&')
-}
-
-function formatearFecha(fecha: string): string {
-  const [anio, mes, dia] = fecha.split('-')
-  return `${dia}/${mes}/${anio}`
 }
