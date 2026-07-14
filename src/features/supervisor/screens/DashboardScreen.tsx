@@ -4,6 +4,7 @@ import { RankingBarChart } from '../../../shared/components/RankingBarChart'
 import { TendenciaLineChart } from '../../../shared/components/TendenciaLineChart'
 import { useDashboardKpis } from '../hooks/use-dashboard-kpis'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
+import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 
 const UNIDAD_GENERICA = 'unidades'
@@ -11,6 +12,7 @@ const UNIDAD_GENERICA = 'unidades'
 export function DashboardScreen() {
   const sidebar = useSupervisorDashboard()
   const dashboard = useDashboardKpis()
+  const perfil = usePerfilSidebar()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
   return (
@@ -19,6 +21,7 @@ export function DashboardScreen() {
         <SupervisorSidebar
           isCollapsed={sidebar.isSidebarCollapsed}
           isSigningOut={isSigningOut}
+          perfil={perfil}
           onToggle={sidebar.toggleSidebar}
           onSignOut={handleCerrarSesion}
         />

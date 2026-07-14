@@ -39,7 +39,7 @@ export function TrabajadoresScreen() {
   const { usuario } = useUsuarioActual()
   const { data: trabajadores = [] } = useTrabajadoresPorFinca(usuario?.fincaId)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
-  const { data: ausencias = [] } = useAusentesDelDia(fecha)
+  const { data: ausencias = [] } = useAusentesDelDia(usuario?.fincaId, fecha)
   const tipoLabor = TIPOS_LABOR.find((labor) => labor.id === tipoLaborId)
 
   const trabajadoresOrdenados = ordenarTrabajadoresAlfabeticamente(trabajadores)

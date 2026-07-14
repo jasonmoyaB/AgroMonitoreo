@@ -2,11 +2,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
 import type { RolNombre, Usuario } from '../../../shared/types/domain.types'
 
-const USUARIO_COLUMNS = 'id, email, finca_id, activo, rol:roles(nombre), finca:fincas(nombre)'
+const USUARIO_COLUMNS = 'id, email, nombre, finca_id, activo, rol:roles(nombre), finca:fincas(nombre)'
 
 interface UsuarioRow {
   id: string
   email: string
+  nombre: string | null
   finca_id: string
   activo: boolean
   rol: { nombre: RolNombre } | null
@@ -32,6 +33,7 @@ export async function obtenerUsuarioActual(client: SupabaseClient = supabase): P
   return {
     id: data.id,
     email: data.email,
+    nombre: data.nombre,
     fincaId: data.finca_id,
     fincaNombre: data.finca?.nombre ?? data.finca_id,
     activo: data.activo,

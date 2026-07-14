@@ -1,4 +1,5 @@
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
+import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { DashboardKpiRow } from '../../../shared/components/DashboardKpiRow'
 import { RankingBarChart } from '../../../shared/components/RankingBarChart'
 import { TendenciaLineChart } from '../../../shared/components/TendenciaLineChart'
@@ -12,11 +13,12 @@ export function AdminDashboardScreen() {
   const dashboard = useAdminDashboard()
   const rollup = useAdminRollupKpis()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
+  const perfil = usePerfilSidebar()
 
   return (
     <main className="h-dvh overflow-hidden p-3 sm:p-4">
       <div className="flex h-full min-w-0 flex-col gap-3 md:flex-row md:gap-4">
-        <AdminSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
+        <AdminSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} perfil={perfil} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pr-1 md:gap-4">
           <header className="neu-raised shrink-0 rounded-[2rem] p-4 sm:p-6">

@@ -61,6 +61,7 @@ export type RolNombre = 'admin_oficina' | 'supervisor'
 export interface Usuario {
   id: string
   email: string
+  nombre: string | null
   fincaId: string
   fincaNombre: string
   activo: boolean

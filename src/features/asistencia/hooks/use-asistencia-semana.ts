@@ -6,13 +6,14 @@ import { obtenerRangoSemana } from '../utils/obtener-rango-semana'
 
 const SEMANA_ACTUAL = 0
 
-export function useAsistenciaSemana(fincaId: string) {
+export function useAsistenciaSemana(fincaId: string | undefined) {
   const [offsetSemanas, setOffsetSemanas] = useState(SEMANA_ACTUAL)
   const rango = obtenerRangoSemana(offsetSemanas)
 
   const query = useQuery({
     queryKey: [ASISTENCIA_SEMANA_QUERY_KEY, fincaId, rango.inicio, rango.fin],
-    queryFn: () => listarAsistenciaPorRango(fincaId, rango.inicio, rango.fin),
+    queryFn: () => listarAsistenciaPorRango(fincaId as string, rango.inicio, rango.fin),
+    enabled: !!fincaId,
   })
 
   return {

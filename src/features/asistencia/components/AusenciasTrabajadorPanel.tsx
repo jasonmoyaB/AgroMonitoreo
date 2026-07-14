@@ -1,6 +1,6 @@
 import { CalendarX2 } from 'lucide-react'
 import type { Ausencia, Trabajador } from '../../../shared/types/domain.types'
-import { formatearTipoAusencia } from '../../asistencia/utils/formatear-tipo-ausencia'
+import { formatearTipoAusencia } from '../utils/formatear-tipo-ausencia'
 
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 

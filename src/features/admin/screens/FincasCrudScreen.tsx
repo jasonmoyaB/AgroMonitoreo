@@ -1,5 +1,6 @@
 import { Warehouse } from 'lucide-react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
+import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { Modal } from '../../../shared/components/Modal'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { FincaForm } from '../components/FincaForm'
@@ -11,11 +12,12 @@ export function FincasCrudScreen() {
   const dashboard = useAdminDashboard()
   const fincas = useFincasCrud()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
+  const perfil = usePerfilSidebar()
 
   return (
     <main className="h-dvh overflow-hidden p-3 sm:p-4">
       <div className="flex h-full min-w-0 flex-col gap-3 md:flex-row md:gap-4">
-        <AdminSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
+        <AdminSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} perfil={perfil} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
 
         <section className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
           <header className="neu-raised mb-4 flex flex-wrap items-start justify-between gap-4 rounded-[2rem] p-5">

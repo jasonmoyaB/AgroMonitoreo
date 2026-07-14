@@ -1,5 +1,5 @@
 import { Search, X } from 'lucide-react'
-import type { EstadoFiltro, TrabajadoresFiltros } from '../../trabajadores/types/trabajador-filtro.types'
+import type { EstadoFiltro, TrabajadoresFiltros } from '../types/trabajador-filtro.types'
 
 const OPCION_TODOS: { valor: EstadoFiltro; etiqueta: string } = { valor: 'todos', etiqueta: 'Todos' }
 

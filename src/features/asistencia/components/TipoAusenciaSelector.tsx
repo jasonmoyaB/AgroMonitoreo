@@ -1,4 +1,4 @@
-import { TIPOS_AUSENCIA } from '../../asistencia/constants/tipos-ausencia.constants'
+import { TIPOS_AUSENCIA } from '../constants/tipos-ausencia.constants'
 import type { TipoAusencia } from '../../../shared/types/domain.types'
 import { TipoAusenciaIcon } from './TipoAusenciaIcon'
 

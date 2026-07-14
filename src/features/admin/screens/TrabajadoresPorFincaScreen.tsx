@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
+import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { AdminTrabajadoresTable } from '../components/AdminTrabajadoresTable'
 import { FincaSelector } from '../components/FincaSelector'
@@ -14,11 +15,12 @@ export function TrabajadoresPorFincaScreen() {
   const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
   const trabajadores = useTrabajadoresFincaAdmin(fincaId)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
+  const perfil = usePerfilSidebar()
 
   return (
     <main className="h-dvh overflow-hidden p-3 sm:p-4">
       <div className="flex h-full min-w-0 flex-col gap-3 md:flex-row md:gap-4">
-        <AdminSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
+        <AdminSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} perfil={perfil} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
 
         <section className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
           <header className="neu-raised mb-4 rounded-[2rem] p-5">
