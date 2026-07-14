@@ -4,9 +4,11 @@ import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { AdminTrabajadoresTable } from '../components/AdminTrabajadoresTable'
 import { FincaSelector } from '../components/FincaSelector'
+import { TrabajadorMetricasModal } from '../../trabajadores/components/TrabajadorMetricasModal'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useFincas } from '../hooks/use-fincas'
 import { useTrabajadoresFincaAdmin } from '../hooks/use-trabajadores-finca-admin'
+import { useTrabajadorMetricasModal } from '../../trabajadores/hooks/use-trabajador-metricas-modal'
 
 export function TrabajadoresPorFincaScreen() {
   const dashboard = useAdminDashboard()
@@ -14,6 +16,7 @@ export function TrabajadoresPorFincaScreen() {
   const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
   const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
   const trabajadores = useTrabajadoresFincaAdmin(fincaId)
+  const metricasModal = useTrabajadorMetricasModal()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
 
@@ -31,8 +34,17 @@ export function TrabajadoresPorFincaScreen() {
 
           <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
 
-          <AdminTrabajadoresTable trabajadores={trabajadores.trabajadores} isLoading={trabajadores.isLoading} />
+          <AdminTrabajadoresTable
+            trabajadores={trabajadores.trabajadores}
+            isLoading={trabajadores.isLoading}
+            onSelectTrabajador={metricasModal.abrir}
+          />
         </section>
+
+        <TrabajadorMetricasModal
+          state={metricasModal}
+          actions={{ onFiltroChange: metricasModal.updateFiltro, onResetFiltros: metricasModal.resetFiltros, onClose: metricasModal.cerrar }}
+        />
       </div>
     </main>
   )

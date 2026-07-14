@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RegistroTrabajo, TipoLabor } from '../../../../src/shared/types/domain.types'
-import { calcularMetricasPorLabor } from '../../../../src/features/supervisor/utils/calcular-metricas-por-labor'
+import { calcularMetricasPorLabor } from '../../../../src/features/trabajadores/utils/calcular-metricas-por-labor'
 
 function registro(tipoLaborId: string, fecha: string, horas: number, cantidad: number, createdAt: string): RegistroTrabajo {
   return { id: `${tipoLaborId}-${fecha}`, fincaId: 'birrisito', trabajadorId: 't1', tipoLaborId, fecha, horas, cantidad, registradoPor: 'u1', createdAt }

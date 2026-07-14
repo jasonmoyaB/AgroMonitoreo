@@ -5,12 +5,12 @@ import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores
 import { Modal } from '../../../shared/components/Modal'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { TrabajadorForm } from '../components/TrabajadorForm'
-import { TrabajadorMetricasModal } from '../components/TrabajadorMetricasModal'
+import { TrabajadorMetricasModal } from '../../trabajadores/components/TrabajadorMetricasModal'
 import { TrabajadoresFilterBar } from '../../trabajadores/components/TrabajadoresFilterBar'
 import { TrabajadoresTable } from '../components/TrabajadoresTable'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
-import { useTrabajadorMetricasModal } from '../hooks/use-trabajador-metricas-modal'
+import { useTrabajadorMetricasModal } from '../../trabajadores/hooks/use-trabajador-metricas-modal'
 
 export function TrabajadoresCrudScreen() {
   const dashboard = useSupervisorDashboard()

@@ -6,9 +6,10 @@ const AVATAR_SIZE_PX = 40
 interface AdminTrabajadoresTableProps {
   trabajadores: readonly Trabajador[]
   isLoading: boolean
+  onSelectTrabajador: (trabajador: Trabajador) => void
 }
 
-export function AdminTrabajadoresTable({ trabajadores, isLoading }: AdminTrabajadoresTableProps) {
+export function AdminTrabajadoresTable({ trabajadores, isLoading, onSelectTrabajador }: AdminTrabajadoresTableProps) {
   if (isLoading) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">Cargando trabajadores.</p>
   if (!trabajadores.length) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">Esta finca no tiene trabajadores registrados.</p>
 
@@ -28,7 +29,11 @@ export function AdminTrabajadoresTable({ trabajadores, isLoading }: AdminTrabaja
           </thead>
           <tbody>
             {trabajadores.map((trabajador) => (
-              <tr key={trabajador.id} className="border-b border-slate-900/5 last:border-b-0">
+              <tr
+                key={trabajador.id}
+                onClick={() => onSelectTrabajador(trabajador)}
+                className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45"
+              >
                 <td className="px-5 py-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar nombre={trabajador.nombreCompleto} fotoUrl={trabajador.fotoUrl} size={AVATAR_SIZE_PX} />
