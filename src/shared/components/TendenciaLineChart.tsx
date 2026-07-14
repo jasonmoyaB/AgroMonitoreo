@@ -1,4 +1,4 @@
-import type { TendenciaPunto } from '../types/dashboard.types'
+import type { TendenciaPunto } from '../types/kpis.types'
 
 interface TendenciaLineChartProps {
   titulo: string

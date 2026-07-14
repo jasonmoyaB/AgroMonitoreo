@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RegistroTrabajo } from '../../../../src/shared/types/domain.types'
-import { calcularTendenciaDiaria } from '../../../../src/features/supervisor/utils/calcular-tendencia-diaria'
+import { calcularTendenciaDiaria } from '../../../../src/shared/utils/kpis/calcular-tendencia-diaria'
 
 function registro(fecha: string, cantidad: number | null): RegistroTrabajo {
   return {

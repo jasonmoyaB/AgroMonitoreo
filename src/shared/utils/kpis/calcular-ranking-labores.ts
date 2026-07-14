@@ -1,5 +1,5 @@
-import type { RegistroTrabajo, TipoLabor } from '../../../shared/types/domain.types'
-import type { RankingItem } from '../types/dashboard.types'
+import type { RegistroTrabajo, TipoLabor } from '../../types/domain.types'
+import type { RankingItem } from '../../types/kpis.types'
 
 export function calcularRankingLabores(registros: readonly RegistroTrabajo[], tiposLabor: readonly TipoLabor[]): RankingItem[] {
   const totalesPorLabor = new Map<string, number>()

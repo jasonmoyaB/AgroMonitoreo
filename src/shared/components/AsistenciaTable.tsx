@@ -1,5 +1,5 @@
-import type { AsistenciaConTrabajador } from '../../asistencia/types/asistencia.types'
-import { formatearTipoAusencia } from '../../asistencia/utils/formatear-tipo-ausencia'
+import type { AsistenciaConTrabajador } from '../../features/asistencia/types/asistencia.types'
+import { formatearTipoAusencia } from '../../features/asistencia/utils/formatear-tipo-ausencia'
 
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })
 

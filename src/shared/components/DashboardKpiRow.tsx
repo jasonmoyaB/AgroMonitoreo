@@ -1,6 +1,6 @@
 import { Clock, Package, TrendingUp, Users } from 'lucide-react'
 import { DashboardKpiCard } from './DashboardKpiCard'
-import type { DashboardKpis } from '../types/dashboard.types'
+import type { DashboardKpis } from '../types/kpis.types'
 
 interface DashboardKpiRowProps {
   kpis: DashboardKpis

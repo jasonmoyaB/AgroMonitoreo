@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { iniciarSesion, registrarSupervisor } from '../services/auth-service'
+import { obtenerUsuarioActual } from '../services/usuario-service'
 import type { AuthMode } from '../types/auth.types'
 
 const PASSWORD_MIN_LENGTH = 6
@@ -26,12 +27,15 @@ export function useAuthForm(mode: AuthMode) {
     setIsSubmitting(true)
 
     try {
-      if (mode === 'login') await iniciarSesion({ email, password })
       if (mode === 'register') {
         const hasSession = await registrarNuevoSupervisor()
         if (!hasSession) return
+        navigate('/supervisor', { replace: true })
+        return
       }
-      navigate('/supervisor', { replace: true })
+
+      await iniciarSesion({ email, password })
+      navigate(await obtenerRutaSegunRol(), { replace: true })
     } catch (unknownError) {
       setError(unknownError instanceof Error ? unknownError.message : 'No se pudo completar la acción.')
     } finally {
@@ -50,4 +54,9 @@ export function useAuthForm(mode: AuthMode) {
   }
 
   return { email, password, error, notice, isSubmitting, setEmail, setPassword, handleSubmit }
+}
+
+async function obtenerRutaSegunRol(): Promise<string> {
+  const usuario = await obtenerUsuarioActual()
+  return usuario.rol === 'admin_oficina' ? '/admin' : '/supervisor'
 }

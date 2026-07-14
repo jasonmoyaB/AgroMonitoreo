@@ -16,8 +16,8 @@ import { AusenciasTrabajadorPanel } from '../components/AusenciasTrabajadorPanel
 import { CalendarioAusentesPanel } from '../components/CalendarioAusentesPanel'
 import { DescargarAusenciasPdfControls } from '../components/DescargarAusenciasPdfControls'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
-import { SelectorSemana } from '../components/SelectorSemana'
-import { AsistenciaTable } from '../components/AsistenciaTable'
+import { SelectorSemana } from '../../../shared/components/SelectorSemana'
+import { AsistenciaTable } from '../../../shared/components/AsistenciaTable'
 import { TrabajadoresFilterBar } from '../components/TrabajadoresFilterBar'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
 

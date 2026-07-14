@@ -1,4 +1,4 @@
-import type { RankingItem } from '../types/dashboard.types'
+import type { RankingItem } from '../types/kpis.types'
 
 interface RankingBarChartProps {
   titulo: string

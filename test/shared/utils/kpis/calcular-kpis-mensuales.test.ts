@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RegistroTrabajo, Trabajador } from '../../../../src/shared/types/domain.types'
-import { calcularKpisMensuales } from '../../../../src/features/supervisor/utils/calcular-kpis-mensuales'
+import { calcularKpisMensuales } from '../../../../src/shared/utils/kpis/calcular-kpis-mensuales'
 
 function registro(horas: number, cantidad: number | null): RegistroTrabajo {
   return {

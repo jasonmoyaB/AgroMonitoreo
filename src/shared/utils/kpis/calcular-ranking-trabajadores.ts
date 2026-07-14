@@ -1,5 +1,5 @@
-import type { RegistroTrabajo, Trabajador } from '../../../shared/types/domain.types'
-import type { RankingItem } from '../types/dashboard.types'
+import type { RegistroTrabajo, Trabajador } from '../../types/domain.types'
+import type { RankingItem } from '../../types/kpis.types'
 
 const MAX_TRABAJADORES_RANKING = 5
 

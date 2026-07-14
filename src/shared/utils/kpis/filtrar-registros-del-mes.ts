@@ -1,4 +1,4 @@
-import type { RegistroTrabajo } from '../../../shared/types/domain.types'
+import type { RegistroTrabajo } from '../../types/domain.types'
 
 function obtenerMesActual(): string {
   return new Date().toISOString().slice(0, 7)

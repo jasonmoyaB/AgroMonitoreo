@@ -55,3 +55,13 @@ export interface Ausencia {
   fecha: string
   tipo: TipoAusencia
 }
+
+export type RolNombre = 'admin_oficina' | 'supervisor'
+
+export interface Usuario {
+  id: string
+  email: string
+  fincaId: string
+  activo: boolean
+  rol: RolNombre
+}

@@ -1,5 +1,5 @@
-import type { RegistroTrabajo } from '../../../shared/types/domain.types'
-import type { TendenciaPunto } from '../types/dashboard.types'
+import type { RegistroTrabajo } from '../../types/domain.types'
+import type { TendenciaPunto } from '../../types/kpis.types'
 
 export function calcularTendenciaDiaria(registros: readonly RegistroTrabajo[]): TendenciaPunto[] {
   const totalesPorDia = new Map<string, number>()
