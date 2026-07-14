@@ -1,4 +1,5 @@
 import type { AsistenciaConTrabajador } from '../../asistencia/types/asistencia.types'
+import { formatearTipoAusencia } from '../../asistencia/utils/formatear-tipo-ausencia'
 
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })
 
@@ -23,6 +24,9 @@ export function AsistenciaTable({ registros, isLoading }: AsistenciaTableProps) 
               <th scope="col" className="px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
                 Trabajador
               </th>
+              <th scope="col" className="px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
+                Tipo
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -30,6 +34,7 @@ export function AsistenciaTable({ registros, isLoading }: AsistenciaTableProps) 
               <tr key={registro.id} className="border-b border-slate-900/5 last:border-b-0">
                 <td className="px-5 py-3 font-bold capitalize text-slate-700">{formatearFecha(registro.fecha)}</td>
                 <td className="px-5 py-3 font-black text-slate-900">{registro.trabajadorNombre}</td>
+                <td className="px-5 py-3 font-bold text-slate-700">{formatearTipoAusencia(registro.tipo)}</td>
               </tr>
             ))}
           </tbody>

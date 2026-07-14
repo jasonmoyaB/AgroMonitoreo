@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { useToastStore } from '../../../shared/stores/toast-store'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import type { Trabajador, TipoAusencia } from '../../../shared/types/domain.types'
 import { construirFechaIso } from '../../captura/utils/fecha-iso'
 import {
   ASISTENCIA_DIA_QUERY_KEY,
@@ -11,15 +11,17 @@ import {
   ASISTENCIA_TRABAJADORES_AUSENTES_QUERY_KEY,
   ASISTENCIA_TRABAJADOR_QUERY_KEY,
 } from '../constants/asistencia-query.constants'
+import { TIPO_AUSENCIA_POR_DEFECTO } from '../constants/tipos-ausencia.constants'
 import { registrarAusencias } from '../services/asistencia-service'
 
 interface EstadoModalCalendario {
   trabajador: Trabajador | null
   fechas: string[]
+  tipo: TipoAusencia
   error: string | null
 }
 
-const ESTADO_MODAL_INICIAL: EstadoModalCalendario = { trabajador: null, fechas: [], error: null }
+const ESTADO_MODAL_INICIAL: EstadoModalCalendario = { trabajador: null, fechas: [], tipo: TIPO_AUSENCIA_POR_DEFECTO, error: null }
 
 export function useRegistrarAusenciaCalendario() {
   const queryClient = useQueryClient()
@@ -29,10 +31,10 @@ export function useRegistrarAusenciaCalendario() {
   const [anio, setAnio] = useState(hoy.getFullYear())
   const [mes, setMes] = useState(hoy.getMonth() + 1)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { trabajador, fechas, error } = estado
+  const { trabajador, fechas, tipo, error } = estado
 
   function abrir(trabajadorSeleccionado: Trabajador) {
-    setEstado({ trabajador: trabajadorSeleccionado, fechas: [], error: null })
+    setEstado({ trabajador: trabajadorSeleccionado, fechas: [], tipo: TIPO_AUSENCIA_POR_DEFECTO, error: null })
   }
 
   function cerrar() {
@@ -42,6 +44,10 @@ export function useRegistrarAusenciaCalendario() {
 
   function limpiar() {
     setEstado(ESTADO_MODAL_INICIAL)
+  }
+
+  function seleccionarTipo(tipoSeleccionado: TipoAusencia) {
+    setEstado((actual) => ({ ...actual, tipo: tipoSeleccionado }))
   }
 
   function toggleFecha(fecha: string) {
@@ -75,7 +81,7 @@ export function useRegistrarAusenciaCalendario() {
   async function guardarAusencias(trabajadorSeleccionado: Trabajador) {
     setIsSubmitting(true)
     try {
-      await registrarAusencias(FINCA_ACTUAL.id, trabajadorSeleccionado.id, fechas)
+      await registrarAusencias({ fincaId: FINCA_ACTUAL.id, trabajadorId: trabajadorSeleccionado.id, fechas, tipo })
       await invalidarAsistencia(trabajadorSeleccionado.id)
       mostrarToast({ type: 'success', title: 'Ausencia registrada', description: `${trabajadorSeleccionado.nombreCompleto} quedo ausente ${fechas.length} dia(s).` })
       limpiar()
@@ -105,12 +111,14 @@ export function useRegistrarAusenciaCalendario() {
     anio,
     mes,
     fechas,
+    tipo,
     error,
     isSubmitting,
     isOpen: trabajador !== null,
     abrir,
     cerrar,
     toggleFecha,
+    seleccionarTipo,
     cambiarMes,
     handleSubmit,
     construirFecha: (dia: number) => construirFechaIso({ anio, mes, dia }),

@@ -52,6 +52,8 @@ pnpm lint             # oxlint
 pnpm preview          # serve the production build locally
 ```
 
+**`pnpm dlx react-doctor --verbose` gate: must show 100%.** Below 100% -> keep fixing + rescanning, loop till 100%. Real bug -> fix code. False positive -> verify by reading actual code/bundle behind finding (don't assume), then add entry to `.react-doctor/false-positives.md` with reasoning, rescan.
+
 Tests (vitest) live under root `/test`, mirroring `src/` paths — not colocated (e.g. `src/features/x/utils/foo.ts` → `test/features/x/utils/foo.test.ts`). Only worth writing for utils with real branching logic (validation, calculations); skip trivial one-liners.
 
 ## Architecture

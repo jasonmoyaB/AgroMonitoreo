@@ -1,5 +1,6 @@
 import { CalendarX2 } from 'lucide-react'
 import type { Ausencia, Trabajador } from '../../../shared/types/domain.types'
+import { formatearTipoAusencia } from '../../asistencia/utils/formatear-tipo-ausencia'
 
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -38,6 +39,7 @@ function ResumenAusencias({ ausencias, isLoading }: ResumenAusenciasProps) {
           <li key={ausencia.id} className="flex items-center gap-3 rounded-2xl bg-white/55 px-3 py-3 font-bold text-slate-700">
             <CalendarX2 className="h-5 w-5 shrink-0 text-rose-700" aria-hidden="true" />
             <span className="capitalize">{formatearFecha(ausencia.fecha)}</span>
+            <span className="ml-auto rounded-full bg-slate-900/5 px-3 py-1 text-xs font-black text-slate-700">{formatearTipoAusencia(ausencia.tipo)}</span>
           </li>
         ))}
       </ul>
