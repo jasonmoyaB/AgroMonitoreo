@@ -6,6 +6,7 @@ import { WizardHeader } from '../components/WizardHeader'
 import { AlfabetoIndice } from '../components/AlfabetoIndice'
 import { BuscadorTrabajador } from '../components/BuscadorTrabajador'
 import { AvisoBloqueoTrabajadorOverlay } from '../components/AvisoBloqueoTrabajadorOverlay'
+import { ConfirmarExtraOverlay } from '../components/ConfirmarExtraOverlay'
 import { useTrabajadoresPorFinca } from '../hooks/use-trabajadores-por-finca'
 import { useRegistrosDelDia } from '../hooks/use-registros-del-dia'
 import { useSaltarATrabajador } from '../hooks/use-saltar-a-trabajador'
@@ -20,19 +21,20 @@ import { obtenerIdsRegistradosPorLabor } from '../utils/obtener-ids-registrados'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 const TOTAL_PASOS_CAPTURA = 2
-const MENSAJE_YA_REGISTRADO = 'Ya registrado hoy'
 const MENSAJE_AUSENTE = 'El trabajador esta ausente'
 
-interface TrabajadorBloqueado {
+type TipoDialogoTrabajador = 'ausente' | 'yaRegistrado'
+
+interface DialogoTrabajador {
+  tipo: TipoDialogoTrabajador
   trabajador: Trabajador
-  mensaje: string
 }
 
 export function TrabajadoresScreen() {
   const { tipoLaborId = '' } = useParams<{ tipoLaborId: string }>()
   const navigate = useNavigate()
   const fecha = useCapturaSessionStore((state) => state.fecha)
-  const [trabajadorBloqueado, setTrabajadorBloqueado] = useState<TrabajadorBloqueado | null>(null)
+  const [dialogo, setDialogo] = useState<DialogoTrabajador | null>(null)
 
   const { data: trabajadores = [] } = useTrabajadoresPorFinca(FINCA_ACTUAL.id)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
@@ -46,15 +48,21 @@ export function TrabajadoresScreen() {
   const idsAusentes = new Set(ausencias.map((ausencia) => ausencia.trabajadorId))
 
   function manejarSeleccion(trabajador: Trabajador) {
-    if (idsRegistrados.has(trabajador.id)) {
-      setTrabajadorBloqueado({ trabajador, mensaje: MENSAJE_YA_REGISTRADO })
+    if (idsAusentes.has(trabajador.id)) {
+      setDialogo({ tipo: 'ausente', trabajador })
       return
     }
-    if (idsAusentes.has(trabajador.id)) {
-      setTrabajadorBloqueado({ trabajador, mensaje: MENSAJE_AUSENTE })
+    if (idsRegistrados.has(trabajador.id)) {
+      setDialogo({ tipo: 'yaRegistrado', trabajador })
       return
     }
     navigate(`/captura/labor/${tipoLaborId}/trabajadores/${trabajador.id}`)
+  }
+
+  function irACapturarExtra() {
+    if (!dialogo) return
+    navigate(`/captura/labor/${tipoLaborId}/trabajadores/${dialogo.trabajador.id}`)
+    setDialogo(null)
   }
 
   const registrados = registros.filter((registro) => registro.tipoLaborId === tipoLaborId).length
@@ -82,10 +90,17 @@ export function TrabajadoresScreen() {
       </div>
       <ProgresoDelDia registrados={registrados} total={trabajadores.length} />
       <AvisoBloqueoTrabajadorOverlay
-        visible={trabajadorBloqueado !== null}
-        nombreTrabajador={trabajadorBloqueado?.trabajador.nombreCompleto ?? ''}
-        mensaje={trabajadorBloqueado?.mensaje ?? ''}
-        onCerrar={() => setTrabajadorBloqueado(null)}
+        visible={dialogo?.tipo === 'ausente'}
+        nombreTrabajador={dialogo?.trabajador.nombreCompleto ?? ''}
+        mensaje={MENSAJE_AUSENTE}
+        onCerrar={() => setDialogo(null)}
+      />
+      <ConfirmarExtraOverlay
+        visible={dialogo?.tipo === 'yaRegistrado'}
+        nombreTrabajador={dialogo?.trabajador.nombreCompleto ?? ''}
+        nombreLabor={tipoLabor?.nombre ?? ''}
+        onCancelar={() => setDialogo(null)}
+        onConfirmar={irACapturarExtra}
       />
     </main>
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useToastStore } from '../../../shared/stores/toast-store'
 import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
+import { descargarBlob } from '../../../shared/lib/descargar-blob'
 import { construirFechaIso } from '../../captura/utils/fecha-iso'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 import { listarAsistenciaPorRango } from '../services/asistencia-service'
@@ -44,13 +45,4 @@ export function useDescargarAusenciasPdf() {
 
 function crearAniosDisponibles(anioActual: number): number[] {
   return Array.from({ length: 5 }, (_item, index) => anioActual - 2 + index)
-}
-
-function descargarBlob(blob: Blob, nombreArchivo: string) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = nombreArchivo
-  link.click()
-  URL.revokeObjectURL(url)
 }

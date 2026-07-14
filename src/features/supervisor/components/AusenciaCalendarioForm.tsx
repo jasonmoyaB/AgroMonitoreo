@@ -4,17 +4,20 @@ import { DIAS_SEMANA, DIAS_SEMANA_CLAVES } from '../../asistencia/constants/cale
 import { obtenerEspaciosCalendario } from '../../asistencia/utils/obtener-espacios-calendario'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 import { MESES } from '../../captura/constants/meses.constants'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import type { Trabajador, TipoAusencia } from '../../../shared/types/domain.types'
+import { TipoAusenciaSelector } from './TipoAusenciaSelector'
 
 interface AusenciaCalendarioFormProps {
   trabajador: Trabajador | null
   anio: number
   mes: number
   fechasSeleccionadas: readonly string[]
+  tipo: TipoAusencia
   error: string | null
   isSubmitting: boolean
   onCambiarMes: (direccion: -1 | 1) => void
   onToggleFecha: (fecha: string) => void
+  onSeleccionarTipo: (tipo: TipoAusencia) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   construirFecha: (dia: number) => string
 }
@@ -52,6 +55,9 @@ export function AusenciaCalendarioForm(props: AusenciaCalendarioFormProps) {
       </div>
 
       <p className="text-sm font-black text-slate-600">Seleccionados: {props.fechasSeleccionadas.length}</p>
+
+      <TipoAusenciaSelector tipo={props.tipo} onSeleccionar={props.onSeleccionarTipo} />
+
       {errorMessage(props.error)}
       <button type="submit" disabled={props.isSubmitting} className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-wait disabled:opacity-60">
         {props.isSubmitting ? 'Guardando ausencia...' : 'Guardar dias seleccionados'}

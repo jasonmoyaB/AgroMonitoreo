@@ -46,9 +46,12 @@ export interface RegistroTrabajo {
   createdAt: string
 }
 
+export type TipoAusencia = 'vacaciones' | 'permisos' | 'permisos_medicos'
+
 export interface Ausencia {
   id: string
   fincaId: string
   trabajadorId: string
   fecha: string
+  tipo: TipoAusencia
 }

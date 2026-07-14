@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { useToastStore } from '../../../shared/stores/toast-store'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import type { Trabajador, TipoAusencia } from '../../../shared/types/domain.types'
 import { construirFechaIso } from '../../captura/utils/fecha-iso'
 import {
   ASISTENCIA_DIA_QUERY_KEY,
@@ -11,23 +11,30 @@ import {
   ASISTENCIA_TRABAJADORES_AUSENTES_QUERY_KEY,
   ASISTENCIA_TRABAJADOR_QUERY_KEY,
 } from '../constants/asistencia-query.constants'
+import { TIPO_AUSENCIA_POR_DEFECTO } from '../constants/tipos-ausencia.constants'
 import { registrarAusencias } from '../services/asistencia-service'
+
+interface EstadoModalCalendario {
+  trabajador: Trabajador | null
+  fechas: string[]
+  tipo: TipoAusencia
+  error: string | null
+}
+
+const ESTADO_MODAL_INICIAL: EstadoModalCalendario = { trabajador: null, fechas: [], tipo: TIPO_AUSENCIA_POR_DEFECTO, error: null }
 
 export function useRegistrarAusenciaCalendario() {
   const queryClient = useQueryClient()
   const mostrarToast = useToastStore((state) => state.mostrarToast)
   const hoy = new Date()
-  const [trabajador, setTrabajador] = useState<Trabajador | null>(null)
+  const [estado, setEstado] = useState<EstadoModalCalendario>(ESTADO_MODAL_INICIAL)
   const [anio, setAnio] = useState(hoy.getFullYear())
   const [mes, setMes] = useState(hoy.getMonth() + 1)
-  const [fechas, setFechas] = useState<string[]>([])
-  const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { trabajador, fechas, tipo, error } = estado
 
   function abrir(trabajadorSeleccionado: Trabajador) {
-    setTrabajador(trabajadorSeleccionado)
-    setFechas([])
-    setError(null)
+    setEstado({ trabajador: trabajadorSeleccionado, fechas: [], tipo: TIPO_AUSENCIA_POR_DEFECTO, error: null })
   }
 
   function cerrar() {
@@ -36,13 +43,18 @@ export function useRegistrarAusenciaCalendario() {
   }
 
   function limpiar() {
-    setTrabajador(null)
-    setFechas([])
-    setError(null)
+    setEstado(ESTADO_MODAL_INICIAL)
+  }
+
+  function seleccionarTipo(tipoSeleccionado: TipoAusencia) {
+    setEstado((actual) => ({ ...actual, tipo: tipoSeleccionado }))
   }
 
   function toggleFecha(fecha: string) {
-    setFechas((actuales) => (actuales.includes(fecha) ? actuales.filter((item) => item !== fecha) : [...actuales, fecha].sort()))
+    setEstado((actual) => ({
+      ...actual,
+      fechas: actual.fechas.includes(fecha) ? actual.fechas.filter((item) => item !== fecha) : [...actual.fechas, fecha].sort(),
+    }))
   }
 
   function cambiarMes(direccion: -1 | 1) {
@@ -58,16 +70,18 @@ export function useRegistrarAusenciaCalendario() {
   }
 
   function validarFechas() {
-    setError(null)
-    if (fechas.length > 0) return true
-    setError('Selecciona al menos un dia en el calendario.')
+    if (fechas.length > 0) {
+      setEstado((actual) => ({ ...actual, error: null }))
+      return true
+    }
+    setEstado((actual) => ({ ...actual, error: 'Selecciona al menos un dia en el calendario.' }))
     return false
   }
 
   async function guardarAusencias(trabajadorSeleccionado: Trabajador) {
     setIsSubmitting(true)
     try {
-      await registrarAusencias(FINCA_ACTUAL.id, trabajadorSeleccionado.id, fechas)
+      await registrarAusencias({ fincaId: FINCA_ACTUAL.id, trabajadorId: trabajadorSeleccionado.id, fechas, tipo })
       await invalidarAsistencia(trabajadorSeleccionado.id)
       mostrarToast({ type: 'success', title: 'Ausencia registrada', description: `${trabajadorSeleccionado.nombreCompleto} quedo ausente ${fechas.length} dia(s).` })
       limpiar()
@@ -88,7 +102,7 @@ export function useRegistrarAusenciaCalendario() {
 
   function mostrarError(unknownError: unknown) {
     const description = unknownError instanceof Error ? unknownError.message : 'No se pudo registrar la ausencia.'
-    setError(description)
+    setEstado((actual) => ({ ...actual, error: description }))
     mostrarToast({ type: 'error', title: 'No se pudo registrar la ausencia', description })
   }
 
@@ -97,12 +111,14 @@ export function useRegistrarAusenciaCalendario() {
     anio,
     mes,
     fechas,
+    tipo,
     error,
     isSubmitting,
     isOpen: trabajador !== null,
     abrir,
     cerrar,
     toggleFecha,
+    seleccionarTipo,
     cambiarMes,
     handleSubmit,
     construirFecha: (dia: number) => construirFechaIso({ anio, mes, dia }),

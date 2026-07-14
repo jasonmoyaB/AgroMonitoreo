@@ -94,10 +94,12 @@ export function AsistenciaScreen() {
             anio={calendarioModal.anio}
             mes={calendarioModal.mes}
             fechasSeleccionadas={calendarioModal.fechas}
+            tipo={calendarioModal.tipo}
             error={calendarioModal.error}
             isSubmitting={calendarioModal.isSubmitting}
             onCambiarMes={calendarioModal.cambiarMes}
             onToggleFecha={calendarioModal.toggleFecha}
+            onSeleccionarTipo={calendarioModal.seleccionarTipo}
             onSubmit={calendarioModal.handleSubmit}
             construirFecha={calendarioModal.construirFecha}
           />

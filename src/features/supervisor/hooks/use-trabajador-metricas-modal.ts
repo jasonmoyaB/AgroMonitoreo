@@ -5,22 +5,26 @@ import { useTrabajadorMetricas } from './use-trabajador-metricas'
 
 const FILTROS_INICIALES: TrabajadorMetricasFiltros = { anio: null, fechaInicio: null, fechaFin: null }
 
+interface EstadoModalMetricas {
+  trabajador: Trabajador | null
+  filtros: TrabajadorMetricasFiltros
+}
+
 export function useTrabajadorMetricasModal() {
-  const [trabajador, setTrabajador] = useState<Trabajador | null>(null)
-  const [filtros, setFiltros] = useState<TrabajadorMetricasFiltros>(FILTROS_INICIALES)
+  const [estado, setEstado] = useState<EstadoModalMetricas>({ trabajador: null, filtros: FILTROS_INICIALES })
+  const { trabajador, filtros } = estado
   const metricas = useTrabajadorMetricas(trabajador?.id ?? null, filtros)
 
   function abrir(seleccionado: Trabajador) {
-    setTrabajador(seleccionado)
-    setFiltros(FILTROS_INICIALES)
+    setEstado({ trabajador: seleccionado, filtros: FILTROS_INICIALES })
   }
 
   function cerrar() {
-    setTrabajador(null)
+    setEstado((actual) => ({ ...actual, trabajador: null }))
   }
 
   function updateFiltro<K extends keyof TrabajadorMetricasFiltros>(campo: K, valor: TrabajadorMetricasFiltros[K]) {
-    setFiltros((current) => ({ ...current, [campo]: valor }))
+    setEstado((actual) => ({ ...actual, filtros: { ...actual.filtros, [campo]: valor } }))
   }
 
   return {
@@ -31,6 +35,6 @@ export function useTrabajadorMetricasModal() {
     abrir,
     cerrar,
     updateFiltro,
-    resetFiltros: () => setFiltros(FILTROS_INICIALES),
+    resetFiltros: () => setEstado((actual) => ({ ...actual, filtros: FILTROS_INICIALES })),
   }
 }

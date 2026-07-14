@@ -13,16 +13,20 @@ function construirClaveDraft(trabajadorId: string, tipoLaborId: string, fecha: s
   return `draft_${fecha}_${tipoLaborId}_${trabajadorId}`
 }
 
+interface EstadoRegistroDraft {
+  draft: RegistroDraft
+  cargado: boolean
+}
+
 export function useRegistroDraft(trabajadorId: string, tipoLaborId: string, fecha: string) {
   const clave = construirClaveDraft(trabajadorId, tipoLaborId, fecha)
-  const [draft, setDraft] = useState<RegistroDraft>(DRAFT_INICIAL)
-  const [cargado, setCargado] = useState(false)
+  const [estado, setEstado] = useState<EstadoRegistroDraft>({ draft: DRAFT_INICIAL, cargado: false })
+  const { draft, cargado } = estado
 
   useEffect(() => {
-    setCargado(false)
+    setEstado((actual) => ({ ...actual, cargado: false }))
     readLocalValue(clave, DRAFT_INICIAL).then((valorGuardado) => {
-      setDraft(valorGuardado)
-      setCargado(true)
+      setEstado({ draft: valorGuardado, cargado: true })
     })
   }, [clave])
 
@@ -32,10 +36,14 @@ export function useRegistroDraft(trabajadorId: string, tipoLaborId: string, fech
     return () => clearTimeout(timeoutId)
   }, [clave, draft, cargado])
 
+  function setDraft(nuevoDraft: RegistroDraft) {
+    setEstado((actual) => ({ ...actual, draft: nuevoDraft }))
+  }
+
   function limpiarDraft() {
     setDraft(DRAFT_INICIAL)
     writeLocalValue(clave, DRAFT_INICIAL)
   }
 
-  return { draft, setDraft, limpiarDraft }
+  return { draft, setDraft, limpiarDraft, cargado }
 }

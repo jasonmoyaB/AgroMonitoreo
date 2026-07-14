@@ -18,3 +18,8 @@ export function descomponerFechaIso(fecha: string): FechaDescompuesta {
   const [anio, mes, dia] = fecha.split('-').map(Number)
   return { anio, mes, dia }
 }
+
+export function formatearFechaIsoDdMmAaaa(fecha: string): string {
+  const { anio, mes, dia } = descomponerFechaIso(fecha)
+  return `${conCero(dia)}/${conCero(mes)}/${anio}`
+}

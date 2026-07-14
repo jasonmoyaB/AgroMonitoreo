@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { DIAS_SEMANA, DIAS_SEMANA_CLAVES } from '../../asistencia/constants/calendario.constants'
+import { TIPOS_AUSENCIA } from '../../asistencia/constants/tipos-ausencia.constants'
 import type { AsistenciaConTrabajador } from '../../asistencia/types/asistencia.types'
 import { obtenerEspaciosCalendario } from '../../asistencia/utils/obtener-espacios-calendario'
+import { formatearTipoAusencia } from '../../asistencia/utils/formatear-tipo-ausencia'
 import { construirFechaIso } from '../../captura/utils/fecha-iso'
 import { MESES } from '../../captura/constants/meses.constants'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
+import { TipoAusenciaIcon } from './TipoAusenciaIcon'
 
 interface CalendarioAusentesPanelProps {
   anio: number
@@ -37,6 +40,8 @@ export function CalendarioAusentesPanel({ anio, mes, registros, isLoading, onCam
           <ChevronRight className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
+
+      <LeyendaTiposAusencia />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="neu-pressed rounded-3xl p-3 sm:p-4">
@@ -88,7 +93,12 @@ function DiaAusentes(props: { dia: number; fecha: string; registros: readonly As
 function ListaAusentes({ registros }: { registros: readonly AsistenciaConTrabajador[] }) {
   return (
     <ul className="space-y-1">
-      {registros.slice(0, 3).map((registro) => <li key={registro.id} className="truncate rounded-xl bg-rose-50 px-2 py-1 text-xs font-black text-rose-900">{registro.trabajadorNombre}</li>)}
+      {registros.slice(0, 3).map((registro) => (
+        <li key={registro.id} title={formatearTipoAusencia(registro.tipo)} className="flex items-center gap-1 truncate rounded-xl bg-rose-50 px-2 py-1 text-xs font-black text-rose-900">
+          <TipoAusenciaIcon tipo={registro.tipo} className="h-3 w-3 shrink-0" />
+          <span className="truncate">{registro.trabajadorNombre}</span>
+        </li>
+      ))}
       {registros.length > 3 && <li className="px-2 text-xs font-black text-slate-500">Click para ver {registros.length}</li>}
     </ul>
   )
@@ -104,9 +114,28 @@ function DetalleDia({ fecha, registros }: { fecha: string | null; registros: rea
       <p className="text-xs font-black uppercase tracking-[0.18em] text-green-800">{formatearFecha(fecha)}</p>
       <h3 className="mt-2 text-xl font-black text-slate-900">{registros.length} ausentes</h3>
       <ul className="mt-4 max-h-[28rem] space-y-2 overflow-y-auto pr-1">
-        {registros.map((registro) => <li key={registro.id} className="rounded-2xl bg-white/75 px-4 py-3 text-sm font-black text-slate-900 shadow-inner shadow-white/70">{registro.trabajadorNombre}</li>)}
+        {registros.map((registro) => (
+          <li key={registro.id} className="flex items-center gap-3 rounded-2xl bg-white/75 px-4 py-3 text-sm font-black text-slate-900 shadow-inner shadow-white/70">
+            <TipoAusenciaIcon tipo={registro.tipo} className="h-4 w-4 shrink-0 text-rose-700" />
+            <span className="min-w-0 flex-1 truncate">{registro.trabajadorNombre}</span>
+            <span className="shrink-0 rounded-full bg-slate-900/5 px-3 py-1 text-xs font-black text-slate-700">{formatearTipoAusencia(registro.tipo)}</span>
+          </li>
+        ))}
       </ul>
     </aside>
+  )
+}
+
+function LeyendaTiposAusencia() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      {TIPOS_AUSENCIA.map((opcion) => (
+        <span key={opcion.id} className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+          <TipoAusenciaIcon tipo={opcion.id} className="h-3.5 w-3.5 text-rose-700" />
+          {opcion.nombre}
+        </span>
+      ))}
+    </div>
   )
 }
 

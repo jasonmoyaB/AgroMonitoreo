@@ -10,13 +10,16 @@ export interface MetricaPorLabor {
   tipoLaborId: string
   nombre: string
   horas: number
+  horasExtra: number
   cantidad: number
+  cantidadExtra: number
   productividad: number
   unidadMedida: string | null
 }
 
 export interface TrabajadorMetricasTotales {
   horas: number
+  horasExtra: number
   cantidad: number
   productividad: number
 }

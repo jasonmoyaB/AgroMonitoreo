@@ -24,7 +24,6 @@ export async function crearRegistro(registro: RegistroTrabajo, client: SupabaseC
     .from('registros_trabajo')
     .upsert(
       {
-        id: registro.id,
         finca_id: registro.fincaId,
         trabajador_id: registro.trabajadorId,
         tipo_labor_id: registro.tipoLaborId,
