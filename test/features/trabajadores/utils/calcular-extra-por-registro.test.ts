@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RegistroTrabajo } from '../../../../src/shared/types/domain.types'
-import { calcularExtraPorRegistro } from '../../../../src/features/supervisor/utils/calcular-extra-por-registro'
+import { calcularExtraPorRegistro } from '../../../../src/features/trabajadores/utils/calcular-extra-por-registro'
 
 function registro(id: string, fecha: string, horas: number, cantidad: number, createdAt: string): RegistroTrabajo {
   return { id, fincaId: 'birrisito', trabajadorId: 't1', tipoLaborId: id, fecha, horas, cantidad, registradoPor: 'u1', createdAt }

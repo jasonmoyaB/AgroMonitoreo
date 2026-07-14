@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { MetricaPorLabor } from '../../../../src/features/supervisor/types/trabajador-metricas.types'
-import { agruparCantidadPorUnidad } from '../../../../src/features/supervisor/utils/agrupar-cantidad-por-unidad'
+import type { MetricaPorLabor } from '../../../../src/features/trabajadores/types/trabajador-metricas.types'
+import { agruparCantidadPorUnidad } from '../../../../src/features/trabajadores/utils/agrupar-cantidad-por-unidad'
 
 function metrica(tipoLaborId: string, cantidad: number, unidadMedida: string | null): MetricaPorLabor {
   return { tipoLaborId, nombre: tipoLaborId, horas: 1, horasExtra: 0, cantidad, cantidadExtra: 0, productividad: 0, unidadMedida }

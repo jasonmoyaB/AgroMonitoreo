@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RegistroTrabajo } from '../../../../src/shared/types/domain.types'
-import { calcularTotalesMetricas } from '../../../../src/features/supervisor/utils/calcular-totales-metricas'
+import { calcularTotalesMetricas } from '../../../../src/features/trabajadores/utils/calcular-totales-metricas'
 
 function registro(tipoLaborId: string, fecha: string, horas: number): RegistroTrabajo {
   return {
