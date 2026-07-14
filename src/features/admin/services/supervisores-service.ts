@@ -30,6 +30,7 @@ export async function listarSupervisores(client: SupabaseClient = supabase): Pro
 export async function actualizarSupervisor(input: ActualizarSupervisorInput, client: SupabaseClient = supabase): Promise<Supervisor> {
   const { data: rol, error: rolError } = await client.from('roles').select('id').eq('nombre', input.rol).single()
   if (rolError) throw new Error(`actualizarSupervisor: ${rolError.message}`)
+  if (!rol) throw new Error('actualizarSupervisor: rol no encontrado')
 
   const { data, error } = await client
     .from('usuario')
@@ -39,6 +40,7 @@ export async function actualizarSupervisor(input: ActualizarSupervisorInput, cli
     .single<SupervisorRow>()
 
   if (error) throw new Error(`actualizarSupervisor: ${error.message}`)
+  if (!data) throw new Error('actualizarSupervisor: usuario no encontrado')
   return mapSupervisor(data)
 }
 
