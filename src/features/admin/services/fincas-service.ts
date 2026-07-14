@@ -28,5 +28,6 @@ export async function cambiarEstadoFinca(finca: Finca, client: SupabaseClient = 
   const { data, error } = await client.from('fincas').update({ activa: !finca.activa }).eq('id', finca.id).select(FINCAS_COLUMNS).single()
 
   if (error) throw new Error(`cambiarEstadoFinca: ${error.message}`)
+  if (!data) throw new Error('cambiarEstadoFinca: finca no encontrada')
   return data
 }
