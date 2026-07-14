@@ -51,6 +51,7 @@ export async function cambiarEstadoSupervisor(supervisor: Supervisor, client: Su
     .single<SupervisorRow>()
 
   if (error) throw new Error(`cambiarEstadoSupervisor: ${error.message}`)
+  if (!data) throw new Error('cambiarEstadoSupervisor: usuario no encontrado')
   return mapSupervisor(data)
 }
 
