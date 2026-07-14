@@ -9,6 +9,8 @@
 | Flujo de captura (foreman) | `src/features/captura/` (screens → components → hooks → services → utils → types → constants) |
 | Dashboard supervisor / KPIs | `src/features/supervisor/` |
 | CRUD de trabajadores + fotos | `src/features/trabajadores/` |
+| App admin (dashboard, fincas, trabajadores/asistencia por finca, supervisores) | `src/features/admin/` (rutas bajo `AdminGuard`, `/admin/*`) |
+| Gestión de supervisores (rol, nombre, finca asignada) | `src/features/admin/services/supervisores-service.ts` + `hooks/use-supervisores-crud.ts` + `screens/SupervisoresCrudScreen.tsx` |
 | Asistencia / ausencias (calendario, tabla semanal, PDF) | `src/features/asistencia/` (hosteado por `src/features/supervisor/screens/AsistenciaScreen.tsx`) |
 | Componentes compartidos (IconTile, Avatar, Stepper...) | `src/shared/components/` |
 | Cliente Supabase | `src/shared/lib/supabase-client.ts` |

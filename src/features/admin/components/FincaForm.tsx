@@ -1,20 +1,29 @@
-import { useEffect, useRef } from 'react'
-import type { CrearFincaInput } from '../types/finca-form.types'
+import { useEffect, useRef } from "react";
+import type { CrearFincaInput } from "../types/finca-form.types";
 
 interface FincaFormProps {
-  values: CrearFincaInput
-  error: string | null
-  isSubmitting: boolean
-  onFieldChange: <K extends keyof CrearFincaInput>(field: K, value: CrearFincaInput[K]) => void
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
+  values: CrearFincaInput;
+  error: string | null;
+  isSubmitting: boolean;
+  onFieldChange: <K extends keyof CrearFincaInput>(
+    field: K,
+    value: CrearFincaInput[K],
+  ) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
-export function FincaForm({ values, error, isSubmitting, onFieldChange, onSubmit }: FincaFormProps) {
-  const idInputRef = useRef<HTMLInputElement>(null)
+export function FincaForm({
+  values,
+  error,
+  isSubmitting,
+  onFieldChange,
+  onSubmit,
+}: FincaFormProps) {
+  const idInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    idInputRef.current?.focus()
-  }, [])
+    idInputRef.current?.focus();
+  }, []);
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -23,7 +32,7 @@ export function FincaForm({ values, error, isSubmitting, onFieldChange, onSubmit
         <input
           ref={idInputRef}
           value={values.id}
-          onChange={(event) => onFieldChange('id', event.target.value)}
+          onChange={(event) => onFieldChange("id", event.target.value)}
           className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
           placeholder="ej: la-esperanza"
           required
@@ -34,17 +43,25 @@ export function FincaForm({ values, error, isSubmitting, onFieldChange, onSubmit
         Nombre
         <input
           value={values.nombre}
-          onChange={(event) => onFieldChange('nombre', event.target.value)}
+          onChange={(event) => onFieldChange("nombre", event.target.value)}
           className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
           required
         />
       </label>
 
-      {error && <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">{error}</p>}
+      {error && (
+        <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">
+          {error}
+        </p>
+      )}
 
-      <button type="submit" disabled={isSubmitting} className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60">
-        {isSubmitting ? 'Guardando' : 'Guardar'}
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSubmitting ? "Guardando" : "Guardar"}
       </button>
     </form>
-  )
+  );
 }

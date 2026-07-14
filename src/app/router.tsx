@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { SeleccionFechaScreen, TrabajadoresScreen, CapturaRegistroScreen } from '../features/captura'
 import { AdminGuard, AuthGuard, LoginScreen, RegisterScreen } from '../features/auth'
 import { AsistenciaScreen, DashboardScreen, SupervisorDashboardScreen, TrabajadoresCrudScreen } from '../features/supervisor'
-import { AdminDashboardScreen, AsistenciaPorFincaScreen, FincasCrudScreen, TrabajadoresPorFincaScreen } from '../features/admin'
+import { AdminDashboardScreen, AsistenciaPorFincaScreen, FincasCrudScreen, SupervisoresCrudScreen, TrabajadoresPorFincaScreen } from '../features/admin'
 import { NotFoundScreen } from './NotFoundScreen'
 
 export const router = createBrowserRouter([
@@ -27,6 +27,7 @@ export const router = createBrowserRouter([
     children: [
       { path: '/admin', element: <AdminDashboardScreen /> },
       { path: '/admin/fincas', element: <FincasCrudScreen /> },
+      { path: '/admin/supervisores', element: <SupervisoresCrudScreen /> },
       { path: '/admin/trabajadores', element: <TrabajadoresPorFincaScreen /> },
       { path: '/admin/asistencia', element: <AsistenciaPorFincaScreen /> },
     ],

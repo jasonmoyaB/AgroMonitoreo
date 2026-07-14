@@ -41,6 +41,7 @@ export type Database = {
           finca_id: string
           id: string
           registrado_por: string
+          tipo: string
           trabajador_id: string
         }
         Insert: {
@@ -49,6 +50,7 @@ export type Database = {
           finca_id: string
           id?: string
           registrado_por?: string
+          tipo?: string
           trabajador_id: string
         }
         Update: {
@@ -57,6 +59,7 @@ export type Database = {
           finca_id?: string
           id?: string
           registrado_por?: string
+          tipo?: string
           trabajador_id?: string
         }
         Relationships: [
@@ -282,6 +285,7 @@ export type Database = {
           email: string
           finca_id: string
           id: string
+          nombre: string | null
           rol_id: string
         }
         Insert: {
@@ -292,6 +296,7 @@ export type Database = {
           email: string
           finca_id?: string
           id?: string
+          nombre?: string | null
           rol_id: string
         }
         Update: {
@@ -302,6 +307,7 @@ export type Database = {
           email?: string
           finca_id?: string
           id?: string
+          nombre?: string | null
           rol_id?: string
         }
         Relationships: [
@@ -326,6 +332,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      es_admin_oficina: { Args: never; Returns: boolean }
       usuario_actual_id: { Args: never; Returns: string }
     }
     Enums: {

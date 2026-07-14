@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { CalendarX2, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, UserPlus, Warehouse } from 'lucide-react'
+import { CalendarX2, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, UserPlus, Users, Warehouse } from 'lucide-react'
 
 interface AdminSidebarProps {
   isCollapsed: boolean
@@ -11,6 +11,7 @@ interface AdminSidebarProps {
 const NAV_ITEMS = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/fincas', label: 'Fincas', icon: Warehouse },
+  { to: '/admin/supervisores', label: 'Supervisores', icon: Users },
   { to: '/admin/trabajadores', label: 'Trabajadores', icon: UserPlus },
   { to: '/admin/asistencia', label: 'Asistencia', icon: CalendarX2 },
 ]

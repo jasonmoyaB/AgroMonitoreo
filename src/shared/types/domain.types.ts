@@ -62,6 +62,7 @@ export interface Usuario {
   id: string
   email: string
   fincaId: string
+  fincaNombre: string
   activo: boolean
   rol: RolNombre
 }
