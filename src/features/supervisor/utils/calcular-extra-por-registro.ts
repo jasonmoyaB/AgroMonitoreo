@@ -18,7 +18,6 @@ export function calcularExtraPorRegistro(registros: readonly RegistroTrabajo[]):
 
 function agruparPorFecha(registros: readonly RegistroTrabajo[]): Map<string, RegistroTrabajo[]> {
   const grupos = new Map<string, RegistroTrabajo[]>()
-  const grupos = new Map<string, RegistroTrabajo[]>()
   registros.forEach((registro) => {
     const grupo = grupos.get(registro.fecha)
     if (grupo) {
@@ -27,7 +26,6 @@ function agruparPorFecha(registros: readonly RegistroTrabajo[]): Map<string, Reg
       grupos.set(registro.fecha, [registro])
     }
   })
-  return grupos
   return grupos
 }
 
