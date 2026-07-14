@@ -9,9 +9,9 @@ import { useRegistroDraft } from '../hooks/use-registro-draft'
 import { useCrearRegistro } from '../hooks/use-crear-registro'
 import { useTrabajadoresPorFinca } from '../hooks/use-trabajadores-por-finca'
 import { useRegistrosDelDia } from '../hooks/use-registros-del-dia'
+import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
 import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
-import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { PASO_HORAS, TIEMPO_CONFIRMACION_MS, HORAS_MAXIMAS_POR_DIA, CANTIDAD_MAXIMA_POR_REGISTRO } from '../constants/captura.constants'
 import { vibrarConfirmacion } from '../../../shared/lib/vibrate'
 import { construirRegistro } from '../utils/construir-registro'
@@ -25,7 +25,8 @@ export function CapturaRegistroScreen() {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
   const draftPrecargado = useRef(false)
 
-  const { data: trabajadores = [] } = useTrabajadoresPorFinca(FINCA_ACTUAL.id)
+  const { usuario } = useUsuarioActual()
+  const { data: trabajadores = [] } = useTrabajadoresPorFinca(usuario?.fincaId)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
   const crearRegistro = useCrearRegistro()
   const { draft, setDraft, limpiarDraft, cargado } = useRegistroDraft(trabajadorId, tipoLaborId, fecha)
@@ -45,7 +46,7 @@ export function CapturaRegistroScreen() {
     }
   }, [cargado, registroExistente, draft, setDraft])
 
-  if (!tipoLabor || !trabajador) return null
+  if (!tipoLabor || !trabajador || !usuario) return null
 
   function manejarExito() {
     vibrarConfirmacion()
@@ -58,9 +59,9 @@ export function CapturaRegistroScreen() {
   }
 
   function confirmarRegistro() {
-    if (!tipoLabor) return
+    if (!tipoLabor || !usuario) return
     const registro = construirRegistro({
-      fincaId: FINCA_ACTUAL.id,
+      fincaId: usuario.fincaId,
       trabajadorId,
       tipoLabor,
       fecha,
