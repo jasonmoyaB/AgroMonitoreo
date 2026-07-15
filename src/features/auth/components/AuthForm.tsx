@@ -3,33 +3,15 @@ import { Link } from 'react-router-dom'
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sprout } from 'lucide-react'
 import { useAuthForm } from '../hooks/use-auth-form'
 import { PasswordChecklist } from './PasswordChecklist'
+import { AUTH_FORM_CONTENT } from '../constants/auth-form-content.constants'
 import type { AuthMode } from '../types/auth.types'
-
-const CONTENT = {
-  login: {
-    title: 'Entrar al campo',
-    subtitle: 'Inicia sesión para registrar labores de la finca.',
-    button: 'Iniciar sesión',
-    footer: '¿Nuevo supervisor?',
-    linkText: 'Crear cuenta',
-    linkTo: '/registro',
-  },
-  register: {
-    title: 'Crear supervisor',
-    subtitle: 'Toda cuenta nueva se registra con el rol supervisor.',
-    button: 'Crear cuenta',
-    footer: '¿Ya tienes cuenta?',
-    linkText: 'Iniciar sesión',
-    linkTo: '/login',
-  },
-} as const
 
 interface AuthFormProps {
   mode: AuthMode
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const content = CONTENT[mode]
+  const content = AUTH_FORM_CONTENT[mode]
   const form = useAuthForm(mode)
   const [mostrarPassword, setMostrarPassword] = useState(false)
 
@@ -48,7 +30,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       <div className="mb-8">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-bold text-green-800">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          Acceso supervisor
+          Acceso supervisor/oficina
         </div>
         <h1 className="text-3xl font-black tracking-tight text-slate-900">{content.title}</h1>
         <p className="mt-3 text-base font-semibold leading-7 text-slate-600">{content.subtitle}</p>
@@ -65,7 +47,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               value={form.email}
               onChange={(event) => form.setEmail(event.target.value)}
               className="min-h-14 flex-1 bg-transparent text-base font-bold text-slate-900 outline-none placeholder:text-slate-500"
-              placeholder="supervisor@finca.cl"
+              placeholder="nombreusuario@gmail.com"
               autoComplete="email"
               required
             />
