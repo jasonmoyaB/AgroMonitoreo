@@ -93,6 +93,22 @@ this always `false` (signatures are never 12 bytes) and break all photo upload v
 Both arrays are also fixed-size (≤12 elements), so there's no real perf concern to guard
 against either.
 
+## `react-doctor/no-secrets-in-client-code`
+
+### `src/features/auth/utils/traducir-error-auth.ts:6`
+
+```ts
+const MENSAJE_ERROR_AUTH_DEFAULT = 'No se pudo iniciar sesión. Intenta nuevamente.'
+```
+
+Not a secret — `MENSAJE_ERROR_AUTH_DEFAULT` and `MENSAJES_ERROR_AUTH` are user-facing
+Spanish error copy shown in the login form (`AuthForm.tsx` renders `form.error`), the
+fallback branch of `traducirErrorAuth()` when a Supabase auth error message isn't in the
+known-messages map. No credential, token, key, or connection string is present in the
+file. The rule's naming heuristic likely tripped on the `_DEFAULT` suffix pattern combined
+with a hardcoded string literal, not on any actual secret-shaped value. Suppressed via
+`doctor.config.json`.
+
 ## `react-doctor/no-dynamic-import-path` and `react-doctor/async-await-in-loop`
 
 ### `dev-dist/sw.js`, `dev-dist/workbox-7e5eb42b.js`

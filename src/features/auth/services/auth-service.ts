@@ -20,3 +20,9 @@ export async function cerrarSesion() {
 
   if (error) throw new Error(`cerrarSesion: ${error.message}`)
 }
+
+export async function actualizarPassword(password: string) {
+  const { error } = await supabase.auth.updateUser({ password })
+
+  if (error) throw new Error(`actualizarPassword: ${error.message}`)
+}

@@ -64,7 +64,11 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, perfil, onToggle,
       </nav>
 
       {perfil && !isCollapsed && (
-        <div className="mt-2 rounded-2xl bg-white/40 px-3 py-2.5 md:mt-8">
+        <Link
+          to="/supervisor/configuracion"
+          aria-label="Configuración de la cuenta"
+          className="mt-2 block cursor-pointer rounded-2xl bg-white/40 px-3 py-2.5 transition-colors duration-200 hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 md:mt-8"
+        >
           <p className="flex items-center gap-1.5 truncate text-xs font-black text-slate-800">
             <User className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
             <span className="truncate">{perfil.nombre ?? perfil.email}</span>
@@ -73,7 +77,7 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, perfil, onToggle,
             <MapPin className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
             <span className="truncate">{perfil.fincaNombre}</span>
           </p>
-        </div>
+        </Link>
       )}
 
       <button
