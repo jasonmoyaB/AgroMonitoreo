@@ -40,3 +40,14 @@ export async function obtenerUsuarioActual(client: SupabaseClient = supabase): P
     rol: data.rol.nombre,
   }
 }
+
+export async function actualizarNombreUsuario(nombre: string, client: SupabaseClient = supabase): Promise<void> {
+  const {
+    data: { user: authUser },
+  } = await client.auth.getUser()
+
+  if (!authUser) throw new Error('actualizarNombreUsuario: no hay sesión activa')
+
+  const { error } = await client.from('usuario').update({ nombre: nombre.trim() || null }).eq('auth_user_id', authUser.id)
+  if (error) throw new Error(`actualizarNombreUsuario: ${error.message}`)
+}

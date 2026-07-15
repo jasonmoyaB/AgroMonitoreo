@@ -8,27 +8,36 @@ Capataz anota a mano: trabajador, labor, horas, cantidad producida. Productivida
 
 ## Solución
 
-App captura ("features/captura") pa' capataz en campo:
+App captura (`features/captura`) pa' capataz en campo:
 
 - Grid iconos, sin texto libre (muchos trabajadores baja alfabetización)
 - Touch targets grandes (≥88px), steppers +/- pa' números (nunca teclado)
 - Flujo: elegir labor → elegir trabajador (foto/iniciales, check verde si ya cargado hoy) → horas + cantidad → confirmar
 - App calcula productividad sola
 
-Guarda en IndexedDB hoy (sin backend aún). Plan: Supabase (Postgres+Auth+RLS), aislamiento por `finca_id`.
+Backend real ya: Supabase (Postgres + Auth + RLS + Storage), aislamiento por `finca_id`. Únicos IndexedDB hoy: draft en progreso (resiliencia, no fuente verdad).
 
 Resiliente a caída conexión: autosave local (300ms debounce) + retry mutación (3x) + service worker PWA.
 
 ## Roles
 
-- **supervisor/capataz**: carga datos campo (único implementado)
-- **admin/oficina**: dashboard, métricas, gestión (próxima fase, no construido)
+- **supervisor/capataz**: carga datos campo, gestión trabajadores (`features/trabajadores`), asistencia diaria (`features/asistencia`), KPIs (`features/supervisor`)
+- **admin/oficina**: implementado (`features/admin`) — dashboard, CRUD fincas, CRUD supervisores, ver trabajadores/asistencia multi-finca
 
 Flujo un sentido: supervisor → admin. Sin flujo reverso.
 
+## Lo logrado (recién)
+
+- **Auth hardening**: rate-limit login (cooldown tras intentos fallidos, `use-login-cooldown.ts` + migración `bloqueo_login_intentos_fallidos`), signup ya no confía rol/finca de metadata cliente (siempre `supervisor`+`birrisito` server-side)
+- **Módulo Admin completo**: dashboard, CRUD fincas, CRUD supervisores, vista trabajadores/asistencia por finca — soporte multi-finca real
+- **Asistencia**: marcar ausente/presente, tabla semanal, calendario mensual, export PDF
+- **Métricas/KPIs**: horas extras, ranking labores/trabajadores, tendencia diaria — `shared/utils/kpis/`
+- **Supabase Advisors hardening**: grants explícitos por tabla, RLS join-through-`usuario`, revoke EXECUTE funciones internas
+- Tests con vitest, MCP `codebase-memory` pa' navegar el repo
+
 ## Stack
 
-React + TypeScript + Vite, Tailwind v4, TanStack Query, Zustand, idb-keyval.
+React + TypeScript + Vite, Tailwind v4, TanStack Query, Zustand, Supabase (Postgres+Auth+RLS+Storage).
 
 ## Comandos
 
@@ -39,12 +48,11 @@ pnpm install          # deps
 pnpm dev              # dev server
 pnpm build            # typecheck + build, debe pasar
 pnpm exec tsc -b --noEmit   # solo typecheck
+pnpm exec vitest run  # tests
 pnpm lint             # oxlint
 pnpm preview          # preview build prod
 ```
 
-Sin test runner configurado aún.
-
 ## Estructura
 
-Ver `CLAUDE.md` pa' detalle arquitectura, capas, y convenciones.
+Ver `CLAUDE.md` pa' detalle arquitectura, capas, backend Supabase, y convenciones.

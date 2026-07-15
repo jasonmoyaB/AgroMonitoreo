@@ -13,6 +13,10 @@
       {
         "files": ["src/features/trabajadores/utils/validar-foto-trabajador.ts"],
         "rules": ["react-doctor/js-length-check-first"]
+      },
+      {
+        "files": ["src/features/auth/utils/traducir-error-auth.ts"],
+        "rules": ["react-doctor/no-secrets-in-client-code"]
       }
     ]
   }

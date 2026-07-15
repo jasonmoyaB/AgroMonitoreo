@@ -1,4 +1,5 @@
-import { CalendarDays, MapPin, User } from 'lucide-react'
+import { CalendarDays, MapPin, Settings, User } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { LaborTaskList } from '../components/LaborTaskList'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
@@ -34,6 +35,13 @@ export function SupervisorDashboardScreen() {
                   <MapPin className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
                   {perfil?.fincaNombre ?? '...'}
                 </span>
+                <Link
+                  to="/supervisor/configuracion"
+                  className="flex items-center gap-1.5 rounded-full px-1 transition-colors duration-200 hover:text-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+                >
+                  <Settings className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
+                  Configuración
+                </Link>
               </div>
             </div>
             <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

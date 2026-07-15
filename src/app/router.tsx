@@ -1,8 +1,8 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { SeleccionFechaScreen, TrabajadoresScreen, CapturaRegistroScreen } from '../features/captura'
 import { AdminGuard, AuthGuard, LoginScreen, RegisterScreen } from '../features/auth'
-import { AsistenciaScreen, DashboardScreen, SupervisorDashboardScreen, TrabajadoresCrudScreen } from '../features/supervisor'
-import { AdminDashboardScreen, AsistenciaPorFincaScreen, FincasCrudScreen, SupervisoresCrudScreen, TrabajadoresPorFincaScreen } from '../features/admin'
+import { AsistenciaScreen, DashboardScreen, SupervisorConfiguracionScreen, SupervisorDashboardScreen, TrabajadoresCrudScreen } from '../features/supervisor'
+import { AdminConfiguracionScreen, AdminDashboardScreen, AsistenciaPorFincaScreen, FincasCrudScreen, SupervisoresCrudScreen, TrabajadoresPorFincaScreen } from '../features/admin'
 import { NotFoundScreen } from './NotFoundScreen'
 import { RouteErrorScreen } from './RouteErrorScreen'
 
@@ -21,6 +21,7 @@ export const router = createBrowserRouter([
           { path: '/supervisor/dashboard', element: <DashboardScreen /> },
           { path: '/supervisor/trabajadores', element: <TrabajadoresCrudScreen /> },
           { path: '/supervisor/asistencia', element: <AsistenciaScreen /> },
+          { path: '/supervisor/configuracion', element: <SupervisorConfiguracionScreen /> },
           { path: '/supervisor/trabajadores/nuevo', element: <Navigate to="/supervisor/trabajadores" replace /> },
           { path: '/captura/fecha', element: <SeleccionFechaScreen /> },
           { path: '/captura/labor/:tipoLaborId/trabajadores', element: <TrabajadoresScreen /> },
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
           { path: '/admin/supervisores', element: <SupervisoresCrudScreen /> },
           { path: '/admin/trabajadores', element: <TrabajadoresPorFincaScreen /> },
           { path: '/admin/asistencia', element: <AsistenciaPorFincaScreen /> },
+          { path: '/admin/configuracion', element: <AdminConfiguracionScreen /> },
         ],
       },
       { path: '*', element: <NotFoundScreen /> },
