@@ -18,6 +18,7 @@ export function useLoginCooldown() {
         return
       }
       setSegundosRestantes(Math.ceil(restanteMs / 1000))
+    }, 1000)
 
     return () => clearInterval(intervalo)
   }, [bloqueadoHasta])
