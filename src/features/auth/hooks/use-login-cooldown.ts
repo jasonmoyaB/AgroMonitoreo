@@ -14,10 +14,10 @@ export function useLoginCooldown() {
       if (restanteMs <= 0) {
         setSegundosRestantes(0)
         setBloqueadoHasta(null)
+        clearInterval(intervalo)
         return
       }
       setSegundosRestantes(Math.ceil(restanteMs / 1000))
-    }, 1000)
 
     return () => clearInterval(intervalo)
   }, [bloqueadoHasta])
