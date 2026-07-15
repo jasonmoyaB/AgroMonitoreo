@@ -3,8 +3,8 @@ begin;
 -- permite que cualquier usuario autenticado edite su propia fila (pantalla "Configuración")
 create policy "usuario_update_own"
   on public.usuario for update to authenticated
-  using ( auth_user_id = auth.uid() )
-  with check ( auth_user_id = auth.uid() );
+  using ( auth_user_id = auth.uid() and activo = true )
+  with check ( auth_user_id = auth.uid() and activo = true );
 
 -- guarda contra escalada de privilegios: un usuario no-admin no puede tocar
 -- rol_id/finca_id/activo de su propia fila via la policy anterior, solo nombre.
