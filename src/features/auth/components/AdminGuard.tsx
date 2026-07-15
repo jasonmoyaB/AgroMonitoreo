@@ -15,7 +15,7 @@ export function AdminGuard() {
   }
 
   if (!session) return <Navigate to="/login" replace />
-  if (usuario?.rol !== 'admin_oficina') return <Navigate to="/supervisor" replace />
+  if (!usuario || usuario.rol !== 'admin_oficina') return <Navigate to="/supervisor" replace />
 
   return <Outlet />
 }
