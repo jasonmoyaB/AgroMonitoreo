@@ -16,7 +16,7 @@ If the score dropped, fix the regressions before committing.
 
 ## For general cleanup or code improvement:
 
-Run `npx react-doctor@latest --verbose` (the default `--scope full`) to scan the full codebase. Fix issues by severity — errors first, then warnings.
+Run `pnpm dlx react-doctor --verbose` until score 100/Great. Loop: scan -> fix errors first, then warnings -> rescan -> repeat till 100%. No stop before 100%, no asking user scope/output mode — auto working-tree mode, no commits.
 
 ## /doctor — full local triage workflow
 
