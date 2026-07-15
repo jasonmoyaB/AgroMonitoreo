@@ -45,7 +45,9 @@ export function useAuthForm(mode: AuthMode) {
       cooldown.resetear()
       navigate(await obtenerRutaSegunRol(), { replace: true })
     } catch (unknownError) {
-      cooldown.registrarIntentoFallido()
+      if (mode === 'login') {
+        cooldown.registrarIntentoFallido()
+      }
       setError(unknownError instanceof Error ? unknownError.message : 'No se pudo completar la acción.')
     } finally {
       setIsSubmitting(false)
