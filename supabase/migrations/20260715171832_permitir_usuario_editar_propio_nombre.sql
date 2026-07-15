@@ -17,6 +17,9 @@ set search_path = public
 as $$
 begin
   if public.es_admin_oficina() then
+    if new.auth_user_id is distinct from old.auth_user_id then
+      raise exception 'No puedes cambiar la identidad de usuario.';
+    end if;
     return new;
   end if;
 
