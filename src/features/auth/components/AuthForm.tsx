@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sprout } from 'lucide-react'
 import { useAuthForm } from '../hooks/use-auth-form'
+import { PasswordChecklist } from './PasswordChecklist'
 import type { AuthMode } from '../types/auth.types'
 
 const CONTENT = {
@@ -81,7 +82,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               value={form.password}
               onChange={(event) => form.setPassword(event.target.value)}
               className="min-h-14 flex-1 bg-transparent text-base font-bold text-slate-900 outline-none placeholder:text-slate-500"
-              placeholder="Mínimo 6 caracteres"
+              placeholder={mode === 'register' ? 'Crea una contraseña segura' : 'Tu contraseña'}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               required
             />
@@ -95,6 +96,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               {mostrarPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
             </button>
           </span>
+          {mode === 'register' && <PasswordChecklist password={form.password} />}
         </label>
 
         {form.error && <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{form.error}</p>}
@@ -102,10 +104,14 @@ export function AuthForm({ mode }: AuthFormProps) {
 
         <button
           type="submit"
-          disabled={form.isSubmitting}
+          disabled={form.isSubmitting || form.segundosRestantes > 0}
           className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {form.isSubmitting ? 'Procesando...' : content.button}
+          {form.isSubmitting
+            ? 'Procesando...'
+            : form.segundosRestantes > 0
+              ? `Espera ${form.segundosRestantes}s`
+              : content.button}
         </button>
       </form>
 

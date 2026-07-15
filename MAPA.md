@@ -6,6 +6,7 @@
 |---|---|
 | Rutas de la app | `src/app/router.tsx` |
 | Login / registro / guard de auth | `src/features/auth/` |
+| Rate limit de login/registro | `src/features/auth/hooks/use-login-cooldown.ts` + `utils/calcular-cooldown-ms.ts` (cooldown UX cliente) — `[auth.rate_limit].sign_in_sign_ups` en `supabase/config.toml` (límite real por IP, server-side vía GoTrue). Bloqueo de cuenta por Auth Hook se intentó y se revirtió: requiere plan Teams/Enterprise, ver `supabase/migrations/20260715160413_revertir_hook_password_verification_no_disponible_free.sql` |
 | Flujo de captura (foreman) | `src/features/captura/` (screens → components → hooks → services → utils → types → constants) |
 | Dashboard supervisor / KPIs | `src/features/supervisor/` |
 | CRUD de trabajadores + fotos | `src/features/trabajadores/` |
