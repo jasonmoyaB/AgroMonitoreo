@@ -1,12 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
-import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
+import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
 import { TRABAJADORES_QUERY_KEY } from '../constants/trabajadores-query.constants'
 import { listarTodosTrabajadoresPorFinca } from '../services/trabajadores-service'
 
-const QUERY_KEY = [TRABAJADORES_QUERY_KEY, FINCA_ACTUAL.id]
-
 export function useTrabajadoresListado() {
-  const { data: trabajadores = [], isLoading } = useQuery({ queryKey: QUERY_KEY, queryFn: () => listarTodosTrabajadoresPorFinca(FINCA_ACTUAL.id) })
+  const { usuario } = useUsuarioActual()
+  const fincaId = usuario?.fincaId
+  const { data: trabajadores = [], isLoading } = useQuery({
+    queryKey: [TRABAJADORES_QUERY_KEY, fincaId],
+    queryFn: () => listarTodosTrabajadoresPorFinca(fincaId as string),
+    enabled: !!fincaId,
+  })
 
-  return { trabajadores, isLoading, finca: FINCA_ACTUAL }
+  return { trabajadores, isLoading, finca: { id: fincaId ?? '', nombre: usuario?.fincaNombre ?? '', activa: true } }
 }

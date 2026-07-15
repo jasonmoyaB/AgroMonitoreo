@@ -1,0 +1,19 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "ignore": {
+    "overrides": [
+      {
+        "files": ["**/dist/**"],
+        "rules": ["react-doctor/artifact-baas-authority-surface"]
+      },
+      {
+        "files": ["src/app/router.tsx"],
+        "rules": ["react-doctor/no-barrel-import"]
+      },
+      {
+        "files": ["src/features/trabajadores/utils/validar-foto-trabajador.ts"],
+        "rules": ["react-doctor/js-length-check-first"]
+      }
+    ]
+  }
+}

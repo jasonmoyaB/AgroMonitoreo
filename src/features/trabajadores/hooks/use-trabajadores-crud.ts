@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
-import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
+import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
 import { useToastStore } from '../../../shared/stores/toast-store'
 import type { Trabajador } from '../../../shared/types/domain.types'
 import { TRABAJADORES_QUERY_KEY } from '../constants/trabajadores-query.constants'
@@ -9,7 +9,6 @@ import { useFotoTrabajador } from './use-foto-trabajador'
 import type { TrabajadorFormValues } from '../types/trabajador-form.types'
 
 const TRABAJADOR_INICIAL: TrabajadorFormValues = { nombreCompleto: '', fotoUrl: '', activo: true }
-const TRABAJADORES_LISTADO_QUERY_KEY = [TRABAJADORES_QUERY_KEY, FINCA_ACTUAL.id]
 
 interface EstadoFormularioTrabajador {
   values: TrabajadorFormValues
@@ -32,8 +31,14 @@ export function useTrabajadoresCrud() {
   const { values, trabajadorEditando, error, isFormOpen } = form
   const [isSubmitting, setIsSubmitting] = useState(false)
   const foto = useFotoTrabajador()
-  const queryKey = TRABAJADORES_LISTADO_QUERY_KEY
-  const { data: trabajadores = [], isLoading } = useQuery({ queryKey, queryFn: () => listarTodosTrabajadoresPorFinca(FINCA_ACTUAL.id) })
+  const { usuario } = useUsuarioActual()
+  const fincaId = usuario?.fincaId
+  const queryKey = [TRABAJADORES_QUERY_KEY, fincaId]
+  const { data: trabajadores = [], isLoading } = useQuery({
+    queryKey,
+    queryFn: () => listarTodosTrabajadoresPorFinca(fincaId as string),
+    enabled: !!fincaId,
+  })
 
   function updateField<K extends keyof TrabajadorFormValues>(field: K, value: TrabajadorFormValues[K]) {
     setForm((current) => ({ ...current, values: { ...current.values, [field]: value } }))
@@ -85,7 +90,7 @@ export function useTrabajadoresCrud() {
       await queryClient.invalidateQueries({ queryKey })
       cerrarForm()
       if (esCreacion) {
-        mostrarToast({ type: 'success', title: 'Trabajador agregado', description: `${nombreGuardado} ya forma parte de ${FINCA_ACTUAL.nombre}.` })
+        mostrarToast({ type: 'success', title: 'Trabajador agregado', description: `${nombreGuardado} ya forma parte de ${usuario?.fincaNombre}.` })
       } else {
         mostrarToast({ type: 'success', title: 'Trabajador editado correctamente' })
       }
@@ -106,9 +111,10 @@ export function useTrabajadoresCrud() {
   }
 
   async function guardarSegunModo() {
-    const fotoUrl = foto.fotoArchivo ? await subirFotoTrabajador({ fincaId: FINCA_ACTUAL.id, archivo: foto.fotoArchivo }) : values.fotoUrl
+    if (!fincaId) throw new Error('No se pudo determinar la finca del usuario actual.')
+    const fotoUrl = foto.fotoArchivo ? await subirFotoTrabajador({ fincaId, archivo: foto.fotoArchivo }) : values.fotoUrl
     if (trabajadorEditando) return actualizarTrabajador({ ...values, fotoUrl, id: trabajadorEditando.id })
-    return crearTrabajador({ ...values, fotoUrl, fincaId: FINCA_ACTUAL.id })
+    return crearTrabajador({ ...values, fotoUrl, fincaId })
   }
 
   function mostrarError(unknownError: unknown, fallback: string) {
@@ -119,7 +125,7 @@ export function useTrabajadoresCrud() {
   return {
     trabajadores,
     values,
-    finca: FINCA_ACTUAL,
+    finca: { id: fincaId ?? '', nombre: usuario?.fincaNombre ?? '', activa: true },
     trabajadorEditando,
     error: error ?? foto.fotoError,
     isLoading,

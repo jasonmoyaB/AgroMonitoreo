@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useToastStore } from '../../../shared/stores/toast-store'
-import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { descargarBlob } from '../../../shared/lib/descargar-blob'
 import { construirFechaIso } from '../../captura/utils/fecha-iso'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
+import type { Finca } from '../../../shared/types/domain.types'
 import { listarAsistenciaPorRango } from '../services/asistencia-service'
 import { generarPdfAusencias } from '../utils/generar-pdf-ausencias'
 
-export function useDescargarAusenciasPdf() {
+export function useDescargarAusenciasPdf(finca: Pick<Finca, 'id' | 'nombre'>) {
   const hoy = new Date()
   const [anio, setAnio] = useState(hoy.getFullYear())
   const [mes, setMes] = useState(hoy.getMonth() + 1)
@@ -17,8 +17,8 @@ export function useDescargarAusenciasPdf() {
   async function descargar() {
     try {
       setIsDownloading(true)
-      const registros = await listarAsistenciaPorRango(FINCA_ACTUAL.id, construirDesde(), construirHasta())
-      descargarBlob(generarPdfAusencias({ registros, fincaNombre: FINCA_ACTUAL.nombre, anio, mes }), crearNombreArchivo())
+      const registros = await listarAsistenciaPorRango(finca.id, construirDesde(), construirHasta())
+      descargarBlob(generarPdfAusencias({ registros, fincaNombre: finca.nombre, anio, mes }), crearNombreArchivo())
       mostrarToast({ type: 'success', title: 'PDF descargado', description: `${registros.length} ausencias exportadas.` })
     } catch (error) {
       const description = error instanceof Error ? error.message : 'Intenta de nuevo.'

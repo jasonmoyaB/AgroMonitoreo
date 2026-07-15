@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { useToastStore } from '../../../shared/stores/toast-store'
 import type { Trabajador, TipoAusencia } from '../../../shared/types/domain.types'
 import { construirFechaIso } from '../../captura/utils/fecha-iso'
@@ -23,7 +22,7 @@ interface EstadoModalCalendario {
 
 const ESTADO_MODAL_INICIAL: EstadoModalCalendario = { trabajador: null, fechas: [], tipo: TIPO_AUSENCIA_POR_DEFECTO, error: null }
 
-export function useRegistrarAusenciaCalendario() {
+export function useRegistrarAusenciaCalendario(fincaId: string | undefined) {
   const queryClient = useQueryClient()
   const mostrarToast = useToastStore((state) => state.mostrarToast)
   const hoy = new Date()
@@ -65,8 +64,8 @@ export function useRegistrarAusenciaCalendario() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!trabajador || !validarFechas()) return
-    await guardarAusencias(trabajador)
+    if (!trabajador || !fincaId || !validarFechas()) return
+    await guardarAusencias(trabajador, fincaId)
   }
 
   function validarFechas() {
@@ -78,11 +77,11 @@ export function useRegistrarAusenciaCalendario() {
     return false
   }
 
-  async function guardarAusencias(trabajadorSeleccionado: Trabajador) {
+  async function guardarAusencias(trabajadorSeleccionado: Trabajador, fincaSeleccionadaId: string) {
     setIsSubmitting(true)
     try {
-      await registrarAusencias({ fincaId: FINCA_ACTUAL.id, trabajadorId: trabajadorSeleccionado.id, fechas, tipo })
-      await invalidarAsistencia(trabajadorSeleccionado.id)
+      await registrarAusencias({ fincaId: fincaSeleccionadaId, trabajadorId: trabajadorSeleccionado.id, fechas, tipo })
+      await invalidarAsistencia(trabajadorSeleccionado.id, fincaSeleccionadaId)
       mostrarToast({ type: 'success', title: 'Ausencia registrada', description: `${trabajadorSeleccionado.nombreCompleto} quedo ausente ${fechas.length} dia(s).` })
       limpiar()
     } catch (unknownError) {
@@ -92,12 +91,12 @@ export function useRegistrarAusenciaCalendario() {
     }
   }
 
-  async function invalidarAsistencia(trabajadorId: string) {
+  async function invalidarAsistencia(trabajadorId: string, fincaSeleccionadaId: string) {
     await Promise.all(fechas.map((fecha) => queryClient.invalidateQueries({ queryKey: [ASISTENCIA_DIA_QUERY_KEY, fecha] })))
     await queryClient.invalidateQueries({ queryKey: [ASISTENCIA_MES_QUERY_KEY] })
     await queryClient.invalidateQueries({ queryKey: [ASISTENCIA_SEMANA_QUERY_KEY] })
-    await queryClient.invalidateQueries({ queryKey: [ASISTENCIA_TRABAJADOR_QUERY_KEY, FINCA_ACTUAL.id, trabajadorId] })
-    await queryClient.invalidateQueries({ queryKey: [ASISTENCIA_TRABAJADORES_AUSENTES_QUERY_KEY, FINCA_ACTUAL.id] })
+    await queryClient.invalidateQueries({ queryKey: [ASISTENCIA_TRABAJADOR_QUERY_KEY, fincaSeleccionadaId, trabajadorId] })
+    await queryClient.invalidateQueries({ queryKey: [ASISTENCIA_TRABAJADORES_AUSENTES_QUERY_KEY, fincaSeleccionadaId] })
   }
 
   function mostrarError(unknownError: unknown) {

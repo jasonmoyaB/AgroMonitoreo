@@ -9,40 +9,50 @@ import { useRegistrarAusenciaCalendario } from '../../asistencia/hooks/use-regis
 import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores-filtro'
 import { useTrabajadoresListado } from '../../trabajadores/hooks/use-trabajadores-listado'
 import { Modal } from '../../../shared/components/Modal'
-import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
-import { AusenciaCalendarioForm } from '../components/AusenciaCalendarioForm'
-import { AsistenciaTrabajadoresTable } from '../components/AsistenciaTrabajadoresTable'
-import { AusenciasTrabajadorPanel } from '../components/AusenciasTrabajadorPanel'
-import { CalendarioAusentesPanel } from '../components/CalendarioAusentesPanel'
-import { DescargarAusenciasPdfControls } from '../components/DescargarAusenciasPdfControls'
+import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
+import { AusenciaCalendarioForm } from '../../asistencia/components/AusenciaCalendarioForm'
+import { AsistenciaTrabajadoresTable } from '../../asistencia/components/AsistenciaTrabajadoresTable'
+import { AusenciasTrabajadorPanel } from '../../asistencia/components/AusenciasTrabajadorPanel'
+import { CalendarioAusentesPanel } from '../../asistencia/components/CalendarioAusentesPanel'
+import { DescargarAusenciasPdfControls } from '../../asistencia/components/DescargarAusenciasPdfControls'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
-import { SelectorSemana } from '../components/SelectorSemana'
-import { AsistenciaTable } from '../components/AsistenciaTable'
-import { TrabajadoresFilterBar } from '../components/TrabajadoresFilterBar'
+import { SelectorSemana } from '../../../shared/components/SelectorSemana'
+import { AsistenciaTable } from '../../../shared/components/AsistenciaTable'
+import { TrabajadoresFilterBar } from '../../trabajadores/components/TrabajadoresFilterBar'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
+import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 
 export function AsistenciaScreen() {
   const dashboard = useSupervisorDashboard()
-  const asistencia = useAsistenciaSemana(FINCA_ACTUAL.id)
+  const perfil = usePerfilSidebar()
+  const { usuario } = useUsuarioActual()
+  const fincaId = usuario?.fincaId
+  const asistencia = useAsistenciaSemana(fincaId)
   const trabajadores = useTrabajadoresListado()
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
   const detalleModal = useDetalleAsistenciaModal()
-  const calendarioModal = useRegistrarAusenciaCalendario()
+  const calendarioModal = useRegistrarAusenciaCalendario(fincaId)
   const ausentesModal = useCalendarioAusentesModal()
-  const calendarioAusentes = useCalendarioAusentes(FINCA_ACTUAL.id)
-  const detalleAusencias = useAusenciasTrabajador(detalleModal.trabajador?.id ?? null)
-  const descargarAusenciasPdf = useDescargarAusenciasPdf()
+  const calendarioAusentes = useCalendarioAusentes(fincaId)
+  const detalleAusencias = useAusenciasTrabajador(fincaId, detalleModal.trabajador?.id ?? null)
+  const descargarAusenciasPdf = useDescargarAusenciasPdf(trabajadores.finca)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
   return (
     <main className="h-dvh overflow-hidden p-3 sm:p-4">
       <div className="flex h-full min-w-0 flex-col gap-3 md:flex-row md:gap-4">
-        <SupervisorSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
+        <SupervisorSidebar
+          isCollapsed={dashboard.isSidebarCollapsed}
+          isSigningOut={isSigningOut}
+          perfil={perfil}
+          onToggle={dashboard.toggleSidebar}
+          onSignOut={handleCerrarSesion}
+        />
 
         <section className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain scrollbar-none">
           <header className="neu-raised mb-4 flex flex-wrap items-start justify-between gap-4 rounded-[2rem] p-5">
             <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">{FINCA_ACTUAL.nombre}</p>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">{trabajadores.finca.nombre}</p>
               <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Asistencia</h1>
               <p className="mt-2 font-bold leading-7 text-slate-600">Revisa los dias ausente/no vino y registra nuevas ausencias.</p>
             </div>

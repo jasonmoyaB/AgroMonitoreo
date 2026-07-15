@@ -5,7 +5,7 @@ import { listarAsistenciaPorRango } from '../services/asistencia-service'
 import { construirFechaIso } from '../../captura/utils/fecha-iso'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 
-export function useCalendarioAusentes(fincaId: string) {
+export function useCalendarioAusentes(fincaId: string | undefined) {
   const hoy = new Date()
   const [fecha, setFecha] = useState({ anio: hoy.getFullYear(), mes: hoy.getMonth() + 1 })
   const desde = construirFechaIso({ ...fecha, dia: 1 })
@@ -13,7 +13,8 @@ export function useCalendarioAusentes(fincaId: string) {
 
   const query = useQuery({
     queryKey: [ASISTENCIA_MES_QUERY_KEY, fincaId, desde, hasta],
-    queryFn: () => listarAsistenciaPorRango(fincaId, desde, hasta),
+    queryFn: () => listarAsistenciaPorRango(fincaId as string, desde, hasta),
+    enabled: !!fincaId,
   })
 
   function cambiarMes(direccion: -1 | 1) {

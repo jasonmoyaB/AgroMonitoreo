@@ -1,0 +1,151 @@
+import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { DIAS_SEMANA, DIAS_SEMANA_CLAVES } from '../constants/calendario.constants'
+import { TIPOS_AUSENCIA } from '../constants/tipos-ausencia.constants'
+import type { AsistenciaConTrabajador } from '../types/asistencia.types'
+import { obtenerEspaciosCalendario } from '../utils/obtener-espacios-calendario'
+import { formatearTipoAusencia } from '../utils/formatear-tipo-ausencia'
+import { construirFechaIso } from '../../captura/utils/fecha-iso'
+import { MESES } from '../../captura/constants/meses.constants'
+import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
+import { TipoAusenciaIcon } from './TipoAusenciaIcon'
+
+interface CalendarioAusentesPanelProps {
+  anio: number
+  mes: number
+  registros: readonly AsistenciaConTrabajador[]
+  isLoading: boolean
+  onCambiarMes: (direccion: -1 | 1) => void
+}
+
+export function CalendarioAusentesPanel({ anio, mes, registros, isLoading, onCambiarMes }: CalendarioAusentesPanelProps) {
+  const [fechaSeleccionada, setFechaSeleccionada] = useState<string | null>(null)
+  const dias = obtenerDiasEnMes(anio, mes)
+  const espacios = obtenerEspaciosCalendario(anio, mes)
+  const registrosPorFecha = agruparPorFecha(registros)
+  const mesNombre = MESES.find((item) => item.valor === mes)?.nombre ?? 'Mes'
+  const registrosSeleccionados = fechaSeleccionada ? registrosPorFecha.get(fechaSeleccionada) ?? [] : []
+
+  return (
+    <div className="mt-2 mb-2 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <button type="button" onClick={() => onCambiarMes(-1)} aria-label="Mes anterior" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
+          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <div className="text-center">
+          <strong className="text-xl font-black capitalize text-slate-900">{mesNombre} {anio}</strong>
+          <p className="text-sm font-bold text-slate-600">Trabajadores ausentes por dia</p>
+        </div>
+        <button type="button" onClick={() => onCambiarMes(1)} aria-label="Mes siguiente" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
+          <ChevronRight className="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
+
+      <LeyendaTiposAusencia />
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="neu-pressed rounded-3xl p-3 sm:p-4">
+          <div className="grid grid-cols-7 gap-2">
+            {DIAS_SEMANA.map((dia, index) => <span key={DIAS_SEMANA_CLAVES[index]} className="text-center text-xs font-black text-slate-500">{dia}</span>)}
+            {Array.from({ length: espacios }, (_item, index) => <span key={`vacio-${index}`} aria-hidden="true" />)}
+            {Array.from({ length: dias }, (_item, index) => {
+              const dia = index + 1
+              const fecha = construirFechaIso({ anio, mes, dia })
+              return <DiaAusentes key={fecha} dia={dia} fecha={fecha} registros={registrosPorFecha.get(fecha) ?? []} seleccionado={fecha === fechaSeleccionada} onSeleccionar={setFechaSeleccionada} />
+            })}
+          </div>
+        </div>
+
+        <DetalleDia fecha={fechaSeleccionada} registros={registrosSeleccionados} />
+      </div>
+
+      {isLoading && <p className="text-sm font-black text-slate-600">Cargando ausentes...</p>}
+    </div>
+  )
+}
+
+function DiaAusentes(props: { dia: number; fecha: string; registros: readonly AsistenciaConTrabajador[]; seleccionado: boolean; onSeleccionar: (fecha: string) => void }) {
+  const tieneAusentes = props.registros.length > 0
+  const selectedClass = props.seleccionado ? 'outline outline-3 outline-green-800' : ''
+
+  return (
+    <button
+      type="button"
+      disabled={!tieneAusentes}
+      onClick={() => props.onSeleccionar(props.fecha)}
+      className={`min-h-16 rounded-2xl bg-white/70 p-2 text-left shadow-inner shadow-white/60 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 sm:min-h-36 ${tieneAusentes ? 'cursor-pointer hover:bg-white' : 'cursor-default'} ${selectedClass}`}
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-sm font-black text-slate-900">{props.dia}</span>
+        {tieneAusentes && <span className="rounded-full bg-rose-100 px-2 py-1 text-[0.65rem] font-black text-rose-800">{props.registros.length}</span>}
+      </div>
+      {!tieneAusentes ? (
+        <p className="hidden text-xs font-bold text-slate-400 sm:block">Sin ausentes</p>
+      ) : (
+        <div className="hidden sm:block">
+          <ListaAusentes registros={props.registros} />
+        </div>
+      )}
+    </button>
+  )
+}
+
+function ListaAusentes({ registros }: { registros: readonly AsistenciaConTrabajador[] }) {
+  return (
+    <ul className="space-y-1">
+      {registros.slice(0, 3).map((registro) => (
+        <li key={registro.id} title={formatearTipoAusencia(registro.tipo)} className="flex items-center gap-1 truncate rounded-xl bg-rose-50 px-2 py-1 text-xs font-black text-rose-900">
+          <TipoAusenciaIcon tipo={registro.tipo} className="h-3 w-3 shrink-0" />
+          <span className="truncate">{registro.trabajadorNombre}</span>
+        </li>
+      ))}
+      {registros.length > 3 && <li className="px-2 text-xs font-black text-slate-500">Click para ver {registros.length}</li>}
+    </ul>
+  )
+}
+
+function DetalleDia({ fecha, registros }: { fecha: string | null; registros: readonly AsistenciaConTrabajador[] }) {
+  if (!fecha) {
+    return <aside className="neu-pressed rounded-3xl p-5"><p className="font-black text-slate-900">Selecciona un dia con ausentes</p><p className="mt-2 text-sm font-bold text-slate-600">Veras la lista completa de trabajadores ausentes.</p></aside>
+  }
+
+  return (
+    <aside className="neu-pressed rounded-3xl p-5">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-green-800">{formatearFecha(fecha)}</p>
+      <h3 className="mt-2 text-xl font-black text-slate-900">{registros.length} ausentes</h3>
+      <ul className="mt-4 max-h-[28rem] space-y-2 overflow-y-auto pr-1">
+        {registros.map((registro) => (
+          <li key={registro.id} className="flex items-center gap-3 rounded-2xl bg-white/75 px-4 py-3 text-sm font-black text-slate-900 shadow-inner shadow-white/70">
+            <TipoAusenciaIcon tipo={registro.tipo} className="h-4 w-4 shrink-0 text-rose-700" />
+            <span className="min-w-0 flex-1 truncate">{registro.trabajadorNombre}</span>
+            <span className="shrink-0 rounded-full bg-slate-900/5 px-3 py-1 text-xs font-black text-slate-700">{formatearTipoAusencia(registro.tipo)}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  )
+}
+
+function LeyendaTiposAusencia() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      {TIPOS_AUSENCIA.map((opcion) => (
+        <span key={opcion.id} className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+          <TipoAusenciaIcon tipo={opcion.id} className="h-3.5 w-3.5 text-rose-700" />
+          {opcion.nombre}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function agruparPorFecha(registros: readonly AsistenciaConTrabajador[]): Map<string, AsistenciaConTrabajador[]> {
+  const grupos = new Map<string, AsistenciaConTrabajador[]>()
+  registros.forEach((registro) => grupos.set(registro.fecha, [...(grupos.get(registro.fecha) ?? []), registro]))
+  return grupos
+}
+
+function formatearFecha(fecha: string): string {
+  const [anio, mes, dia] = fecha.split('-')
+  return `${dia}/${mes}/${anio}`
+}

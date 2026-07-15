@@ -1,9 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
-import { CalendarX2, ClipboardList, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, UserPlus } from 'lucide-react'
+import { CalendarX2, ClipboardList, LayoutDashboard, LogOut, MapPin, PanelLeftClose, PanelLeftOpen, Sprout, User, UserPlus } from 'lucide-react'
+import type { PerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 
 interface SupervisorSidebarProps {
   isCollapsed: boolean
   isSigningOut: boolean
+  perfil: PerfilSidebar | null
   onToggle: () => void
   onSignOut: () => void
 }
@@ -15,7 +17,7 @@ const NAV_ITEMS = [
   { to: '/supervisor/asistencia', label: 'Asistencia', icon: CalendarX2 },
 ]
 
-export function SupervisorSidebar({ isCollapsed, isSigningOut, onToggle, onSignOut }: SupervisorSidebarProps) {
+export function SupervisorSidebar({ isCollapsed, isSigningOut, perfil, onToggle, onSignOut }: SupervisorSidebarProps) {
   const location = useLocation()
   const labelClass = isCollapsed ? 'sr-only' : 'truncate'
   const sidebarWidth = isCollapsed ? 'md:w-20' : 'md:w-72'
@@ -60,6 +62,19 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, onToggle, onSignO
           )
         })}
       </nav>
+
+      {perfil && !isCollapsed && (
+        <div className="mt-2 rounded-2xl bg-white/40 px-3 py-2.5 md:mt-8">
+          <p className="flex items-center gap-1.5 truncate text-xs font-black text-slate-800">
+            <User className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
+            <span className="truncate">{perfil.nombre ?? perfil.email}</span>
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 truncate text-xs font-bold text-slate-600">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
+            <span className="truncate">{perfil.fincaNombre}</span>
+          </p>
+        </div>
+      )}
 
       <button
         type="button"

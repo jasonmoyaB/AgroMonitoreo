@@ -5,23 +5,31 @@ import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores
 import { Modal } from '../../../shared/components/Modal'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { TrabajadorForm } from '../components/TrabajadorForm'
-import { TrabajadorMetricasModal } from '../components/TrabajadorMetricasModal'
-import { TrabajadoresFilterBar } from '../components/TrabajadoresFilterBar'
+import { TrabajadorMetricasModal } from '../../trabajadores/components/TrabajadorMetricasModal'
+import { TrabajadoresFilterBar } from '../../trabajadores/components/TrabajadoresFilterBar'
 import { TrabajadoresTable } from '../components/TrabajadoresTable'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
-import { useTrabajadorMetricasModal } from '../hooks/use-trabajador-metricas-modal'
+import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
+import { useTrabajadorMetricasModal } from '../../trabajadores/hooks/use-trabajador-metricas-modal'
 
 export function TrabajadoresCrudScreen() {
   const dashboard = useSupervisorDashboard()
   const trabajadores = useTrabajadoresCrud()
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
   const metricasModal = useTrabajadorMetricasModal()
+  const perfil = usePerfilSidebar()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
   return (
     <main className="h-dvh overflow-hidden p-3 sm:p-4">
       <div className="flex h-full min-w-0 flex-col gap-3 md:flex-row md:gap-4">
-        <SupervisorSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
+        <SupervisorSidebar
+          isCollapsed={dashboard.isSidebarCollapsed}
+          isSigningOut={isSigningOut}
+          perfil={perfil}
+          onToggle={dashboard.toggleSidebar}
+          onSignOut={handleCerrarSesion}
+        />
 
         <section className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
           <header className="neu-raised mb-4 flex flex-wrap items-start justify-between gap-4 rounded-[2rem] p-5">
@@ -61,6 +69,7 @@ export function TrabajadoresCrudScreen() {
         <TrabajadorMetricasModal
           state={metricasModal}
           actions={{ onFiltroChange: metricasModal.updateFiltro, onResetFiltros: metricasModal.resetFiltros, onClose: metricasModal.cerrar }}
+          fincaNombre={trabajadores.finca.nombre}
         />
       </div>
     </main>

@@ -1,3 +1,5 @@
 export { AuthGuard } from './components/AuthGuard'
+export { AdminGuard } from './components/AdminGuard'
 export { LoginScreen } from './screens/LoginScreen'
 export { RegisterScreen } from './screens/RegisterScreen'
+export { useUsuarioActual } from './hooks/use-usuario-actual'

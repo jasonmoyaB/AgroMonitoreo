@@ -12,8 +12,8 @@ import { useRegistrosDelDia } from '../hooks/use-registros-del-dia'
 import { useSaltarATrabajador } from '../hooks/use-saltar-a-trabajador'
 import { useBusquedaTrabajadores } from '../hooks/use-busqueda-trabajadores'
 import { useAusentesDelDia } from '../../asistencia/hooks/use-ausentes-del-dia'
+import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
 import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
-import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { UMBRAL_INDICE_ALFABETO } from '../constants/captura.constants'
 import { ordenarTrabajadoresAlfabeticamente } from '../utils/ordenar-trabajadores-alfabeticamente'
@@ -36,9 +36,10 @@ export function TrabajadoresScreen() {
   const fecha = useCapturaSessionStore((state) => state.fecha)
   const [dialogo, setDialogo] = useState<DialogoTrabajador | null>(null)
 
-  const { data: trabajadores = [] } = useTrabajadoresPorFinca(FINCA_ACTUAL.id)
+  const { usuario } = useUsuarioActual()
+  const { data: trabajadores = [] } = useTrabajadoresPorFinca(usuario?.fincaId)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
-  const { data: ausencias = [] } = useAusentesDelDia(fecha)
+  const { data: ausencias = [] } = useAusentesDelDia(usuario?.fincaId, fecha)
   const tipoLabor = TIPOS_LABOR.find((labor) => labor.id === tipoLaborId)
 
   const trabajadoresOrdenados = ordenarTrabajadoresAlfabeticamente(trabajadores)

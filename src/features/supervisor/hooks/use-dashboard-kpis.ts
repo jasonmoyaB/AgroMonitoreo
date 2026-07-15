@@ -2,11 +2,11 @@ import { useTodosRegistros } from '../../captura/hooks/use-todos-registros'
 import { useTrabajadoresPorFinca } from '../../captura/hooks/use-trabajadores-por-finca'
 import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
-import { calcularKpisMensuales } from '../utils/calcular-kpis-mensuales'
-import { calcularRankingLabores } from '../utils/calcular-ranking-labores'
-import { calcularRankingTrabajadores } from '../utils/calcular-ranking-trabajadores'
-import { calcularTendenciaDiaria } from '../utils/calcular-tendencia-diaria'
-import { filtrarRegistrosDelMes } from '../utils/filtrar-registros-del-mes'
+import { calcularKpisMensuales } from '../../../shared/utils/kpis/calcular-kpis-mensuales'
+import { calcularRankingLabores } from '../../../shared/utils/kpis/calcular-ranking-labores'
+import { calcularRankingTrabajadores } from '../../../shared/utils/kpis/calcular-ranking-trabajadores'
+import { calcularTendenciaDiaria } from '../../../shared/utils/kpis/calcular-tendencia-diaria'
+import { filtrarRegistrosDelMes } from '../../../shared/utils/kpis/filtrar-registros-del-mes'
 
 export function useDashboardKpis() {
   const registrosQuery = useTodosRegistros()
