@@ -61,9 +61,9 @@ begin
   insert into public.intentos_login_fallidos as t (usuario_id, intentos, actualizado_en)
   values (v_usuario_id, 1, now())
   on conflict (usuario_id) do update
-    set intentos = t.intentos + 1,
+    set intentos = intentos_login_fallidos.intentos + 1,
         actualizado_en = now()
-  returning t.intentos into v_intentos;
+  returning intentos_login_fallidos.intentos into v_intentos;
 
   if v_intentos >= max_intentos then
     update public.intentos_login_fallidos
