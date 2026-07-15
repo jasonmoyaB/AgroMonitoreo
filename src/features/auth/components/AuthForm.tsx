@@ -2,33 +2,16 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sprout } from 'lucide-react'
 import { useAuthForm } from '../hooks/use-auth-form'
+import { PasswordChecklist } from './PasswordChecklist'
+import { AUTH_FORM_CONTENT } from '../constants/auth-form-content.constants'
 import type { AuthMode } from '../types/auth.types'
-
-const CONTENT = {
-  login: {
-    title: 'Entrar al campo',
-    subtitle: 'Inicia sesión para registrar labores de la finca.',
-    button: 'Iniciar sesión',
-    footer: '¿Nuevo supervisor?',
-    linkText: 'Crear cuenta',
-    linkTo: '/registro',
-  },
-  register: {
-    title: 'Crear supervisor',
-    subtitle: 'Toda cuenta nueva se registra con el rol supervisor.',
-    button: 'Crear cuenta',
-    footer: '¿Ya tienes cuenta?',
-    linkText: 'Iniciar sesión',
-    linkTo: '/login',
-  },
-} as const
 
 interface AuthFormProps {
   mode: AuthMode
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const content = CONTENT[mode]
+  const content = AUTH_FORM_CONTENT[mode]
   const form = useAuthForm(mode)
   const [mostrarPassword, setMostrarPassword] = useState(false)
 
@@ -47,7 +30,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       <div className="mb-8">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-bold text-green-800">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          Acceso supervisor
+          Acceso supervisor/oficina
         </div>
         <h1 className="text-3xl font-black tracking-tight text-slate-900">{content.title}</h1>
         <p className="mt-3 text-base font-semibold leading-7 text-slate-600">{content.subtitle}</p>
@@ -64,7 +47,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               value={form.email}
               onChange={(event) => form.setEmail(event.target.value)}
               className="min-h-14 flex-1 bg-transparent text-base font-bold text-slate-900 outline-none placeholder:text-slate-500"
-              placeholder="supervisor@finca.cl"
+              placeholder="nombreusuario@gmail.com"
               autoComplete="email"
               required
             />
@@ -81,7 +64,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               value={form.password}
               onChange={(event) => form.setPassword(event.target.value)}
               className="min-h-14 flex-1 bg-transparent text-base font-bold text-slate-900 outline-none placeholder:text-slate-500"
-              placeholder="Mínimo 6 caracteres"
+              placeholder={mode === 'register' ? 'Crea una contraseña segura' : 'Tu contraseña'}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               required
             />
@@ -95,6 +78,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               {mostrarPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
             </button>
           </span>
+          {mode === 'register' && <PasswordChecklist password={form.password} />}
         </label>
 
         {form.error && <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{form.error}</p>}
@@ -102,10 +86,14 @@ export function AuthForm({ mode }: AuthFormProps) {
 
         <button
           type="submit"
-          disabled={form.isSubmitting}
+          disabled={form.isSubmitting || form.segundosRestantes > 0}
           className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {form.isSubmitting ? 'Procesando...' : content.button}
+          {form.isSubmitting
+            ? 'Procesando...'
+            : form.segundosRestantes > 0
+              ? `Espera ${form.segundosRestantes}s`
+              : content.button}
         </button>
       </form>
 

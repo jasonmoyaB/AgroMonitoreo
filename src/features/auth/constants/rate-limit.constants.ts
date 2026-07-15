@@ -1,0 +1,3 @@
+export const MAX_INTENTOS_ANTES_DE_COOLDOWN = 2
+export const COOLDOWN_BASE_MS = 2000
+export const COOLDOWN_MAX_MS = 30000
