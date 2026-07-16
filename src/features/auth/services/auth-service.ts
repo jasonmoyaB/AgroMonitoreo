@@ -29,7 +29,7 @@ export async function actualizarPassword(password: string) {
 
 export async function solicitarRecuperacionPassword({ email }: { email: string }) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${import.meta.env.VITE_APP_URL}/reset-password`,
   })
 
   if (error) throw new Error(`solicitarRecuperacionPassword: ${error.message}`)
