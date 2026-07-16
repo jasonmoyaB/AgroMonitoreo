@@ -79,6 +79,11 @@ export function AuthForm({ mode }: AuthFormProps) {
             </button>
           </span>
           {mode === 'register' && <PasswordChecklist password={form.password} />}
+          {mode === 'login' && (
+            <Link className="mt-2 inline-block text-sm font-bold text-green-800 underline decoration-2 underline-offset-4" to="/olvide-password">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          )}
         </label>
 
         {form.error && <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{form.error}</p>}
