@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { SeleccionFechaScreen, TrabajadoresScreen, CapturaRegistroScreen } from '../features/captura'
-import { AdminGuard, AuthGuard, LoginScreen, RegisterScreen } from '../features/auth'
+import { AdminGuard, AuthGuard, ForgotPasswordScreen, LoginScreen, RegisterScreen, ResetPasswordScreen } from '../features/auth'
 import { AsistenciaScreen, DashboardScreen, SupervisorConfiguracionScreen, SupervisorDashboardScreen, TrabajadoresCrudScreen } from '../features/supervisor'
 import { AdminConfiguracionScreen, AdminDashboardScreen, AsistenciaPorFincaScreen, FincasCrudScreen, SupervisoresCrudScreen, TrabajadoresPorFincaScreen } from '../features/admin'
 import { NotFoundScreen } from './NotFoundScreen'
@@ -14,6 +14,8 @@ export const router = createBrowserRouter([
       { path: '/', element: <Navigate to="/supervisor" replace /> },
       { path: '/login', element: <LoginScreen /> },
       { path: '/registro', element: <RegisterScreen /> },
+      { path: '/olvide-password', element: <ForgotPasswordScreen /> },
+      { path: '/reset-password', element: <ResetPasswordScreen /> },
       {
         element: <AuthGuard />,
         children: [
