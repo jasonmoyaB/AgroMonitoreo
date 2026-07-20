@@ -17,6 +17,10 @@
       {
         "files": ["src/features/auth/utils/traducir-error-auth.ts"],
         "rules": ["react-doctor/no-secrets-in-client-code"]
+      },
+      {
+        "files": [".agents/**"],
+        "rules": ["react-doctor/command-execution-input-risk"]
       }
     ]
   }

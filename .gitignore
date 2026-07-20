@@ -24,3 +24,5 @@ dev-dist
 *.sln
 *.sw?
 .claude/worktrees/
+.vercel
+.env*

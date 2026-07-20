@@ -1,4 +1,5 @@
 export { AdminDashboardScreen } from './screens/AdminDashboardScreen'
+export { FincaDashboardScreen } from './screens/FincaDashboardScreen'
 export { FincasCrudScreen } from './screens/FincasCrudScreen'
 export { TrabajadoresPorFincaScreen } from './screens/TrabajadoresPorFincaScreen'
 export { AsistenciaPorFincaScreen } from './screens/AsistenciaPorFincaScreen'
