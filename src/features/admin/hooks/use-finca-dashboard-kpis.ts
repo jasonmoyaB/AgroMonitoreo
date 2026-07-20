@@ -1,19 +1,19 @@
 import { useTodosRegistros } from '../../captura/hooks/use-todos-registros'
-import { useTrabajadoresPorFinca } from '../../captura/hooks/use-trabajadores-por-finca'
-import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { calcularKpisMensuales } from '../../../shared/utils/kpis/calcular-kpis-mensuales'
 import { calcularRankingLabores } from '../../../shared/utils/kpis/calcular-ranking-labores'
 import { calcularRankingTrabajadores } from '../../../shared/utils/kpis/calcular-ranking-trabajadores'
 import { calcularTendenciaDiaria } from '../../../shared/utils/kpis/calcular-tendencia-diaria'
 import { filtrarRegistrosDelMes } from '../../../shared/utils/kpis/filtrar-registros-del-mes'
+import { useTrabajadoresFincaAdmin } from './use-trabajadores-finca-admin'
 
-export function useDashboardKpis() {
+export function useFincaDashboardKpis(fincaId: string | null) {
   const registrosQuery = useTodosRegistros()
-  const trabajadoresQuery = useTrabajadoresPorFinca(FINCA_ACTUAL.id)
-  const registros = registrosQuery.data ?? []
-  const trabajadores = trabajadoresQuery.data ?? []
-  const registrosDelMes = filtrarRegistrosDelMes(registros)
+  const trabajadoresQuery = useTrabajadoresFincaAdmin(fincaId)
+
+  const registrosFinca = (registrosQuery.data ?? []).filter((registro) => registro.fincaId === fincaId)
+  const registrosDelMes = filtrarRegistrosDelMes(registrosFinca)
+  const trabajadores = trabajadoresQuery.trabajadores
 
   return {
     isLoading: registrosQuery.isLoading || trabajadoresQuery.isLoading,

@@ -24,7 +24,7 @@ export function useAdminRollupKpis() {
 
   return {
     isLoading: isLoadingFincas || registrosQuery.isLoading || trabajadoresQuery.isLoading,
-    kpis: calcularKpisMensuales(registrosDelMes, trabajadores),
+    kpis: calcularKpisMensuales(registrosDelMes, trabajadores, TIPOS_LABOR),
     rankingLabores: calcularRankingLabores(registrosDelMes, TIPOS_LABOR),
     rankingTrabajadores: calcularRankingTrabajadores(registrosDelMes, trabajadores),
     tendenciaDiaria: calcularTendenciaDiaria(registrosDelMes),

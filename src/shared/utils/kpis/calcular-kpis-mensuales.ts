@@ -1,15 +1,17 @@
-import type { RegistroTrabajo, Trabajador } from '../../types/domain.types'
+import type { RegistroTrabajo, Trabajador, TipoLabor } from '../../types/domain.types'
 import type { DashboardKpis } from '../../types/kpis.types'
+import { calcularCantidadesPorUnidad } from './calcular-cantidades-por-unidad'
 
-export function calcularKpisMensuales(registros: readonly RegistroTrabajo[], trabajadores: readonly Trabajador[]): DashboardKpis {
+export function calcularKpisMensuales(
+  registros: readonly RegistroTrabajo[],
+  trabajadores: readonly Trabajador[],
+  tiposLabor: readonly TipoLabor[]
+): DashboardKpis {
   const totalHoras = registros.reduce((suma, registro) => suma + registro.horas, 0)
-  const totalCantidad = registros.reduce((suma, registro) => suma + (registro.cantidad ?? 0), 0)
-  const productividadPromedio = totalHoras > 0 ? totalCantidad / totalHoras : 0
 
   return {
     totalHoras,
-    totalCantidad,
-    productividadPromedio,
+    cantidadesPorUnidad: calcularCantidadesPorUnidad(registros, tiposLabor),
     trabajadoresActivos: trabajadores.length,
   }
 }

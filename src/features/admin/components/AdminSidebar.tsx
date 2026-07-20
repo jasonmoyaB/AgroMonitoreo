@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { CalendarX2, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, User, UserPlus, Users, Warehouse } from 'lucide-react'
+import { Building2, CalendarX2, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, User, UserPlus, Users, Warehouse } from 'lucide-react'
 import type { PerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 
 interface AdminSidebarProps {
@@ -12,6 +12,7 @@ interface AdminSidebarProps {
 
 const NAV_ITEMS = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/dashboard-finca', label: 'Dashboard por finca', icon: Building2 },
   { to: '/admin/fincas', label: 'Fincas', icon: Warehouse },
   { to: '/admin/supervisores', label: 'Supervisores', icon: Users },
   { to: '/admin/trabajadores', label: 'Trabajadores', icon: UserPlus },

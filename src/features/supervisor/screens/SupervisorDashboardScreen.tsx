@@ -1,5 +1,5 @@
-import { CalendarDays, MapPin, Settings, User } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { CalendarDays } from 'lucide-react'
+
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { LaborTaskList } from '../components/LaborTaskList'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
@@ -24,26 +24,7 @@ export function SupervisorDashboardScreen() {
 
         <section className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
           <header className="neu-raised mb-3 rounded-[2rem] p-4 sm:mb-4 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">Supervisor</p>
-              <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-600">
-                <span className="flex items-center gap-1.5">
-                  <User className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
-                  {perfil?.nombre ?? perfil?.email ?? '...'}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
-                  {perfil?.fincaNombre ?? '...'}
-                </span>
-                <Link
-                  to="/supervisor/configuracion"
-                  className="flex items-center gap-1.5 rounded-full px-1 transition-colors duration-200 hover:text-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
-                >
-                  <Settings className="h-3.5 w-3.5 shrink-0 text-green-800" aria-hidden="true" />
-                  Configuración
-                </Link>
-              </div>
-            </div>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">Supervisor</p>
             <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Labores por hacer</h1>

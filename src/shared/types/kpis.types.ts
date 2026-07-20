@@ -1,7 +1,12 @@
-export interface DashboardKpis {
-  totalHoras: number
+export interface CantidadPorUnidad {
+  unidad: string
   totalCantidad: number
   productividadPromedio: number
+}
+
+export interface DashboardKpis {
+  totalHoras: number
+  cantidadesPorUnidad: CantidadPorUnidad[]
   trabajadoresActivos: number
 }
 
