@@ -109,6 +109,27 @@ file. The rule's naming heuristic likely tripped on the `_DEFAULT` suffix patter
 with a hardcoded string literal, not on any actual secret-shaped value. Suppressed via
 `doctor.config.json`.
 
+## `react-doctor/command-execution-input-risk`
+
+### `.agents/skills/skill-creator/eval-viewer/generate_review.py:291`
+
+```python
+result = subprocess.run(
+    ["lsof", "-ti", f":{port}"],
+    capture_output=True, text=True, timeout=5,
+)
+```
+
+Not our code — `.agents/skills/skill-creator/` is vendored third-party skill tooling
+pulled in via `npx skills add https://github.com/anthropics/skills --skill skill-creator`,
+overwritten wholesale on every reinstall, same category as the `dev-dist/` entry below.
+Also a false positive on its own merits: `port` is a type-hinted `int` local-dev-server
+argument, passed as a single element of an argument array to `subprocess.run` (no
+`shell=True`, no string concatenation into a shell command), so there's no shell
+metacharacter interpretation for it to inject through even if it were attacker-controlled.
+Suppressed via `doctor.config.json` (`.agents/**` / `command-execution-input-risk`) instead
+of editing vendored code that the next skill update would just overwrite.
+
 ## `react-doctor/no-dynamic-import-path` and `react-doctor/async-await-in-loop`
 
 ### `dev-dist/sw.js`, `dev-dist/workbox-7e5eb42b.js`

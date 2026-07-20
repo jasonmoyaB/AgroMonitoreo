@@ -1,4 +1,5 @@
 import { textoPdf as texto, crearBlobPdf } from '../../lib/pdf-doc'
+import { capitalizar } from '../capitalizar'
 import type { DashboardKpis, RankingItem, TendenciaPunto } from '../../types/kpis.types'
 
 const PAGE = { width: 595, height: 842, margin: 40 }
@@ -94,10 +95,6 @@ function pintarPie(): string {
 
 function acortar(textoCompleto: string): string {
   return textoCompleto.length > 22 ? `${textoCompleto.slice(0, 20)}...` : textoCompleto
-}
-
-function capitalizar(texto: string): string {
-  return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
 function formatearNumero(valor: number): string {

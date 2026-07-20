@@ -1,13 +1,10 @@
 import { Clock, Package, TrendingUp, Users } from 'lucide-react'
 import { DashboardKpiCard } from './DashboardKpiCard'
+import { capitalizar } from '../utils/capitalizar'
 import type { DashboardKpis } from '../types/kpis.types'
 
 interface DashboardKpiRowProps {
   kpis: DashboardKpis
-}
-
-function capitalizar(texto: string): string {
-  return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
 export function DashboardKpiRow({ kpis }: DashboardKpiRowProps) {
