@@ -1,12 +1,12 @@
-import { CircleCheckBig, TriangleAlert } from 'lucide-react'
+import { ArrowLeftRight, CircleCheckBig, TriangleAlert } from 'lucide-react'
 import { Avatar } from '../../../shared/components/Avatar'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import type { TrabajadorDisponible } from '../types/trabajador-disponible.types'
 
 export type EstadoWorkerCard = 'pendiente' | 'registrado'
 
 interface WorkerCardProps {
   id?: string
-  trabajador: Trabajador
+  trabajador: TrabajadorDisponible
   estado: EstadoWorkerCard
   estaAusente: boolean
   onClick: () => void
@@ -27,9 +27,19 @@ export function WorkerCard({ id, trabajador, estado, estaAusente, onClick }: Wor
         )}
         <Avatar nombre={trabajador.nombreCompleto} fotoUrl={trabajador.fotoUrl} />
         <span className="text-center text-lg font-semibold text-slate-800">{trabajador.nombreCompleto}</span>
+        {trabajador.fincaOrigenNombre && <MensajePrestado fincaOrigenNombre={trabajador.fincaOrigenNombre} />}
         {estaAusente && <MensajeAusente />}
       </button>
     </div>
+  )
+}
+
+function MensajePrestado({ fincaOrigenNombre }: { fincaOrigenNombre: string }) {
+  return (
+    <span className="flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-blue-900">
+      <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
+      De {fincaOrigenNombre}
+    </span>
   )
 }
 

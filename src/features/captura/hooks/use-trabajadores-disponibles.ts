@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import type { Trabajador } from '../../../shared/types/domain.types'
 import { listarTrabajadoresPrestadosHoy } from '../../traslados/services/traslados-service'
+import type { TrabajadorDisponible } from '../types/trabajador-disponible.types'
 import { useTrabajadoresPorFinca } from './use-trabajadores-por-finca'
 
 export function useTrabajadoresDisponibles(fincaId: string | undefined, fecha: string) {
@@ -11,6 +11,9 @@ export function useTrabajadoresDisponibles(fincaId: string | undefined, fecha: s
     enabled: !!fincaId,
   })
 
-  const data: Trabajador[] = [...(propios.data ?? []), ...(prestados.data ?? [])]
+  const data: TrabajadorDisponible[] = [
+    ...(propios.data ?? []).map((trabajador) => ({ ...trabajador, fincaOrigenNombre: null })),
+    ...(prestados.data ?? []),
+  ]
   return { data, isLoading: propios.isLoading || prestados.isLoading }
 }

@@ -1,11 +1,11 @@
 import { WorkerCard, type EstadoWorkerCard } from './WorkerCard'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import type { TrabajadorDisponible } from '../types/trabajador-disponible.types'
 
 interface WorkersGridProps {
-  trabajadores: readonly Trabajador[]
+  trabajadores: readonly TrabajadorDisponible[]
   idsRegistrados: ReadonlySet<string>
   idsAusentes: ReadonlySet<string>
-  onSeleccionar: (trabajador: Trabajador) => void
+  onSeleccionar: (trabajador: TrabajadorDisponible) => void
 }
 
 export function WorkersGrid({ trabajadores, idsRegistrados, idsAusentes, onSeleccionar }: WorkersGridProps) {

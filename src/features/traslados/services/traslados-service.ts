@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
-import type { Trabajador } from '../../../shared/types/domain.types'
-import type { EstadoTraslado, SolicitarTrasladoInput, Traslado, TrabajadorOtraFinca } from '../types/traslado.types'
+import type { EstadoTraslado, SolicitarTrasladoInput, Traslado, TrabajadorOtraFinca, TrabajadorPrestado } from '../types/traslado.types'
 
 const TRASLADO_COLUMNS =
   'id, trabajador_id, fecha, estado, finca_origen_id, finca_destino_id, ' +
@@ -87,20 +86,31 @@ export async function resolverTraslado(id: string, estado: Extract<EstadoTraslad
   if (error) throw new Error(`resolverTraslado: ${error.message}`)
 }
 
-export async function listarTrabajadoresPrestadosHoy(fincaDestinoId: string, fecha: string, client: SupabaseClient = supabase): Promise<Trabajador[]> {
+interface TrabajadorPrestadoRow {
+  trabajador: { id: string; finca_id: string; nombre_completo: string; foto_url: string | null; activo: boolean } | null
+  finca_origen: { nombre: string } | null
+}
+
+export async function listarTrabajadoresPrestadosHoy(fincaDestinoId: string, fecha: string, client: SupabaseClient = supabase): Promise<TrabajadorPrestado[]> {
   const { data, error } = await client
     .from('traslados_trabajadores')
-    .select('trabajador:trabajadores(id, finca_id, nombre_completo, foto_url, activo)')
+    .select('trabajador:trabajadores(id, finca_id, nombre_completo, foto_url, activo), finca_origen:fincas!traslados_trabajadores_finca_origen_id_fkey(nombre)')
     .eq('finca_destino_id', fincaDestinoId)
     .eq('fecha', fecha)
     .eq('estado', 'aprobado')
-    .returns<{ trabajador: { id: string; finca_id: string; nombre_completo: string; foto_url: string | null; activo: boolean } | null }[]>()
+    .returns<TrabajadorPrestadoRow[]>()
 
   if (error) throw new Error(`listarTrabajadoresPrestadosHoy: ${error.message}`)
   return data
-    .map((row) => row.trabajador)
-    .filter((trabajador): trabajador is NonNullable<typeof trabajador> => trabajador !== null)
-    .map((row) => ({ id: row.id, fincaId: row.finca_id, nombreCompleto: row.nombre_completo, fotoUrl: row.foto_url, activo: row.activo }))
+    .filter((row): row is TrabajadorPrestadoRow & { trabajador: NonNullable<TrabajadorPrestadoRow['trabajador']> } => row.trabajador !== null)
+    .map((row) => ({
+      id: row.trabajador.id,
+      fincaId: row.trabajador.finca_id,
+      nombreCompleto: row.trabajador.nombre_completo,
+      fotoUrl: row.trabajador.foto_url,
+      activo: row.trabajador.activo,
+      fincaOrigenNombre: row.finca_origen?.nombre ?? row.trabajador.finca_id,
+    }))
 }
 
 function mapTraslado(row: TrasladoRow): Traslado {
