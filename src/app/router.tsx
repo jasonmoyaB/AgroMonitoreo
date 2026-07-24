@@ -18,6 +18,7 @@ import {
   SupervisorConfiguracionScreen,
   SupervisorDashboardScreen,
   TrabajadoresCrudScreen,
+  TrasladosScreen,
 } from "../features/supervisor";
 import {
   AdminConfiguracionScreen,
@@ -27,6 +28,7 @@ import {
   FincasCrudScreen,
   SupervisoresCrudScreen,
   TrabajadoresPorFincaScreen,
+  TrasladosAdminScreen,
 } from "../features/admin";
 import { NotFoundScreen } from "./NotFoundScreen";
 import { RouteErrorScreen } from "./RouteErrorScreen";
@@ -51,6 +53,7 @@ export const router = createBrowserRouter([
             element: <TrabajadoresCrudScreen />,
           },
           { path: "/supervisor/asistencia", element: <AsistenciaScreen /> },
+          { path: "/supervisor/traslados", element: <TrasladosScreen /> },
           {
             path: "/supervisor/configuracion",
             element: <SupervisorConfiguracionScreen />,
@@ -82,6 +85,7 @@ export const router = createBrowserRouter([
             element: <TrabajadoresPorFincaScreen />,
           },
           { path: "/admin/asistencia", element: <AsistenciaPorFincaScreen /> },
+          { path: "/admin/traslados", element: <TrasladosAdminScreen /> },
           {
             path: "/admin/configuracion",
             element: <AdminConfiguracionScreen />,

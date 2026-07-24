@@ -3,11 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { NumericStepper } from '../../../shared/components/NumericStepper'
 import { ConfirmarRegistroButton } from '../components/ConfirmarRegistroButton'
 import { ConfirmacionOverlay } from '../components/ConfirmacionOverlay'
-import { WizardHeader } from '../components/WizardHeader'
+import { WizardHeader } from '../../../shared/components/WizardHeader'
 import { LaborActualBadge } from '../components/LaborActualBadge'
 import { useRegistroDraft } from '../hooks/use-registro-draft'
 import { useCrearRegistro } from '../hooks/use-crear-registro'
-import { useTrabajadoresPorFinca } from '../hooks/use-trabajadores-por-finca'
+import { useTrabajadoresDisponibles } from '../hooks/use-trabajadores-disponibles'
 import { useRegistrosDelDia } from '../hooks/use-registros-del-dia'
 import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
 import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
@@ -26,7 +26,7 @@ export function CapturaRegistroScreen() {
   const draftPrecargado = useRef(false)
 
   const { usuario } = useUsuarioActual()
-  const { data: trabajadores = [] } = useTrabajadoresPorFinca(usuario?.fincaId)
+  const { data: trabajadores = [] } = useTrabajadoresDisponibles(usuario?.fincaId, fecha)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
   const crearRegistro = useCrearRegistro()
   const { draft, setDraft, limpiarDraft, cargado } = useRegistroDraft(trabajadorId, tipoLaborId, fecha)

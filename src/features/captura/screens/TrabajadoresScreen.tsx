@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { WorkersGrid } from '../components/WorkersGrid'
 import { ProgresoDelDia } from '../components/ProgresoDelDia'
-import { WizardHeader } from '../components/WizardHeader'
+import { WizardHeader } from '../../../shared/components/WizardHeader'
 import { AlfabetoIndice } from '../components/AlfabetoIndice'
 import { BuscadorTrabajador } from '../components/BuscadorTrabajador'
 import { AvisoBloqueoTrabajadorOverlay } from '../components/AvisoBloqueoTrabajadorOverlay'
 import { ConfirmarExtraOverlay } from '../components/ConfirmarExtraOverlay'
-import { useTrabajadoresPorFinca } from '../hooks/use-trabajadores-por-finca'
+import { useTrabajadoresDisponibles } from '../hooks/use-trabajadores-disponibles'
 import { useRegistrosDelDia } from '../hooks/use-registros-del-dia'
 import { useSaltarATrabajador } from '../hooks/use-saltar-a-trabajador'
 import { useBusquedaTrabajadores } from '../hooks/use-busqueda-trabajadores'
@@ -37,7 +37,7 @@ export function TrabajadoresScreen() {
   const [dialogo, setDialogo] = useState<DialogoTrabajador | null>(null)
 
   const { usuario } = useUsuarioActual()
-  const { data: trabajadores = [] } = useTrabajadoresPorFinca(usuario?.fincaId)
+  const { data: trabajadores = [] } = useTrabajadoresDisponibles(usuario?.fincaId, fecha)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
   const { data: ausencias = [] } = useAusentesDelDia(usuario?.fincaId, fecha)
   const tipoLabor = TIPOS_LABOR.find((labor) => labor.id === tipoLaborId)

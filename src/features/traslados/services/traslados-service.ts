@@ -1,0 +1,118 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { supabase } from '../../../shared/lib/supabase-client'
+import type { Trabajador } from '../../../shared/types/domain.types'
+import type { EstadoTraslado, SolicitarTrasladoInput, Traslado, TrabajadorOtraFinca } from '../types/traslado.types'
+
+const TRASLADO_COLUMNS =
+  'id, trabajador_id, fecha, estado, finca_origen_id, finca_destino_id, ' +
+  'trabajador:trabajadores(nombre_completo), ' +
+  'finca_origen:fincas!traslados_trabajadores_finca_origen_id_fkey(nombre), ' +
+  'finca_destino:fincas!traslados_trabajadores_finca_destino_id_fkey(nombre)'
+
+interface TrasladoRow {
+  id: string
+  trabajador_id: string
+  fecha: string
+  estado: EstadoTraslado
+  finca_origen_id: string
+  finca_destino_id: string
+  trabajador: { nombre_completo: string } | null
+  finca_origen: { nombre: string } | null
+  finca_destino: { nombre: string } | null
+}
+
+export async function listarTrabajadoresOtrasFincas(fincaPropiaId: string, client: SupabaseClient = supabase): Promise<TrabajadorOtraFinca[]> {
+  const { data, error } = await client
+    .from('trabajadores')
+    .select('id, nombre_completo, finca_id, finca:fincas(nombre)')
+    .neq('finca_id', fincaPropiaId)
+    .eq('activo', true)
+    .order('finca_id', { ascending: true })
+    .order('nombre_completo', { ascending: true })
+    .returns<{ id: string; nombre_completo: string; finca_id: string; finca: { nombre: string } | null }[]>()
+
+  if (error) throw new Error(`listarTrabajadoresOtrasFincas: ${error.message}`)
+  return data.map((row) => ({ id: row.id, nombreCompleto: row.nombre_completo, fincaId: row.finca_id, fincaNombre: row.finca?.nombre ?? row.finca_id }))
+}
+
+export async function solicitarTraslado(input: SolicitarTrasladoInput, client: SupabaseClient = supabase): Promise<void> {
+  const { error } = await client.from('traslados_trabajadores').insert({
+    trabajador_id: input.trabajadorId,
+    finca_origen_id: input.fincaOrigenId,
+    finca_destino_id: input.fincaDestinoId,
+    fecha: input.fecha,
+  })
+
+  if (error) throw new Error(`solicitarTraslado: ${error.message}`)
+}
+
+export async function listarMisTraslados(fincaId: string, client: SupabaseClient = supabase): Promise<Traslado[]> {
+  const { data, error } = await client
+    .from('traslados_trabajadores')
+    .select(TRASLADO_COLUMNS)
+    .or(`finca_origen_id.eq.${fincaId},finca_destino_id.eq.${fincaId}`)
+    .order('fecha', { ascending: false })
+    .returns<TrasladoRow[]>()
+
+  if (error) throw new Error(`listarMisTraslados: ${error.message}`)
+  return data.map(mapTraslado)
+}
+
+export async function listarTrasladosPendientes(client: SupabaseClient = supabase): Promise<Traslado[]> {
+  const { data, error } = await client
+    .from('traslados_trabajadores')
+    .select(TRASLADO_COLUMNS)
+    .eq('estado', 'pendiente')
+    .order('fecha', { ascending: true })
+    .returns<TrasladoRow[]>()
+
+  if (error) throw new Error(`listarTrasladosPendientes: ${error.message}`)
+  return data.map(mapTraslado)
+}
+
+export async function listarTrasladosResueltos(client: SupabaseClient = supabase): Promise<Traslado[]> {
+  const { data, error } = await client
+    .from('traslados_trabajadores')
+    .select(TRASLADO_COLUMNS)
+    .neq('estado', 'pendiente')
+    .order('fecha', { ascending: false })
+    .returns<TrasladoRow[]>()
+
+  if (error) throw new Error(`listarTrasladosResueltos: ${error.message}`)
+  return data.map(mapTraslado)
+}
+
+export async function resolverTraslado(id: string, estado: Extract<EstadoTraslado, 'aprobado' | 'rechazado'>, client: SupabaseClient = supabase): Promise<void> {
+  const { error } = await client.from('traslados_trabajadores').update({ estado }).eq('id', id)
+  if (error) throw new Error(`resolverTraslado: ${error.message}`)
+}
+
+export async function listarTrabajadoresPrestadosHoy(fincaDestinoId: string, fecha: string, client: SupabaseClient = supabase): Promise<Trabajador[]> {
+  const { data, error } = await client
+    .from('traslados_trabajadores')
+    .select('trabajador:trabajadores(id, finca_id, nombre_completo, foto_url, activo)')
+    .eq('finca_destino_id', fincaDestinoId)
+    .eq('fecha', fecha)
+    .eq('estado', 'aprobado')
+    .returns<{ trabajador: { id: string; finca_id: string; nombre_completo: string; foto_url: string | null; activo: boolean } | null }[]>()
+
+  if (error) throw new Error(`listarTrabajadoresPrestadosHoy: ${error.message}`)
+  return data
+    .map((row) => row.trabajador)
+    .filter((trabajador): trabajador is NonNullable<typeof trabajador> => trabajador !== null)
+    .map((row) => ({ id: row.id, fincaId: row.finca_id, nombreCompleto: row.nombre_completo, fotoUrl: row.foto_url, activo: row.activo }))
+}
+
+function mapTraslado(row: TrasladoRow): Traslado {
+  return {
+    id: row.id,
+    trabajadorId: row.trabajador_id,
+    trabajadorNombre: row.trabajador?.nombre_completo ?? '',
+    fincaOrigenId: row.finca_origen_id,
+    fincaOrigenNombre: row.finca_origen?.nombre ?? row.finca_origen_id,
+    fincaDestinoId: row.finca_destino_id,
+    fincaDestinoNombre: row.finca_destino?.nombre ?? row.finca_destino_id,
+    fecha: row.fecha,
+    estado: row.estado,
+  }
+}

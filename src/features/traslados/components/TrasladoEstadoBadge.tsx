@@ -1,0 +1,17 @@
+import type { EstadoTraslado } from '../types/traslado.types'
+
+const ESTILOS: Record<EstadoTraslado, string> = {
+  pendiente: 'bg-amber-100 text-amber-800',
+  aprobado: 'bg-green-100 text-green-800',
+  rechazado: 'bg-red-100 text-red-800',
+}
+
+const ETIQUETAS: Record<EstadoTraslado, string> = {
+  pendiente: 'Pendiente',
+  aprobado: 'Aprobado',
+  rechazado: 'Rechazado',
+}
+
+export function TrasladoEstadoBadge({ estado }: { estado: EstadoTraslado }) {
+  return <span className={`inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide ${ESTILOS[estado]}`}>{ETIQUETAS[estado]}</span>
+}
