@@ -21,6 +21,7 @@ interface TrasladoRow {
 }
 
 export async function listarTrabajadoresOtrasFincas(fincaPropiaId: string, client: SupabaseClient = supabase): Promise<TrabajadorOtraFinca[]> {
+export async function listarTrabajadoresOtrasFincas(fincaPropiaId: string, client: SupabaseClient = supabase): Promise<TrabajadorOtraFinca[]> {
   const { data, error } = await client
     .from('trabajadores')
     .select('id, nombre_completo, finca_id, finca:fincas(nombre)')
@@ -31,7 +32,9 @@ export async function listarTrabajadoresOtrasFincas(fincaPropiaId: string, clien
     .returns<{ id: string; nombre_completo: string; finca_id: string; finca: { nombre: string } | null }[]>()
 
   if (error) throw new Error(`listarTrabajadoresOtrasFincas: ${error.message}`)
+  if (!data) throw new Error('listarTrabajadoresOtrasFincas: No data returned')
   return data.map((row) => ({ id: row.id, nombreCompleto: row.nombre_completo, fincaId: row.finca_id, fincaNombre: row.finca?.nombre ?? row.finca_id }))
+}
 }
 
 export async function solicitarTraslado(input: SolicitarTrasladoInput, client: SupabaseClient = supabase): Promise<void> {
