@@ -2,6 +2,7 @@ import { UserPlus } from 'lucide-react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { useTrabajadoresCrud } from '../../trabajadores/hooks/use-trabajadores-crud'
 import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores-filtro'
+import { useTrabajadoresTrasladadosHoy } from '../../traslados/hooks/use-trabajadores-trasladados-hoy'
 import { Modal } from '../../../shared/components/Modal'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { TrabajadorForm } from '../components/TrabajadorForm'
@@ -17,6 +18,8 @@ export function TrabajadoresCrudScreen() {
   const trabajadores = useTrabajadoresCrud()
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
   const metricasModal = useTrabajadorMetricasModal()
+  const { data: trasladados = [] } = useTrabajadoresTrasladadosHoy(trabajadores.finca.id, new Date().toISOString().slice(0, 10))
+  const fincaDestinoPorTrasladado = new Map(trasladados.map((trasladado) => [trasladado.trabajadorId, trasladado.fincaDestinoNombre]))
   const perfil = usePerfilSidebar()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
@@ -53,9 +56,8 @@ export function TrabajadoresCrudScreen() {
           <TrabajadoresTable
             trabajadores={filtro.trabajadoresFiltrados}
             isLoading={trabajadores.isLoading}
-            onEdit={trabajadores.editarTrabajador}
-            onToggleActive={trabajadores.alternarEstado}
-            onSelectTrabajador={metricasModal.abrir}
+            fincaDestinoPorTrasladado={fincaDestinoPorTrasladado}
+            actions={{ onEdit: trabajadores.editarTrabajador, onToggleActive: trabajadores.alternarEstado, onSelectTrabajador: metricasModal.abrir }}
           />
         </section>
 

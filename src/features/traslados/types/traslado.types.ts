@@ -1,5 +1,3 @@
-import type { Trabajador } from '../../../shared/types/domain.types'
-
 export type EstadoTraslado = 'pendiente' | 'aprobado' | 'rechazado'
 
 export interface Traslado {
@@ -21,8 +19,18 @@ export interface TrabajadorOtraFinca {
   fincaNombre: string
 }
 
-export interface TrabajadorPrestado extends Trabajador {
+export interface TrabajadorPrestado {
+  id: string
+  fincaId: string
+  nombreCompleto: string
+  fotoUrl: string | null
+  activo: boolean
   fincaOrigenNombre: string
+}
+
+export interface TrabajadorTrasladadoHoy {
+  trabajadorId: string
+  fincaDestinoNombre: string
 }
 
 export interface SolicitarTrasladoInput {

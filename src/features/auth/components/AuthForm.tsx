@@ -54,8 +54,10 @@ export function AuthForm({ mode }: AuthFormProps) {
           </span>
         </label>
 
-        <label className="block" htmlFor="password">
-          <span className="mb-2 block text-sm font-black text-slate-700">Contraseña</span>
+        <div>
+          <label className="mb-2 block text-sm font-black text-slate-700" htmlFor="password">
+            Contraseña
+          </label>
           <span className="neu-well flex min-h-14 items-center gap-3 rounded-2xl pl-4 pr-2">
             <LockKeyhole className="h-5 w-5 text-green-800" aria-hidden="true" />
             <input
@@ -84,7 +86,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               ¿Olvidaste tu contraseña?
             </Link>
           )}
-        </label>
+        </div>
 
         {form.error && <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{form.error}</p>}
         {form.notice && <p className="rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-800">{form.notice}</p>}

@@ -26,12 +26,21 @@ export interface TipoLabor {
   orden: number
 }
 
+export type Moneda = 'usd' | 'colones'
+
+export interface TrabajadorNombrable {
+  id: string
+  nombreCompleto: string
+}
+
 export interface Trabajador {
   id: string
   fincaId: string
   nombreCompleto: string
   fotoUrl: string | null
   activo: boolean
+  salarioMensual: number
+  moneda: Moneda
 }
 
 export interface RegistroTrabajo {

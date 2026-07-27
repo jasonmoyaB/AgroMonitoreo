@@ -1,9 +1,9 @@
 import { useCallback } from 'react'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import type { TrabajadorNombrable } from '../../../shared/types/domain.types'
 import type { RangoLetras } from '../constants/rangos-alfabeto.constants'
 import { encontrarPrimerTrabajadorPorRango } from '../utils/encontrar-primer-trabajador-por-rango'
 
-export function useSaltarATrabajador(trabajadoresOrdenados: readonly Trabajador[]) {
+export function useSaltarATrabajador<T extends TrabajadorNombrable>(trabajadoresOrdenados: readonly T[]) {
   return useCallback(
     (rango: RangoLetras) => {
       const trabajador = encontrarPrimerTrabajadorPorRango(trabajadoresOrdenados, rango)

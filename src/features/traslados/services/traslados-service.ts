@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
-import type { EstadoTraslado, SolicitarTrasladoInput, Traslado, TrabajadorOtraFinca, TrabajadorPrestado } from '../types/traslado.types'
+import type { EstadoTraslado, SolicitarTrasladoInput, Traslado, TrabajadorOtraFinca, TrabajadorPrestado, TrabajadorTrasladadoHoy } from '../types/traslado.types'
 
 const TRASLADO_COLUMNS =
   'id, trabajador_id, fecha, estado, finca_origen_id, finca_destino_id, ' +
@@ -111,6 +111,29 @@ export async function listarTrabajadoresPrestadosHoy(fincaDestinoId: string, fec
       activo: row.trabajador.activo,
       fincaOrigenNombre: row.finca_origen?.nombre ?? row.trabajador.finca_id,
     }))
+}
+
+interface TrabajadorTrasladadoHoyRow {
+  trabajador_id: string
+  finca_destino_id: string
+  finca_destino: { nombre: string } | null
+}
+
+export async function listarTrabajadoresTrasladadosHoy(
+  fincaOrigenId: string,
+  fecha: string,
+  client: SupabaseClient = supabase
+): Promise<TrabajadorTrasladadoHoy[]> {
+  const { data, error } = await client
+    .from('traslados_trabajadores')
+    .select('trabajador_id, finca_destino_id, finca_destino:fincas!traslados_trabajadores_finca_destino_id_fkey(nombre)')
+    .eq('finca_origen_id', fincaOrigenId)
+    .eq('fecha', fecha)
+    .eq('estado', 'aprobado')
+    .returns<TrabajadorTrasladadoHoyRow[]>()
+
+  if (error) throw new Error(`listarTrabajadoresTrasladadosHoy: ${error.message}`)
+  return data.map((row) => ({ trabajadorId: row.trabajador_id, fincaDestinoNombre: row.finca_destino?.nombre ?? row.finca_destino_id }))
 }
 
 function mapTraslado(row: TrasladoRow): Traslado {

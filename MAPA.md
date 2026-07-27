@@ -14,6 +14,7 @@
 | App admin (dashboard, fincas, trabajadores/asistencia por finca, supervisores) | `src/features/admin/` (rutas bajo `AdminGuard`, `/admin/*`) |
 | Gestión de supervisores (rol, nombre, finca asignada) | `src/features/admin/services/supervisores-service.ts` + `hooks/use-supervisores-crud.ts` + `screens/SupervisoresCrudScreen.tsx` |
 | Asistencia / ausencias (calendario, tabla semanal, PDF) | `src/features/asistencia/` (hosteado por `src/features/supervisor/screens/AsistenciaScreen.tsx` y `src/features/admin/screens/AsistenciaPorFincaScreen.tsx`) |
+| Traslados de trabajadores entre fincas (solicitar/aprobar préstamo por un día) | `src/features/traslados/` — `traslados-service.ts` (tabla `traslados_trabajadores`); `listarTrabajadoresPrestadosHoy` (lado destino, badge "De {finca}" en `WorkerCard`) y `listarTrabajadoresTrasladadosHoy` (lado origen: bloquea selección + badge "De traslado en {finca}" en `captura/screens/TrabajadoresScreen.tsx`, y badge "Trabajador trasladado a: {finca}" en `supervisor/screens/TrabajadoresCrudScreen.tsx` / `components/TrabajadoresTable.tsx`) |
 | Componentes compartidos (IconTile, Avatar, Stepper...) | `src/shared/components/` |
 | Cliente Supabase | `src/shared/lib/supabase-client.ts` |
 | Tipos generados de Supabase (regenerar tras migración) | `src/shared/types/supabase.types.ts` |

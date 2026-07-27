@@ -48,8 +48,10 @@ function FormularioNuevaPassword() {
         </div>
 
         <form className="space-y-5" onSubmit={form.handleSubmit}>
-          <label className="block" htmlFor="password-nueva">
-            <span className="mb-2 block text-sm font-black text-slate-700">Nueva contraseña</span>
+          <div>
+            <label className="mb-2 block text-sm font-black text-slate-700" htmlFor="password-nueva">
+              Nueva contraseña
+            </label>
             <span className="neu-well flex min-h-14 items-center gap-3 rounded-2xl pl-4 pr-2">
               <LockKeyhole className="h-5 w-5 text-green-800" aria-hidden="true" />
               <input
@@ -73,7 +75,7 @@ function FormularioNuevaPassword() {
               </button>
             </span>
             <PasswordChecklist password={form.values.password} />
-          </label>
+          </div>
 
           <label className="block" htmlFor="password-confirmacion">
             <span className="mb-2 block text-sm font-black text-slate-700">Confirmar contraseña</span>

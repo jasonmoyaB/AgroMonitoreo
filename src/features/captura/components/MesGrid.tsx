@@ -15,7 +15,7 @@ export function MesGrid({ mesSeleccionado, onSeleccionar }: MesGridProps) {
             key={mesOpcion.valor}
             type="button"
             onClick={() => onSeleccionar(mesOpcion.valor)}
-            className={`neu-raised flex min-h-[88px] cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl p-3 transition-all duration-150 hover:scale-[1.04] active:neu-pressed active:scale-[0.98] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-slate-700 ${
+            className={`neu-raised flex min-h-[88px] cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl p-3 transition-[transform,box-shadow] duration-150 hover:scale-[1.04] active:neu-pressed active:scale-[0.98] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-slate-700 ${
               estaSeleccionado ? 'ring-4 ring-emerald-500' : ''
             }`}
           >

@@ -26,6 +26,7 @@ import {
   AsistenciaPorFincaScreen,
   FincaDashboardScreen,
   FincasCrudScreen,
+  SalariosScreen,
   SupervisoresCrudScreen,
   TrabajadoresPorFincaScreen,
   TrasladosAdminScreen,
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
             path: "/admin/trabajadores",
             element: <TrabajadoresPorFincaScreen />,
           },
+          { path: "/admin/salarios", element: <SalariosScreen /> },
           { path: "/admin/asistencia", element: <AsistenciaPorFincaScreen /> },
           { path: "/admin/traslados", element: <TrasladosAdminScreen /> },
           {
