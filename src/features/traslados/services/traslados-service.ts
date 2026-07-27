@@ -107,6 +107,7 @@ export async function listarTrabajadoresPrestadosHoy(fincaDestinoId: string, fec
     .returns<TrabajadorPrestadoRow[]>()
 
   if (error) throw new Error(`listarTrabajadoresPrestadosHoy: ${error.message}`)
+  if (!data) throw new Error('listarTrabajadoresPrestadosHoy: No data returned')
   return data
     .filter((row): row is TrabajadorPrestadoRow & { trabajador: NonNullable<TrabajadorPrestadoRow['trabajador']> } => row.trabajador !== null)
     .map((row) => ({
