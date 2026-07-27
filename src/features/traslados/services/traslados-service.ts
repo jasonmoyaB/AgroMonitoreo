@@ -52,11 +52,12 @@ export async function listarMisTraslados(fincaId: string, client: SupabaseClient
   const { data, error } = await client
     .from('traslados_trabajadores')
     .select(TRASLADO_COLUMNS)
-    .or(`finca_origen_id.eq.${fincaId},finca_destino_id.eq.${fincaId}`)
+    .or(`finca_origen_id.eq."${fincaId}",finca_destino_id.eq."${fincaId}"`)
     .order('fecha', { ascending: false })
     .returns<TrasladoRow[]>()
 
   if (error) throw new Error(`listarMisTraslados: ${error.message}`)
+  if (!data) throw new Error('listarMisTraslados: No data returned')
   return data.map(mapTraslado)
 }
 
