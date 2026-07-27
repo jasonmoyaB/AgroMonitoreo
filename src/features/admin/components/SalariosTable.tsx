@@ -42,7 +42,8 @@ export function SalariosTable({ trabajadores, isLoading, onCambiarSalario }: Sal
                     step="0.01"
                     defaultValue={trabajador.salarioMensual}
                     onBlur={(e) => {
-                      const salario = Number(e.target.value)
+                      const valor = e.target.value.trim()
+                      const salario = valor === '' ? NaN : Number(valor)
                       if (salario < 0 || !Number.isFinite(salario)) {
                         e.target.value = String(trabajador.salarioMensual)
                         return
@@ -52,6 +53,7 @@ export function SalariosTable({ trabajadores, isLoading, onCambiarSalario }: Sal
                     aria-label={`Salario mensual de ${trabajador.nombreCompleto}`}
                     className="neu-pressed min-h-11 w-32 rounded-xl px-3 font-bold text-slate-900"
                   />
+                </td>
                 <td className="px-5 py-3">
                   <select
                     defaultValue={trabajador.moneda}
