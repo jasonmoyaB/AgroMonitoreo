@@ -78,6 +78,7 @@ export async function listarTrasladosResueltos(client: SupabaseClient = supabase
     .returns<TrasladoRow[]>()
 
   if (error) throw new Error(`listarTrasladosResueltos: ${error.message}`)
+  if (!data) throw new Error('listarTrasladosResueltos: No data returned')
   return data.map(mapTraslado)
 }
 
