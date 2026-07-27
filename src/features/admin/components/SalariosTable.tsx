@@ -41,11 +41,17 @@ export function SalariosTable({ trabajadores, isLoading, onCambiarSalario }: Sal
                     min={0}
                     step="0.01"
                     defaultValue={trabajador.salarioMensual}
-                    onBlur={(e) => onCambiarSalario({ id: trabajador.id, salarioMensual: Number(e.target.value), moneda: trabajador.moneda })}
+                    onBlur={(e) => {
+                      const salario = Number(e.target.value)
+                      if (salario < 0 || !Number.isFinite(salario)) {
+                        e.target.value = String(trabajador.salarioMensual)
+                        return
+                      }
+                      onCambiarSalario({ id: trabajador.id, salarioMensual: salario, moneda: trabajador.moneda })
+                    }}
                     aria-label={`Salario mensual de ${trabajador.nombreCompleto}`}
                     className="neu-pressed min-h-11 w-32 rounded-xl px-3 font-bold text-slate-900"
                   />
-                </td>
                 <td className="px-5 py-3">
                   <select
                     defaultValue={trabajador.moneda}
