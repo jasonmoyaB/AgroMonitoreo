@@ -70,6 +70,7 @@ export async function listarTrasladosPendientes(client: SupabaseClient = supabas
     .returns<TrasladoRow[]>()
 
   if (error) throw new Error(`listarTrasladosPendientes: ${error.message}`)
+  if (!data) throw new Error('listarTrasladosPendientes: No data returned')
   return data.map(mapTraslado)
 }
 
