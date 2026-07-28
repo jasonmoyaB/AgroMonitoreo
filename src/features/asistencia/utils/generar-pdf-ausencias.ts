@@ -1,7 +1,7 @@
 import { DIAS_SEMANA } from '../constants/calendario.constants'
 import type { AsistenciaConTrabajador } from '../types/asistencia.types'
 import { obtenerEspaciosCalendario } from './obtener-espacios-calendario'
-import { construirFechaIso, formatearFechaIsoDdMmAaaa } from '../../captura/utils/fecha-iso'
+import { construirFechaIso, formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
 import { MESES } from '../../captura/constants/meses.constants'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 import { textoPdf as texto, crearBlobPdf } from '../../../shared/lib/pdf-doc'

@@ -12,6 +12,7 @@ export interface Finca {
   id: string
   nombre: string
   activa: boolean
+  valorHora: number
 }
 
 export interface TipoLabor {
@@ -39,6 +40,14 @@ export interface Trabajador {
   nombreCompleto: string
   fotoUrl: string | null
   activo: boolean
+}
+
+// vive en salarios_trabajadores, no en trabajadores: RLS es row-level, y las policies
+// de trabajadores alcanzan toda la tabla para que traslados pueda listar otras fincas
+export interface SalarioTrabajador {
+  trabajadorId: string
+  nombreCompleto: string
+  fotoUrl: string | null
   salarioMensual: number
   moneda: Moneda
 }

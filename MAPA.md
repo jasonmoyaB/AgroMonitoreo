@@ -14,7 +14,13 @@
 | App admin (dashboard, fincas, trabajadores/asistencia por finca, supervisores) | `src/features/admin/` (rutas bajo `AdminGuard`, `/admin/*`) |
 | Gestión de supervisores (rol, nombre, finca asignada) | `src/features/admin/services/supervisores-service.ts` + `hooks/use-supervisores-crud.ts` + `screens/SupervisoresCrudScreen.tsx` |
 | Asistencia / ausencias (calendario, tabla semanal, PDF) | `src/features/asistencia/` (hosteado por `src/features/supervisor/screens/AsistenciaScreen.tsx` y `src/features/admin/screens/AsistenciaPorFincaScreen.tsx`) |
-| Traslados de trabajadores entre fincas (solicitar/aprobar préstamo por un día) | `src/features/traslados/` — `traslados-service.ts` (tabla `traslados_trabajadores`); `listarTrabajadoresPrestadosHoy` (lado destino, badge "De {finca}" en `WorkerCard`) y `listarTrabajadoresTrasladadosHoy` (lado origen: bloquea selección + badge "De traslado en {finca}" en `captura/screens/TrabajadoresScreen.tsx`, y badge "Trabajador trasladado a: {finca}" en `supervisor/screens/TrabajadoresCrudScreen.tsx` / `components/TrabajadoresTable.tsx`) |
+| Traslados de trabajadores entre fincas (solicitar/aprobar préstamo por un día) | `src/features/traslados/` (headless), hosteado por `supervisor/screens/TrasladosScreen.tsx` y `admin/screens/TrasladosAdminScreen.tsx` — `traslados-service.ts` (tabla `traslados_trabajadores`); `listarTrabajadoresPrestadosHoy` (lado destino, badge "De {finca}" en `WorkerCard`) y `listarTrabajadoresTrasladadosHoy` (lado origen: bloquea selección + badge "De traslado en {finca}" en `captura/screens/TrabajadoresScreen.tsx`, y badge "Trabajador trasladado a: {finca}" en `supervisor/screens/TrabajadoresCrudScreen.tsx` / `components/TrabajadoresTable.tsx`) |
+| Salarios (salario mensual por trabajador, quincena, valor hora por finca) | `src/features/admin/screens/SalariosScreen.tsx` + `components/SalariosTable.tsx` + `hooks/use-actualizar-salario.ts` / `use-actualizar-valor-hora.ts`. Columnas: `trabajadores.salario_mensual`+`moneda`, `fincas.valor_hora` |
+| Perfil propio (editar nombre, cambiar password) | `src/features/perfil/` (hosteado por las pantallas `ConfiguracionScreen` de supervisor y admin) |
+| Toasts globales | `src/shared/stores/toast-store.ts` + `components/Toast.tsx` / `ToastViewport.tsx` |
+| Generación de PDF (dashboard, ausencias, métricas) | `src/shared/lib/pdf-doc.ts` + `src/shared/utils/pdf/` + `hooks/use-descargar-dashboard-pdf.ts` |
+| Estado de red / banner offline | `src/shared/hooks/use-network-status.ts` + `components/OfflineBanner.tsx` |
+| Regla de horas extra (umbral 8h, acumulado por día) | `docs/horas-extra.md` — umbral en `src/features/supervisor/constants/trabajador-metricas.constants.ts` |
 | Componentes compartidos (IconTile, Avatar, Stepper...) | `src/shared/components/` |
 | Cliente Supabase | `src/shared/lib/supabase-client.ts` |
 | Tipos generados de Supabase (regenerar tras migración) | `src/shared/types/supabase.types.ts` |

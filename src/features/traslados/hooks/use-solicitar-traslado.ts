@@ -1,19 +1,17 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useToastStore } from '../../../shared/stores/toast-store'
+import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import { TRABAJADORES_OTRAS_FINCAS_QUERY_KEY, TRASLADOS_QUERY_KEY } from '../constants/traslados-query.constants'
 import { listarMisTraslados, listarTrabajadoresOtrasFincas, solicitarTraslado } from '../services/traslados-service'
-
-function obtenerFechaDeManana(): string {
-  return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-}
+import { resumirResultados } from '../utils/resumir-resultados'
 
 export function useSolicitarTraslado(fincaId: string | undefined) {
   const queryClient = useQueryClient()
   const mostrarToast = useToastStore((state) => state.mostrarToast)
   const [paso, setPaso] = useState<1 | 2>(1)
   const [fincaElegidaId, setFincaElegidaId] = useState<string | null>(null)
-  const [fecha, setFecha] = useState(obtenerFechaDeManana)
+  const [fecha, setFecha] = useState(() => fechaLocalIso(1))
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -65,18 +63,30 @@ export function useSolicitarTraslado(fincaId: string | undefined) {
     setIsSubmitting(true)
     try {
       const elegidos = trabajadoresDeFincaElegida.filter((trabajador) => seleccionados.has(trabajador.id))
-      await Promise.all(
-        elegidos.map((trabajador) =>
-          solicitarTraslado({ trabajadorId: trabajador.id, fincaOrigenId: fincaElegidaId, fincaDestinoId: fincaId, fecha })
+      // allSettled y no all: con Promise.all las solicitudes que si entraron quedaban
+      // creadas pero sin invalidar la cache, y la UI decia que no habia pasado nada
+      const resumen = resumirResultados(
+        await Promise.allSettled(
+          elegidos.map((trabajador) =>
+            solicitarTraslado({ trabajadorId: trabajador.id, fincaOrigenId: fincaElegidaId, fincaDestinoId: fincaId, fecha })
+          )
         )
       )
+
       await queryClient.invalidateQueries({ queryKey: [TRASLADOS_QUERY_KEY, fincaId] })
       setSeleccionados(new Set())
       setPaso(1)
-      mostrarToast({ type: 'success', title: 'Solicitud enviada', description: `Se pidió permiso para ${elegidos.length} trabajador(es) el ${fecha}.` })
-    } catch (unknownError) {
-      const description = unknownError instanceof Error ? unknownError.message : 'No se pudo enviar la solicitud.'
-      mostrarToast({ type: 'error', title: 'No se pudo enviar la solicitud', description })
+
+      if (resumen.fallidos === 0) {
+        mostrarToast({ type: 'success', title: 'Solicitud enviada', description: `Se pidió permiso para ${resumen.exitosos} trabajador(es) el ${fecha}.` })
+        return
+      }
+
+      mostrarToast({
+        type: 'error',
+        title: resumen.exitosos === 0 ? 'No se pudo enviar la solicitud' : `Se enviaron ${resumen.exitosos} de ${elegidos.length}`,
+        description: resumen.primerError ?? 'No se pudo enviar la solicitud.',
+      })
     } finally {
       setIsSubmitting(false)
     }

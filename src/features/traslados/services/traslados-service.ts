@@ -47,16 +47,17 @@ export async function solicitarTraslado(input: SolicitarTrasladoInput, client: S
 }
 
 export async function listarMisTraslados(fincaId: string, client: SupabaseClient = supabase): Promise<Traslado[]> {
-  const { data, error } = await client
-    .from('traslados_trabajadores')
-    .select(TRASLADO_COLUMNS)
-    .or(`finca_origen_id.eq."${fincaId}",finca_destino_id.eq."${fincaId}"`)
-    .order('fecha', { ascending: false })
-    .returns<TrasladoRow[]>()
+  // dos .eq() en vez de un .or(): .or() recibe un string de filtro y no acepta
+  // parametros, asi que fincaId se interpolaba sin escapar
+  const consulta = (columna: 'finca_origen_id' | 'finca_destino_id') =>
+    client.from('traslados_trabajadores').select(TRASLADO_COLUMNS).eq(columna, fincaId).returns<TrasladoRow[]>()
 
+  const [origen, destino] = await Promise.all([consulta('finca_origen_id'), consulta('finca_destino_id')])
+
+  const error = origen.error ?? destino.error
   if (error) throw new Error(`listarMisTraslados: ${error.message}`)
-  if (!data) throw new Error('listarMisTraslados: No data returned')
-  return data.map(mapTraslado)
+
+  return [...(origen.data ?? []), ...(destino.data ?? [])].sort((a, b) => b.fecha.localeCompare(a.fecha)).map(mapTraslado)
 }
 
 export async function listarTrasladosPendientes(client: SupabaseClient = supabase): Promise<Traslado[]> {

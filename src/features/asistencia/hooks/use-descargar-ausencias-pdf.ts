@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useToastStore } from '../../../shared/stores/toast-store'
 import { descargarBlob } from '../../../shared/lib/descargar-blob'
-import { construirFechaIso } from '../../captura/utils/fecha-iso'
+import { construirFechaIso } from '../../../shared/utils/fecha-iso'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 import type { Finca } from '../../../shared/types/domain.types'
 import { listarAsistenciaPorRango } from '../services/asistencia-service'

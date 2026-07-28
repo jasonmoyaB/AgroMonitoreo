@@ -4,7 +4,7 @@ import type { Trabajador } from '../../../shared/types/domain.types'
 import { BUCKET_FOTOS_TRABAJADORES, EXTENSION_POR_MIME, type TipoMimePermitido } from '../constants/foto-trabajador.constants'
 import type { ActualizarTrabajadorInput, CrearTrabajadorInput } from '../types/trabajador-form.types'
 
-const TRABAJADORES_COLUMNS = 'id, finca_id, nombre_completo, foto_url, activo, salario_mensual, moneda'
+const TRABAJADORES_COLUMNS = 'id, finca_id, nombre_completo, foto_url, activo'
 
 export async function subirFotoTrabajador(input: { fincaId: string; archivo: File }, client: SupabaseClient = supabase): Promise<string> {
   const extension = EXTENSION_POR_MIME[input.archivo.type as TipoMimePermitido]
@@ -73,37 +73,12 @@ export async function cambiarEstadoTrabajador(trabajador: Trabajador, client: Su
   return mapTrabajador(data)
 }
 
-export async function actualizarSalarioTrabajador(
-  input: { id: string; salarioMensual: number; moneda: Trabajador['moneda'] },
-  client: SupabaseClient = supabase,
-): Promise<Trabajador> {
-  const { data, error } = await client
-    .from('trabajadores')
-    .update({ salario_mensual: input.salarioMensual, moneda: input.moneda })
-    .eq('id', input.id)
-    .select(TRABAJADORES_COLUMNS)
-    .single()
-
-  if (error) throw new Error(`actualizarSalarioTrabajador: ${error.message}`)
-  return mapTrabajador(data)
-}
-
-function mapTrabajador(row: {
-  id: string
-  finca_id: string
-  nombre_completo: string
-  foto_url: string | null
-  activo: boolean
-  salario_mensual: number
-  moneda: Trabajador['moneda']
-}): Trabajador {
+function mapTrabajador(row: { id: string; finca_id: string; nombre_completo: string; foto_url: string | null; activo: boolean }): Trabajador {
   return {
     id: row.id,
     fincaId: row.finca_id,
     nombreCompleto: row.nombre_completo,
     fotoUrl: row.foto_url,
     activo: row.activo,
-    salarioMensual: row.salario_mensual,
-    moneda: row.moneda,
   }
 }

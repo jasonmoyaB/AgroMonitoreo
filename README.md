@@ -21,18 +21,20 @@ Resiliente a caída conexión: autosave local (300ms debounce) + retry mutación
 
 ## Roles
 
-- **supervisor/capataz**: carga datos campo, gestión trabajadores (`features/trabajadores`), asistencia diaria (`features/asistencia`), KPIs (`features/supervisor`)
-- **admin/oficina**: implementado (`features/admin`) — dashboard, CRUD fincas, CRUD supervisores, ver trabajadores/asistencia multi-finca
+- **supervisor/capataz**: carga datos campo, gestión trabajadores (`features/trabajadores`), asistencia diaria (`features/asistencia`), traslados entre fincas (`features/traslados`), perfil propio (`features/perfil`), KPIs (`features/supervisor`)
+- **admin/oficina**: implementado (`features/admin`) — dashboards, CRUD fincas, CRUD supervisores, trabajadores/asistencia multi-finca, salarios, traslados
 
 Flujo un sentido: supervisor → admin. Sin flujo reverso.
 
 ## Lo logrado (recién)
 
-- **Auth hardening**: rate-limit login (cooldown tras intentos fallidos, `use-login-cooldown.ts` + migración `bloqueo_login_intentos_fallidos`), signup ya no confía rol/finca de metadata cliente (siempre `supervisor`+`birrisito` server-side)
-- **Módulo Admin completo**: dashboard, CRUD fincas, CRUD supervisores, vista trabajadores/asistencia por finca — soporte multi-finca real
+- **Salarios**: admin fija salario mensual por trabajador (`usd`/`colones`), quincena = mitad. Valor hora por finca (`fincas.valor_hora`) editable, todavía sin consumir en cálculos
+- **Traslados**: préstamo de trabajador entre fincas por un día (pendiente/aprobado/rechazado), sin devolución manual — vence por fecha. Badges en origen y destino
+- **Auth hardening**: cooldown de login tras intentos fallidos, recuperación de password, signup siempre `supervisor`+`birrisito` server-side
+- **Módulo Admin completo**: dashboard rollup + por finca, CRUD fincas/supervisores, trabajadores y asistencia por finca
 - **Asistencia**: marcar ausente/presente, tabla semanal, calendario mensual, export PDF
-- **Métricas/KPIs**: horas extras, ranking labores/trabajadores, tendencia diaria — `shared/utils/kpis/`
-- **Supabase Advisors hardening**: grants explícitos por tabla, RLS join-through-`usuario`, revoke EXECUTE funciones internas
+- **Métricas/KPIs**: horas extras (`docs/horas-extra.md`), ranking labores/trabajadores, tendencia diaria — `shared/utils/kpis/`
+- **Supabase hardening**: grants explícitos por tabla, RLS join-through-`usuario`, revoke EXECUTE funciones internas
 - Tests con vitest, MCP `codebase-memory` pa' navegar el repo
 
 ## Stack

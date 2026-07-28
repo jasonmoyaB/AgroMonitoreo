@@ -1,5 +1,5 @@
 import { textoPdf as texto, crearBlobPdf } from '../../../shared/lib/pdf-doc'
-import { formatearFechaIsoDdMmAaaa } from '../../captura/utils/fecha-iso'
+import { formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
 import { agruparCantidadPorUnidad } from './agrupar-cantidad-por-unidad'
 import type { MetricaPorLabor, TrabajadorMetricasTotales } from '../types/trabajador-metricas.types'
 

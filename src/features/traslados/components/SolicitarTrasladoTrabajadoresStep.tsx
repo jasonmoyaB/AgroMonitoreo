@@ -1,3 +1,4 @@
+import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import type { TrabajadorOtraFinca } from '../types/traslado.types'
 
 interface SolicitarTrasladoTrabajadoresStepState {
@@ -18,10 +19,11 @@ interface SolicitarTrasladoTrabajadoresStepProps {
   actions: SolicitarTrasladoTrabajadoresStepActions
 }
 
-const FECHA_MINIMA = new Date().toISOString().slice(0, 10)
-
 export function SolicitarTrasladoTrabajadoresStep({ state, actions }: SolicitarTrasladoTrabajadoresStepProps) {
   const { trabajadores, fecha, seleccionados, isSubmitting } = state
+  // en el render y no a nivel de modulo: la PWA queda abierta de un dia para otro y
+  // un minimo congelado dejaba pedir traslados para fechas ya pasadas
+  const fechaMinima = fechaLocalIso()
 
   return (
     <div className="neu-raised flex flex-col gap-4 rounded-[2rem] p-5">
@@ -30,7 +32,7 @@ export function SolicitarTrasladoTrabajadoresStep({ state, actions }: SolicitarT
         <input
           type="date"
           value={fecha}
-          min={FECHA_MINIMA}
+          min={fechaMinima}
           onChange={(event) => actions.onFechaChange(event.target.value)}
           className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
         />
