@@ -5,21 +5,24 @@ import { RankingBarChart } from '../../../shared/components/RankingBarChart'
 import { TendenciaLineChart } from '../../../shared/components/TendenciaLineChart'
 import { DescargarDashboardPdfButton } from '../../../shared/components/DescargarDashboardPdfButton'
 import { AdminSidebar } from '../components/AdminSidebar'
+import { PeriodoSelector } from '../components/PeriodoSelector'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useAdminRollupKpis } from '../hooks/use-admin-rollup-kpis'
+import { usePeriodoDashboard } from '../hooks/use-periodo-dashboard'
 import { useDescargarDashboardPdf } from '../../../shared/hooks/use-descargar-dashboard-pdf'
 
 const UNIDAD_GENERICA = 'unidades'
 
 export function AdminDashboardScreen() {
   const dashboard = useAdminDashboard()
-  const rollup = useAdminRollupKpis()
+  const periodo = usePeriodoDashboard()
+  const rollup = useAdminRollupKpis(periodo.periodo)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
   const pdf = useDescargarDashboardPdf({
     archivoPrefijo: 'dashboard-admin',
     titulo: 'Dashboard',
-    subtitulo: 'Resumen del mes en todas las fincas.',
+    subtitulo: `Todas las fincas — ${periodo.periodoNombre}`,
     kpis: rollup.kpis,
     rankingLabores: rollup.rankingLabores,
     rankingTrabajadores: rollup.rankingTrabajadores,
@@ -36,10 +39,12 @@ export function AdminDashboardScreen() {
             <div>
               <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">Admin</p>
               <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Dashboard</h1>
-              <p className="mt-2 max-w-2xl font-bold leading-7 text-slate-600">Resumen del mes en todas las fincas.</p>
+              <p className="mt-2 max-w-2xl font-bold leading-7 text-slate-600">Elige un mes para ver el resumen de todas las fincas.</p>
             </div>
             <DescargarDashboardPdfButton isDownloading={pdf.isDownloading} onDescargar={pdf.descargar} />
           </header>
+
+          <PeriodoSelector anio={periodo.anio} mes={periodo.mes} aniosDisponibles={rollup.aniosDisponibles} onAnioChange={periodo.setAnio} onMesChange={periodo.setMes} />
 
           {rollup.isLoading ? (
             <p className="font-bold text-slate-600">Cargando datos…</p>
@@ -47,10 +52,10 @@ export function AdminDashboardScreen() {
             <>
               <DashboardKpiRow kpis={rollup.kpis} />
               <div className="grid gap-3 md:grid-cols-2 md:gap-4">
-                <RankingBarChart titulo="Mejor labor del mes" items={rollup.rankingLabores} unidad={UNIDAD_GENERICA} />
-                <RankingBarChart titulo="Mejor trabajador del mes" items={rollup.rankingTrabajadores} unidad={UNIDAD_GENERICA} />
+                <RankingBarChart titulo={`Mejor labor · ${periodo.periodoNombre}`} items={rollup.rankingLabores} unidad={UNIDAD_GENERICA} />
+                <RankingBarChart titulo={`Mejor trabajador · ${periodo.periodoNombre}`} items={rollup.rankingTrabajadores} unidad={UNIDAD_GENERICA} />
               </div>
-              <TendenciaLineChart titulo="Producción diaria del mes" puntos={rollup.tendenciaDiaria} unidad={UNIDAD_GENERICA} />
+              <TendenciaLineChart titulo={`Producción diaria · ${periodo.periodoNombre}`} puntos={rollup.tendenciaDiaria} unidad={UNIDAD_GENERICA} />
             </>
           )}
         </section>

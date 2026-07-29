@@ -8,29 +8,25 @@ import { DescargarDashboardPdfButton } from '../../../shared/components/Descarga
 import { AdminSidebar } from '../components/AdminSidebar'
 import { FincaSelector } from '../components/FincaSelector'
 import { PeriodoSelector } from '../components/PeriodoSelector'
-import { MESES } from '../../captura/constants/meses.constants'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useFincaDashboardKpis } from '../hooks/use-finca-dashboard-kpis'
 import { useFincas } from '../hooks/use-fincas'
+import { usePeriodoDashboard } from '../hooks/use-periodo-dashboard'
 import { useDescargarDashboardPdf } from '../../../shared/hooks/use-descargar-dashboard-pdf'
-import { construirAnioMes, descomponerFechaIso } from '../../../shared/utils/fecha-iso'
-import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 
 const UNIDAD_GENERICA = 'unidades'
-const HOY = descomponerFechaIso(fechaLocalIso())
 
 export function FincaDashboardScreen() {
   const dashboard = useAdminDashboard()
   const { fincas } = useFincas()
   const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
-  const [anio, setAnio] = useState(HOY.anio)
-  const [mes, setMes] = useState(HOY.mes)
+  const periodo = usePeriodoDashboard()
   const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
   const fincaNombre = fincas.find((finca) => finca.id === fincaId)?.nombre ?? 'Finca'
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
-  const kpisFinca = useFincaDashboardKpis(fincaId, construirAnioMes(anio, mes))
-  const periodoNombre = `${MESES[mes - 1].nombre} ${anio}`
+  const kpisFinca = useFincaDashboardKpis(fincaId, periodo.periodo)
+  const periodoNombre = periodo.periodoNombre
   const pdf = useDescargarDashboardPdf({
     archivoPrefijo: `dashboard-${fincaNombre}`,
     titulo: 'Dashboard por finca',
@@ -57,7 +53,7 @@ export function FincaDashboardScreen() {
           </header>
 
           <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
-          <PeriodoSelector anio={anio} mes={mes} aniosDisponibles={kpisFinca.aniosDisponibles} onAnioChange={setAnio} onMesChange={setMes} />
+          <PeriodoSelector anio={periodo.anio} mes={periodo.mes} aniosDisponibles={kpisFinca.aniosDisponibles} onAnioChange={periodo.setAnio} onMesChange={periodo.setMes} />
 
           {kpisFinca.isLoading ? (
             <p className="font-bold text-slate-600">Cargando datos…</p>

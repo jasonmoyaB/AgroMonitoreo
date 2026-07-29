@@ -7,9 +7,10 @@ import { calcularRankingLabores } from '../../../shared/utils/kpis/calcular-rank
 import { calcularRankingTrabajadores } from '../../../shared/utils/kpis/calcular-ranking-trabajadores'
 import { calcularTendenciaDiaria } from '../../../shared/utils/kpis/calcular-tendencia-diaria'
 import { filtrarRegistrosDelMes } from '../../../shared/utils/kpis/filtrar-registros-del-mes'
+import { obtenerAniosDashboard } from '../utils/obtener-anios-dashboard'
 import { useFincas } from './use-fincas'
 
-export function useAdminRollupKpis() {
+export function useAdminRollupKpis(periodo?: string) {
   const { fincas, isLoading: isLoadingFincas } = useFincas()
   const registrosQuery = useTodosRegistros()
   const trabajadoresQuery = useQuery({
@@ -20,10 +21,11 @@ export function useAdminRollupKpis() {
 
   const registros = registrosQuery.data ?? []
   const trabajadores = trabajadoresQuery.data ?? []
-  const registrosDelMes = filtrarRegistrosDelMes(registros)
+  const registrosDelMes = filtrarRegistrosDelMes(registros, periodo)
 
   return {
     isLoading: isLoadingFincas || registrosQuery.isLoading || trabajadoresQuery.isLoading,
+    aniosDisponibles: obtenerAniosDashboard(registros),
     kpis: calcularKpisMensuales(registrosDelMes, trabajadores, TIPOS_LABOR),
     rankingLabores: calcularRankingLabores(registrosDelMes, TIPOS_LABOR),
     rankingTrabajadores: calcularRankingTrabajadores(registrosDelMes, trabajadores),
