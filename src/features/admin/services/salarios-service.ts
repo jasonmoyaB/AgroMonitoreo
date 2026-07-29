@@ -35,10 +35,12 @@ export async function guardarSalario(
   input: { trabajadorId: string; salarioMensual?: number; moneda?: Moneda },
   client: SupabaseClient = supabase
 ): Promise<void> {
-  const { trabajadorId, ...campos } = input
-  const { error } = await client
-    .from('salarios_trabajadores')
-    .upsert({ trabajador_id: trabajadorId, ...campos, actualizado_en: new Date().toISOString() })
+  const { error } = await client.from('salarios_trabajadores').upsert({
+    trabajador_id: input.trabajadorId,
+    ...(input.salarioMensual !== undefined && { salario_mensual: input.salarioMensual }),
+    ...(input.moneda !== undefined && { moneda: input.moneda }),
+    actualizado_en: new Date().toISOString(),
+  })
 
   if (error) throw new Error(`guardarSalario: ${error.message}`)
 }

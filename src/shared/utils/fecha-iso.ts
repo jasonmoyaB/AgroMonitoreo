@@ -14,6 +14,10 @@ export function construirFechaIso({ anio, mes, dia }: FechaDescompuesta): string
   return `${anio}-${conCero(mes)}-${conCero(dia)}`
 }
 
+export function construirAnioMes(anio: number, mes: number): string {
+  return `${anio}-${conCero(mes)}`
+}
+
 export function descomponerFechaIso(fecha: string): FechaDescompuesta {
   const [anio, mes, dia] = fecha.split('-').map(Number)
   return { anio, mes, dia }
