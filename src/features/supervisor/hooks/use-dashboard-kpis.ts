@@ -1,4 +1,4 @@
-import { useTodosRegistros } from '../../captura/hooks/use-todos-registros'
+import { useRegistrosDelMes } from '../../captura/hooks/use-registros-del-mes'
 import { useTrabajadoresPorFinca } from '../../captura/hooks/use-trabajadores-por-finca'
 import { FINCA_ACTUAL } from '../../../shared/constants/finca.constants'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
@@ -6,14 +6,13 @@ import { calcularKpisMensuales } from '../../../shared/utils/kpis/calcular-kpis-
 import { calcularRankingLabores } from '../../../shared/utils/kpis/calcular-ranking-labores'
 import { calcularRankingTrabajadores } from '../../../shared/utils/kpis/calcular-ranking-trabajadores'
 import { calcularTendenciaDiaria } from '../../../shared/utils/kpis/calcular-tendencia-diaria'
-import { filtrarRegistrosDelMes } from '../../../shared/utils/kpis/filtrar-registros-del-mes'
+import { anioMesLocal } from '../../../shared/utils/fecha-local'
 
 export function useDashboardKpis() {
-  const registrosQuery = useTodosRegistros()
+  const registrosQuery = useRegistrosDelMes(anioMesLocal())
   const trabajadoresQuery = useTrabajadoresPorFinca(FINCA_ACTUAL.id)
-  const registros = registrosQuery.data ?? []
+  const registrosDelMes = registrosQuery.data ?? []
   const trabajadores = trabajadoresQuery.data ?? []
-  const registrosDelMes = filtrarRegistrosDelMes(registros)
 
   return {
     isLoading: registrosQuery.isLoading || trabajadoresQuery.isLoading,
