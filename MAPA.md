@@ -15,7 +15,8 @@
 | Gestión de supervisores (rol, nombre, finca asignada) | `src/features/admin/services/supervisores-service.ts` + `hooks/use-supervisores-crud.ts` + `screens/SupervisoresCrudScreen.tsx` |
 | Asistencia / ausencias (calendario, tabla semanal, PDF) | `src/features/asistencia/` (hosteado por `src/features/supervisor/screens/AsistenciaScreen.tsx` y `src/features/admin/screens/AsistenciaPorFincaScreen.tsx`) |
 | Traslados de trabajadores entre fincas (solicitar/aprobar préstamo por un día) | `src/features/traslados/` (headless), hosteado por `supervisor/screens/TrasladosScreen.tsx` y `admin/screens/TrasladosAdminScreen.tsx` — `traslados-service.ts` (tabla `traslados_trabajadores`); `listarTrabajadoresPrestadosHoy` (lado destino, badge "De {finca}" en `WorkerCard`) y `listarTrabajadoresTrasladadosHoy` (lado origen: bloquea selección + badge "De traslado en {finca}" en `captura/screens/TrabajadoresScreen.tsx`, y badge "Trabajador trasladado a: {finca}" en `supervisor/screens/TrabajadoresCrudScreen.tsx` / `components/TrabajadoresTable.tsx`) |
-| Salarios (salario mensual por trabajador, quincena, valor hora por finca) | `src/features/admin/screens/SalariosScreen.tsx` + `components/SalariosTable.tsx` + `hooks/use-actualizar-salario.ts` / `use-actualizar-valor-hora.ts`. Columnas: `trabajadores.salario_mensual`+`moneda`, `fincas.valor_hora` |
+| Salarios (salario mensual por trabajador, valor hora por finca) | `src/features/admin/screens/SalariosScreen.tsx` + `components/SalariosTable.tsx` + `services/salarios-service.ts` + `hooks/use-actualizar-salario.ts` / `use-actualizar-valor-hora.ts`. Tabla `salarios_trabajadores` (`salario_mensual`, `moneda`) — **no** son columnas de `trabajadores`, se movieron en `20260728100100`. `fincas.valor_hora` se edita acá pero no lo consume ningún cálculo |
+| Planilla / quincena (monto por quincena, registrar pago, PDF de liquidación) | `src/features/planilla/` (headless: `use-planilla-quincena.ts`, `planilla-service.ts`, `obtener-rango-quincena.ts`, `construir-filas-planilla.ts`, `generar-pdf-liquidacion.ts`), hosteado por `admin/screens/PlanillaScreen.tsx` + `components/PlanillaTable.tsx` / `PeriodoSelector.tsx` (`/admin/planilla`). Tabla `pagos_quincenales` (snapshot: monto y moneda congelados al pagar). Monto = `shared/utils/calcular-monto-quincena.ts` |
 | Perfil propio (editar nombre, cambiar password) | `src/features/perfil/` (hosteado por las pantallas `ConfiguracionScreen` de supervisor y admin) |
 | Toasts globales | `src/shared/stores/toast-store.ts` + `components/Toast.tsx` / `ToastViewport.tsx` |
 | Generación de PDF (dashboard, ausencias, métricas) | `src/shared/lib/pdf-doc.ts` + `src/shared/utils/pdf/` + `hooks/use-descargar-dashboard-pdf.ts` |
@@ -28,6 +29,7 @@
 | Zustand store de sesión de captura | `src/shared/stores/captura-session-store.ts` |
 | Las 11 labores (constante frontend) | `src/shared/constants/tipos-labor.constants.ts` |
 | Migraciones Supabase | `supabase/migrations/` |
+| Contexto del proyecto (arquitectura, convenciones, decisiones, glosario, flujo, gotchas) | `docs/contexto/` — referenciado desde `CLAUDE.md` y `AGENTS.md` |
 | Docs sueltos (seguridad, cambios puntuales) | `docs/` |
 | Reglas responsive (shell, sidebar, grids, tablas) | `docs/RESPONSIVE.md` |
 | Tests | `test/` (espejo de `src/`, no colocados) |

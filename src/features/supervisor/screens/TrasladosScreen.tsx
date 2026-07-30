@@ -2,10 +2,12 @@ import { useNavigate } from 'react-router-dom'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
-import { MisTrasladosTable } from '../../traslados/components/MisTrasladosTable'
+import { TrasladosTable } from '../../traslados/components/TrasladosTable'
 import { SolicitarTrasladoFincaStep } from '../../traslados/components/SolicitarTrasladoFincaStep'
 import { SolicitarTrasladoTrabajadoresStep } from '../../traslados/components/SolicitarTrasladoTrabajadoresStep'
+import { TrasladosFilterBar } from '../../traslados/components/TrasladosFilterBar'
 import { useSolicitarTraslado } from '../../traslados/hooks/use-solicitar-traslado'
+import { useFiltrosTraslados } from '../../traslados/hooks/use-filtros-traslados'
 import { WizardHeader } from '../../../shared/components/WizardHeader'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
@@ -19,6 +21,7 @@ export function TrasladosScreen() {
   const { usuario } = useUsuarioActual()
   const fincaId = usuario?.fincaId
   const traslado = useSolicitarTraslado(fincaId)
+  const filtros = useFiltrosTraslados(traslado.misTraslados, fincaId ?? '')
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
   return (
@@ -59,7 +62,14 @@ export function TrasladosScreen() {
           )}
 
           <h2 className="mb-3 mt-6 text-xl font-black text-slate-900">Historial de traspasos</h2>
-          <MisTrasladosTable traslados={traslado.misTraslados} fincaPropiaId={fincaId ?? ''} isLoading={traslado.isLoadingMisTraslados} />
+          <TrasladosFilterBar
+            filtros={filtros.filtros}
+            traslados={traslado.misTraslados}
+            fincaPropiaId={fincaId ?? ''}
+            onFiltroChange={filtros.setFiltro}
+            onResetFiltros={filtros.resetFiltros}
+          />
+          <TrasladosTable traslados={filtros.trasladosFiltrados} fincaPropiaId={fincaId ?? ''} isLoading={traslado.isLoadingMisTraslados} />
         </section>
       </div>
     </main>

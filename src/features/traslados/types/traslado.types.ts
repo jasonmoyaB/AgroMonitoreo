@@ -33,6 +33,21 @@ export interface TrabajadorTrasladadoHoy {
   fincaDestinoNombre: string
 }
 
+export type EstadoFiltroTraslado = EstadoTraslado | 'todos'
+
+export type SentidoFiltroTraslado = 'todos' | 'recibido' | 'prestado'
+
+export interface TrasladosFiltros {
+  trabajador: string
+  estado: EstadoFiltroTraslado
+  /** nombre de finca (origen o destino); '' = todas */
+  finca: string
+  sentido: SentidoFiltroTraslado
+  /** ISO yyyy-mm-dd; '' = sin limite */
+  desde: string
+  hasta: string
+}
+
 export interface SolicitarTrasladoInput {
   trabajadorId: string
   fincaOrigenId: string

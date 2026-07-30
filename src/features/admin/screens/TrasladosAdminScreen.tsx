@@ -2,8 +2,10 @@ import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { useResolverTraslados } from '../../traslados/hooks/use-resolver-traslados'
 import { useHistorialTraslados } from '../../traslados/hooks/use-historial-traslados'
+import { useFiltrosTraslados } from '../../traslados/hooks/use-filtros-traslados'
 import { TrasladosPendientesTable } from '../../traslados/components/TrasladosPendientesTable'
-import { TrasladosHistorialTable } from '../../traslados/components/TrasladosHistorialTable'
+import { TrasladosTable } from '../../traslados/components/TrasladosTable'
+import { TrasladosFilterBar } from '../../traslados/components/TrasladosFilterBar'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 
@@ -12,6 +14,7 @@ export function TrasladosAdminScreen() {
   const perfil = usePerfilSidebar()
   const traslados = useResolverTraslados()
   const historial = useHistorialTraslados()
+  const filtros = useFiltrosTraslados(historial.historial)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
 
   return (
@@ -35,7 +38,8 @@ export function TrasladosAdminScreen() {
           />
 
           <h2 className="mb-3 mt-6 text-xl font-black text-slate-900">Historial de traspasos</h2>
-          <TrasladosHistorialTable historial={historial.historial} isLoading={historial.isLoading} />
+          <TrasladosFilterBar filtros={filtros.filtros} traslados={historial.historial} onFiltroChange={filtros.setFiltro} onResetFiltros={filtros.resetFiltros} />
+          <TrasladosTable traslados={filtros.trasladosFiltrados} isLoading={historial.isLoading} />
         </section>
       </div>
     </main>

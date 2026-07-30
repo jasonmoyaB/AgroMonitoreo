@@ -30,6 +30,7 @@ Un solo estado `isCollapsed` compartido, comportamiento distinto por breakpoint:
   ```
   className={`${isCollapsed ? 'hidden' : 'flex'} ... md:flex`}
   ```
+- El `aside` lleva `max-h-[50dvh] overflow-y-auto overscroll-contain md:max-h-none`. Sin ese tope, con el menú desplegado en mobile el aside (`shrink-0`) se comía el `h-dvh` entero y la `<section>` de contenido quedaba en **0px de alto**: el contenido existía (`scrollHeight` 1703) pero `main overflow-hidden` lo recortaba completo. Medido en `AdminSidebar` (9 ítems + perfil + salir = 700px con viewport de 710px). Si se agregan ítems al nav, el tope es lo que impide que vuelva a pasar.
 
 ## Grids
 
@@ -46,6 +47,16 @@ Nunca dejar que una tabla angosta el viewport. Patrón fijo en `TrabajadoresTabl
 ```
 
 Scroll horizontal contenido en el wrapper, la página nunca scrollea horizontal.
+
+Cuando la tabla tiene 4+ columnas de texto largo el `min-w` deja media tabla fuera de pantalla en mobile y el scroll horizontal no se ve venir (pasó en traslados, `min-w-[44rem]` a 375px). En ese caso, apilar la fila en vez de scrollear — sin `min-w`, sin markup duplicado:
+
+```
+<thead className="hidden sm:table-header-group">
+<tr className="block border-b px-5 py-4 sm:table-row sm:px-0 sm:py-0">
+<td className="block sm:table-cell sm:px-5 sm:py-3">
+```
+
+Referencia: `traslados/components/TrasladosTable.tsx` y `TrasladosPendientesTable.tsx`.
 
 ## Touch targets
 

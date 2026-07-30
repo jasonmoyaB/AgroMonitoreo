@@ -33,8 +33,10 @@ export function AdminSidebar({ isCollapsed, isSigningOut, perfil, onToggle, onSi
 
   const { data: trasladosPendientes = [] } = useQuery({ queryKey: [TRASLADOS_QUERY_KEY, 'pendientes'], queryFn: () => listarTrasladosPendientes() })
 
+  // en mobile el aside es shrink-0 dentro de un h-dvh: con el menu desplegado (9 items + perfil + salir)
+  // se comia el alto entero y la section de contenido quedaba en 0px. El tope lo deja scrollear a el.
   return (
-    <aside className={`neu-raised flex shrink-0 flex-col rounded-[2rem] p-3 ${sidebarWidth} md:h-full`}>
+    <aside className={`neu-raised flex max-h-[50dvh] shrink-0 flex-col overflow-y-auto overscroll-contain rounded-[2rem] p-3 md:max-h-none ${sidebarWidth} md:h-full`}>
       <div className="flex items-center justify-between gap-2">
         <Link to="/admin" className="flex min-h-12 min-w-0 items-center gap-3 rounded-2xl px-2 text-slate-900">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-white">

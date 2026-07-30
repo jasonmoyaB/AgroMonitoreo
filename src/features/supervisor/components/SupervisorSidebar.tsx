@@ -36,8 +36,12 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, perfil, onToggle,
   })
   const trasladosPendientes = misTraslados.filter((traslado) => traslado.estado === 'pendiente').length
 
+  // mismo tope que AdminSidebar: en mobile el aside es shrink-0 dentro de un h-dvh y con el menu
+  // desplegado dejaba la section de contenido en 0px
   return (
-    <aside className={`neu-raised flex shrink-0 flex-col rounded-[2rem] p-3 ${sidebarWidth} md:h-full`}>
+    <aside
+      className={`neu-raised flex max-h-[50dvh] shrink-0 flex-col overflow-y-auto overscroll-contain rounded-[2rem] p-3 md:max-h-none ${sidebarWidth} md:h-full`}
+    >
       <div className="flex items-center justify-between gap-2">
         <Link to="/supervisor" className="flex min-h-12 min-w-0 items-center gap-3 rounded-2xl px-2 text-slate-900">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-white">

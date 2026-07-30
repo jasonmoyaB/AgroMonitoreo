@@ -2,6 +2,15 @@
 
 `CLAUDE.md` is the source of truth for architecture, backend and conventions; `MAPA.md` is the path index. This file holds only the rules an agent breaks most often.
 
+## Contexto del proyecto
+
+- Arquitectura → @docs/contexto/arquitectura.md
+- Convenciones → @docs/contexto/convenciones.md
+- Decisiones → @docs/contexto/decisiones.md
+- Glosario → @docs/contexto/glosario.md
+- Flujo de trabajo → @docs/contexto/flujo-de-trabajo.md
+- Errores conocidos → @docs/contexto/errores-conocidos.md
+
 ## Shape
 
 Single Vite React/TS PWA — not a monorepo. Entry: `src/main.tsx` → `src/App.tsx` → `src/app/router.tsx`. Backend is live Supabase (Postgres + Auth + RLS + Storage); the only IndexedDB left is the in-progress capture draft.
