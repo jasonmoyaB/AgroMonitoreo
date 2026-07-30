@@ -39,7 +39,8 @@ export async function guardarSalario(
     trabajador_id: input.trabajadorId,
     ...(input.salarioMensual !== undefined && { salario_mensual: input.salarioMensual }),
     ...(input.moneda !== undefined && { moneda: input.moneda }),
-    actualizado_en: new Date().toISOString(),
+    // actualizado_en lo sella el trigger salarios_trabajadores_tocar_actualizado_en:
+    // un campo de auditoria no lo pone el cliente que escribe
   })
 
   if (error) throw new Error(`guardarSalario: ${error.message}`)

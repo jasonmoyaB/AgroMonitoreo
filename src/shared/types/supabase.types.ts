@@ -163,6 +163,64 @@ export type Database = {
         }
         Relationships: []
       }
+      pagos_quincenales: {
+        Row: {
+          creado_en: string
+          finca_id: string
+          id: string
+          moneda: string
+          monto: number
+          quincena_fin: string
+          quincena_inicio: string
+          registrado_por: string
+          trabajador_id: string
+        }
+        Insert: {
+          creado_en?: string
+          finca_id: string
+          id?: string
+          moneda: string
+          monto: number
+          quincena_fin: string
+          quincena_inicio: string
+          registrado_por?: string
+          trabajador_id: string
+        }
+        Update: {
+          creado_en?: string
+          finca_id?: string
+          id?: string
+          moneda?: string
+          monto?: number
+          quincena_fin?: string
+          quincena_inicio?: string
+          registrado_por?: string
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_quincenales_finca_id_fkey"
+            columns: ["finca_id"]
+            isOneToOne: false
+            referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_quincenales_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_quincenales_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registros_trabajo: {
         Row: {
           cantidad: number | null

@@ -116,7 +116,17 @@ describe('guardarSalario', () => {
     const [fila] = upsert.mock.calls[0]
     expect(fila).toHaveProperty('salario_mensual', 420000)
     expect(fila).not.toHaveProperty('salarioMensual')
-    expect(fila.actualizado_en).toEqual(expect.any(String))
+  })
+
+  // actualizado_en lo sella el trigger salarios_trabajadores_tocar_actualizado_en
+  // (20260729120000). si el cliente lo vuelve a mandar, el reloj de la maquina del
+  // admin sobreescribe el de la BD en el insert del upsert.
+  it('no manda actualizado_en: ese campo lo pone la base', async () => {
+    const { client, upsert } = clienteEscritura()
+
+    await guardarSalario({ trabajadorId: 't1', salarioMensual: 420000 }, client)
+
+    expect(upsert.mock.calls[0][0]).not.toHaveProperty('actualizado_en')
   })
 
   it('un salario de cero se manda, no se descarta como campo ausente', async () => {

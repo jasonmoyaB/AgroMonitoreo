@@ -1,9 +1,10 @@
 import { Avatar } from '../../../shared/components/Avatar'
+import { calcularMontoQuincena } from '../../../shared/utils/calcular-monto-quincena'
+import { formatearMonto } from '../../../shared/utils/formatear-monto'
 import { leerNumeroNoNegativo } from '../../../shared/utils/leer-numero-no-negativo'
 import type { Moneda, SalarioTrabajador } from '../../../shared/types/domain.types'
 
 const AVATAR_SIZE_PX = 40
-const QUINCENA_DIVISOR = 2
 
 interface SalariosTableProps {
   salarios: readonly SalarioTrabajador[]
@@ -68,7 +69,7 @@ export function SalariosTable({ salarios, isLoading, onGuardar }: SalariosTableP
                     <option value="usd">USD</option>
                   </select>
                 </td>
-                <td className="px-5 py-3 font-black text-slate-700">{(salario.salarioMensual / QUINCENA_DIVISOR).toLocaleString('es-CR')}</td>
+                <td className="px-5 py-3 font-black text-slate-700">{formatearMonto(calcularMontoQuincena(salario.salarioMensual, salario.moneda), salario.moneda)}</td>
               </tr>
             ))}
           </tbody>
