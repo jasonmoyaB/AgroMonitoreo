@@ -1,4 +1,5 @@
 import { crearBlobPdf, textoPdf as texto } from '../../../shared/lib/pdf-doc'
+import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import { formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
 import { formatearMonto } from '../../../shared/utils/formatear-monto'
 import type { Moneda } from '../../../shared/types/domain.types'
@@ -47,6 +48,6 @@ function pintarMonto({ monto, moneda }: GenerarPdfLiquidacionInput): string {
 }
 
 function pintarPie(): string {
-  const hoy = formatearFechaIsoDdMmAaaa(new Date().toISOString().slice(0, 10))
+  const hoy = formatearFechaIsoDdMmAaaa(fechaLocalIso())
   return texto(`Generado: ${hoy}`, PAGE.margin, 42, 9, GRIS)
 }

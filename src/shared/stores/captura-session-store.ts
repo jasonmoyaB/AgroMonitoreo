@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { fechaLocalIso } from '../utils/fecha-local'
 
 interface CapturaSessionState {
   tipoLaborId: string | null
@@ -9,7 +10,7 @@ interface CapturaSessionState {
 }
 
 function obtenerFechaDeHoy(): string {
-  return new Date().toISOString().slice(0, 10)
+  return fechaLocalIso()
 }
 
 export const useCapturaSessionStore = create<CapturaSessionState>((set) => ({

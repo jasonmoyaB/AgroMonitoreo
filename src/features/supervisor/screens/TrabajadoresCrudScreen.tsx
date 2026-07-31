@@ -12,13 +12,14 @@ import { TrabajadoresTable } from '../components/TrabajadoresTable'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { useTrabajadorMetricasModal } from '../../trabajadores/hooks/use-trabajador-metricas-modal'
+import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 
 export function TrabajadoresCrudScreen() {
   const dashboard = useSupervisorDashboard()
   const trabajadores = useTrabajadoresCrud()
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
   const metricasModal = useTrabajadorMetricasModal()
-  const { data: trasladados = [] } = useTrabajadoresTrasladadosHoy(trabajadores.finca.id, new Date().toISOString().slice(0, 10))
+  const { data: trasladados = [] } = useTrabajadoresTrasladadosHoy(trabajadores.finca.id, fechaLocalIso())
   const fincaDestinoPorTrasladado = new Map(trasladados.map((trasladado) => [trasladado.trabajadorId, trasladado.fincaDestinoNombre]))
   const perfil = usePerfilSidebar()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()

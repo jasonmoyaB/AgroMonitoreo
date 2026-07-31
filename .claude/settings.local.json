@@ -12,5 +12,8 @@
       "Bash(git show *)",
       "Bash(npx tsc *)"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "supabase"
+  ]
 }

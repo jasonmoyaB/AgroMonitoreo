@@ -1,5 +1,6 @@
 import { textoPdf as texto, crearBlobPdf } from '../../../shared/lib/pdf-doc'
 import { formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
+import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import { agruparCantidadPorUnidad } from './agrupar-cantidad-por-unidad'
 import type { MetricaPorLabor, TrabajadorMetricasTotales } from '../types/trabajador-metricas.types'
 
@@ -80,5 +81,5 @@ function pintarFila(metrica: MetricaPorLabor, index: number): string {
 }
 
 function pintarPie(): string {
-  return texto(`Generado: ${formatearFechaIsoDdMmAaaa(new Date().toISOString().slice(0, 10))}`, PAGE.margin, 42, 9, '0.35 0.35 0.35')
+  return texto(`Generado: ${formatearFechaIsoDdMmAaaa(fechaLocalIso())}`, PAGE.margin, 42, 9, '0.35 0.35 0.35')
 }
