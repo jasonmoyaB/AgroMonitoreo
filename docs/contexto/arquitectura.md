@@ -80,6 +80,5 @@ Cliente único: `shared/lib/supabase-client.ts`. Envs: `VITE_SUPABASE_URL` y `VI
 - **No hay librería de toasts.** Sistema propio en `shared/` (ver `docs/instruccions/3-notificaciones-toast.md`).
 - **No hay signup de admin.** Todo registro crea `supervisor` + `birrisito` server-side; a admin se promueve por SQL (`docs/instruccions/7-crear-usuario-admin.md`).
 - **El frontend no lee la tabla `labores`.** Usa `shared/constants/tipos-labor.constants.ts`; las dos se sincronizan a mano.
-- **`fincas.valor_hora` no lo consume nada.** Se guarda y se edita en `/admin/salarios`, pero ningún cálculo lo lee.
 - **No hay tests de componentes.** Solo utils y services (ver `convenciones.md`).
 - **CI mínima**: `.github/workflows/react-doctor.yml` corre React Doctor en PRs y en push a `main`, en modo advisory (nunca falla el check). No hay job de `build`, `lint` ni `vitest` — esos se corren en local.

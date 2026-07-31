@@ -13,13 +13,19 @@ El caso real es un dueño con varias fincas, no multi-tenancy. *Descartado*: el 
 **3. El salario vive en `salarios_trabajadores`, no en columnas de `trabajadores`** (`20260728100100_mover_salarios_a_tabla_propia.sql`).
 RLS es row-level: cualquier policy sobre `trabajadores` expone **todas** las columnas de las filas que alcanza. Y `trabajadores_select_activos_multi_finca` abre la tabla entera a propósito (traslados necesita listar trabajadores de otras fincas), mientras `trabajadores_update_own_finca` deja escribir al supervisor. Mientras el salario estuvo ahí, ambas lo alcanzaban. *Descartado*: columnas en `trabajadores` — existieron (`20260727154626`) y se revirtieron. No volver a poner nada sensible ahí.
 
-**4. `pagos_quincenales` es un snapshot, no una vista sobre salarios** (`20260729163414`).
-`monto` y `moneda` se congelan en el momento del pago: si el admin sube el salario en agosto, las quincenas de julio ya pagadas no se mueven. Sin policy de UPDATE ni DELETE, deliberadamente: una quincena pagada no se corrige editando el pasado, se corrige con un ajuste nuevo.
+**4. `pagos_quincenales` es un snapshot, no una vista sobre salarios** (`20260729163414`, `20260731185135`).
+`monto`, `moneda`, `monto_bruto` y `dias_ausentes` se congelan en el momento del pago: si el admin sube el salario en agosto, cambia el valor hora o borra una ausencia, las quincenas de julio ya pagadas no se mueven — y la liquidación reimpresa sigue explicando el neto que imprimió. `monto_bruto` se guarda además de `dias_ausentes` porque el bruto no es reconstruible: `monto + dias × valor_hora × 8` deja de dar el original apenas cambia el valor hora. Sin policy de UPDATE ni DELETE, deliberadamente: una quincena pagada no se corrige editando el pasado, se corrige con un ajuste nuevo.
 
 ## Negocio
 
-**5. La quincena es `salario_mensual / 2`, ingresado a mano.**
-No se deriva de horas ni de cantidad producida (regla confirmada con el usuario). Corte calendario 1–15 y 16–fin de mes, 24 pagos al año. El redondeo depende de la moneda: colones al entero, USD a dos decimales. Evidencia: `shared/utils/calcular-monto-quincena.ts`, `planilla/utils/obtener-rango-quincena.ts`. *Descartado*: cálculo por horas trabajadas — `fincas.valor_hora` quedó guardado y editable pero sin ningún consumidor.
+**5. El bruto de la quincena es `salario_mensual / 2`, ingresado a mano.**
+No se deriva de horas ni de cantidad producida (regla confirmada con el usuario). Corte calendario 1–15 y 16–fin de mes, 24 pagos al año. El redondeo depende de la moneda: colones al entero, USD a dos decimales (`shared/utils/redondear-por-moneda.ts`, compartido con la deducción para que bruto − deducción siempre cierre). Evidencia: `shared/utils/calcular-monto-quincena.ts`, `planilla/utils/obtener-rango-quincena.ts`.
+
+**5b. Las ausencias sí se descuentan, a `valor_hora × 8`** (`20260731185134`, `20260731185135`).
+Un día ausente cuesta la jornada normal completa: `1750 × 8 = 14 000`. Cuentan **los tres tipos** (`vacaciones`, `permisos`, `permisos_medicos`), decisión explícita del usuario tras plantearle que en Costa Rica las vacaciones son tiempo pagado por ley y la incapacidad la cubre CCSS/INS. El descuento se aplica en la quincena donde cae la fecha, así que las dos quincenas del mes suman el mensual neto sin caso especial. El neto se topa en 0. Esto le dio consumidor a `fincas.valor_hora`, huérfano desde `20260727170000`. *Descartado*: mensual/30, mensual/días del mes y solo días laborables — el usuario definió el día como valor hora × jornada.
+
+**5c. Dos valores hora por finca, uno por moneda** (`20260731185134`).
+`valor_hora` es colones y `valor_hora_usd` dólares; se usa el que coincide con la moneda del salario del trabajador. `0` significa "sin definir" y no descuenta nada. *Descartado*: un solo valor hora con tipo de cambio — un valor que envejece y que alguien tiene que mantener a mano.
 
 **6. Traslado de un día, sin acción de "devolución"** (`20260724173240`).
 El préstamo vence solo por scoping de fecha. Un índice único parcial impide una segunda fila viva por trabajador+día. *Descartado*: un flujo explícito de retorno — más estado que mantener para nada.

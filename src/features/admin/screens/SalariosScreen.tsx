@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
-import { leerNumeroNoNegativo } from '../../../shared/utils/leer-numero-no-negativo'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { SalariosTable } from '../components/SalariosTable'
 import { FincaSelector } from '../components/FincaSelector'
+import { ValorHoraInput } from '../components/ValorHoraInput'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useFincas } from '../hooks/use-fincas'
 import { useSalariosFinca } from '../hooks/use-salarios-finca'
@@ -36,27 +36,13 @@ export function SalariosScreen() {
           <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
 
           {finca && (
-            <div className="neu-raised mb-4 flex items-center gap-3 rounded-3xl p-5">
-              <label htmlFor="valor-hora" className="font-black text-slate-700">
-                Valor por hora ({finca.nombre})
-              </label>
-              <input
-                id="valor-hora"
-                type="number"
-                min={0}
-                step="0.01"
-                defaultValue={finca.valorHora}
-                key={finca.id}
-                onBlur={(e) => {
-                  const valorHora = leerNumeroNoNegativo(e.target.value)
-                  if (valorHora === null) {
-                    e.target.value = String(finca.valorHora)
-                    return
-                  }
-                  actualizarValorHora.mutate({ id: finca.id, valorHora })
-                }}
-                className="neu-pressed min-h-11 w-32 rounded-xl px-3 font-bold text-slate-900"
-              />
+            <div className="neu-raised mb-4 rounded-3xl p-5">
+              <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-600">Valor hora de {finca.nombre}</p>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                <ValorHoraInput finca={finca} moneda="colones" onGuardar={actualizarValorHora.mutate} />
+                <ValorHoraInput finca={finca} moneda="usd" onGuardar={actualizarValorHora.mutate} />
+              </div>
+              <p className="mt-3 font-bold leading-6 text-slate-600">Con esto se descuenta cada día de ausencia en la planilla: valor hora × 8 horas.</p>
             </div>
           )}
 

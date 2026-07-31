@@ -5,4 +5,5 @@ export const FINCA_ACTUAL: Finca = {
   nombre: 'Birrisito',
   activa: true,
   valorHora: 0,
+  valorHoraUsd: 0,
 }

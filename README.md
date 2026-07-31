@@ -28,7 +28,8 @@ Flujo un sentido: supervisor → admin. Sin flujo reverso.
 
 ## Lo logrado (recién)
 
-- **Salarios**: admin fija salario mensual por trabajador (`usd`/`colones`), quincena = mitad. Valor hora por finca (`fincas.valor_hora`) editable, todavía sin consumir en cálculos
+- **Salarios**: admin fija salario mensual por trabajador (`usd`/`colones`), quincena = mitad. Valor hora por finca en colones y en USD (`fincas.valor_hora`, `valor_hora_usd`): fija el costo del día ausente (valor hora × 8)
+- **Ausencias en planilla**: cada ausencia de la quincena descuenta un día del monto. Cuentan los tres tipos; el neto nunca baja de 0
 - **Traslados**: préstamo de trabajador entre fincas por un día (pendiente/aprobado/rechazado), sin devolución manual — vence por fecha. Badges en origen y destino
 - **Auth hardening**: cooldown de login tras intentos fallidos, recuperación de password, signup siempre `supervisor`+`birrisito` server-side
 - **Módulo Admin completo**: dashboard rollup + por finca, CRUD fincas/supervisores, trabajadores y asistencia por finca

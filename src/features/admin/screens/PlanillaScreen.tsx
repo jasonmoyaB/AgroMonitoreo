@@ -4,6 +4,7 @@ import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { descargarBlob } from '../../../shared/lib/descargar-blob'
 import { formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
 import { AdminSidebar } from '../components/AdminSidebar'
+import { AusenciasQuincenaModal } from '../components/AusenciasQuincenaModal'
 import { FincaSelector } from '../components/FincaSelector'
 import { PeriodoSelector } from '../components/PeriodoSelector'
 import { PlanillaTable } from '../components/PlanillaTable'
@@ -23,9 +24,11 @@ export function PlanillaScreen() {
   const aniosDisponibles = useAniosDashboard()
   const periodo = usePeriodoQuincena()
   const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
+  const [filaAusencias, setFilaAusencias] = useState<FilaPlanilla | null>(null)
   const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
-  const fincaNombre = fincas.find((finca) => finca.id === fincaId)?.nombre ?? ''
-  const { filas, isLoading, pagar } = usePlanillaQuincena(fincaId, periodo.rango)
+  const finca = fincas.find((item) => item.id === fincaId) ?? null
+  const fincaNombre = finca?.nombre ?? ''
+  const { filas, isLoading, pagar } = usePlanillaQuincena(finca, periodo.rango)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
 
@@ -36,7 +39,9 @@ export function PlanillaScreen() {
       trabajadorId: fila.trabajadorId,
       quincenaInicio: periodo.rango.inicio,
       quincenaFin: periodo.rango.fin,
-      monto: fila.montoQuincena,
+      monto: fila.montoNeto,
+      montoBruto: fila.montoQuincena,
+      diasAusentes: fila.ausencias.length,
       moneda: fila.moneda,
     })
   }
@@ -47,7 +52,9 @@ export function PlanillaScreen() {
       fincaNombre,
       inicio: fila.pago?.quincenaInicio ?? periodo.rango.inicio,
       fin: fila.pago?.quincenaFin ?? periodo.rango.fin,
-      monto: fila.pago?.monto ?? fila.montoQuincena,
+      monto: fila.pago?.monto ?? fila.montoNeto,
+      montoBruto: fila.pago?.montoBruto ?? fila.montoQuincena,
+      diasAusentes: fila.pago?.diasAusentes ?? fila.ausencias.length,
       moneda: fila.pago?.moneda ?? fila.moneda,
     })
     descargarBlob(pdf, `liquidacion-${fila.nombreCompleto}-${periodo.rango.inicio}.pdf`)
@@ -63,7 +70,7 @@ export function PlanillaScreen() {
             <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">Admin</p>
             <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Planilla</h1>
             <p className="mt-2 font-bold leading-7 text-slate-600">
-              Quincena del {formatearFechaIsoDdMmAaaa(periodo.rango.inicio)} al {formatearFechaIsoDdMmAaaa(periodo.rango.fin)}. El monto es la mitad del salario mensual: no depende de horas ni de producción.
+              Quincena del {formatearFechaIsoDdMmAaaa(periodo.rango.inicio)} al {formatearFechaIsoDdMmAaaa(periodo.rango.fin)}. El monto es la mitad del salario mensual menos los días de ausencia, a valor hora × 8.
             </p>
           </header>
 
@@ -87,8 +94,14 @@ export function PlanillaScreen() {
             </label>
           </div>
 
-          <PlanillaTable filas={filas} isLoading={isLoading} onPagar={handlePagar} onDescargarPdf={handleDescargarPdf} />
+          <PlanillaTable
+            filas={filas}
+            isLoading={isLoading}
+            actions={{ onPagar: handlePagar, onDescargarPdf: handleDescargarPdf, onVerAusencias: setFilaAusencias }}
+          />
         </section>
+
+        <AusenciasQuincenaModal fila={filaAusencias} onClose={() => setFilaAusencias(null)} />
       </div>
     </main>
   )

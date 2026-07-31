@@ -8,11 +8,14 @@ export type LaborIconName =
   | 'sprout'
   | 'package'
 
+// valorHora es en colones y valorHoraUsd en dolares: el dia ausente se descuenta con el
+// que coincide con la moneda del salario del trabajador. 0 significa "sin definir".
 export interface Finca {
   id: string
   nombre: string
   activa: boolean
   valorHora: number
+  valorHoraUsd: number
 }
 
 export interface TipoLabor {

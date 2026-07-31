@@ -7,13 +7,18 @@ import type { Moneda } from '../../../shared/types/domain.types'
 const PAGE = { width: 595, height: 842, margin: 48 }
 const NEGRO = '0 0 0'
 const GRIS = '0.35 0.35 0.35'
+const ROJO = '0.65 0.15 0.10'
+const RENGLON_ALTO = 26
 
 interface GenerarPdfLiquidacionInput {
   nombreCompleto: string
   fincaNombre: string
   inicio: string
   fin: string
+  // monto es el neto pagado; montoBruto y diasAusentes explican de donde sale
   monto: number
+  montoBruto: number
+  diasAusentes: number
   moneda: Moneda
 }
 
@@ -38,13 +43,25 @@ function pintarCampo(titulo: string, valor: string, y: number): string {
   return [texto(titulo, PAGE.margin, y + 22, 9, GRIS), texto(valor, PAGE.margin, y, 15, NEGRO)].join('\n')
 }
 
-function pintarMonto({ monto, moneda }: GenerarPdfLiquidacionInput): string {
+function pintarMonto({ monto, montoBruto, diasAusentes, moneda }: GenerarPdfLiquidacionInput): string {
   return [
+    pintarRenglon('Bruto quincena', formatearMonto(montoBruto, moneda), 556, NEGRO),
+    pintarAusencias(montoBruto - monto, diasAusentes, moneda),
     '0.78 0.78 0.78 RG',
-    `${PAGE.margin} 500 499 76 re S`,
-    texto('Monto pagado', PAGE.margin + 16, 552, 9, GRIS),
-    texto(formatearMonto(monto, moneda), PAGE.margin + 16, 520, 24, NEGRO),
+    `${PAGE.margin} 470 499 60 re S`,
+    texto('Neto pagado', PAGE.margin + 16, 508, 9, GRIS),
+    texto(formatearMonto(monto, moneda), PAGE.margin + 16, 482, 22, NEGRO),
   ].join('\n')
+}
+
+function pintarAusencias(deduccion: number, diasAusentes: number, moneda: Moneda): string {
+  if (diasAusentes === 0) return ''
+  const etiqueta = `Ausencias (${diasAusentes} ${diasAusentes === 1 ? 'dia' : 'dias'})`
+  return pintarRenglon(etiqueta, `-${formatearMonto(deduccion, moneda)}`, 556 - RENGLON_ALTO, ROJO)
+}
+
+function pintarRenglon(titulo: string, valor: string, y: number, color: string): string {
+  return [texto(titulo, PAGE.margin, y, 11, GRIS), texto(valor, PAGE.margin + 300, y, 13, color)].join('\n')
 }
 
 function pintarPie(): string {
