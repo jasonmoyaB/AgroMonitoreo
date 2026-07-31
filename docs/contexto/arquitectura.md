@@ -1,0 +1,85 @@
+# Arquitectura
+
+## Stack
+
+PWA React + TypeScript, **una sola app Vite** (no monorepo). Entrada: `src/main.tsx` → `src/App.tsx` → `src/app/router.tsx`.
+
+| Qué | Con qué |
+|---|---|
+| UI | React 19, Tailwind v4 (CSS-first, sin `tailwind.config.js`), `lucide-react` |
+| Rutas | `react-router-dom` 7 (`createBrowserRouter`) |
+| Estado servidor | TanStack Query 5 |
+| Estado cliente | Zustand 5 (`shared/stores/`) |
+| Backend | Supabase (`@supabase/supabase-js` 2) |
+| Local | `idb-keyval` (solo el draft de captura) |
+| PWA | `vite-plugin-pwa`, `registerType: 'autoUpdate'` |
+| Tests / lint | vitest 3, oxlint |
+
+Package manager: **pnpm** (`pnpm@10.33.2`). Nunca npm/yarn.
+
+## Capas
+
+```
+components/  → solo UI, sin fetching ni lógica de negocio
+hooks/       → estado + efectos + TanStack Query, sin JSX
+services/    → acceso a datos (Supabase), sin UI ni estado
+utils/       → funciones puras, sin imports de framework
+types/ constants/ stores/  → interfaces / valores fijos / Zustand
+```
+
+Dirección única: `components → hooks → services → utils`, más `components → stores/types/constants`.
+
+Los componentes nunca importan componentes de otra feature. Hooks y utils sí pueden, cuando el dato nace ahí (ej. los KPIs de `supervisor` leen `captura/hooks/use-todos-registros.ts`).
+
+## Features (`src/features/`)
+
+| Feature | Qué es |
+|---|---|
+| `auth` | login / registro / recuperación, `AuthGuard`, `AdminGuard`, cooldown de login |
+| `captura` | el flujo del capataz en campo (labor → trabajador → horas/cantidad) |
+| `trabajadores` | headless: CRUD + foto, modal de métricas por trabajador |
+| `asistencia` | headless: ausencia diaria, tabla semanal, calendario mensual, PDF |
+| `traslados` | préstamo de un trabajador a otra finca por un día |
+| `perfil` | headless: editar nombre propio, cambiar contraseña |
+| `planilla` | headless: quincena, pago quincenal, PDF de liquidación |
+| `supervisor` | shell del supervisor; hospeda las features headless + KPIs |
+| `admin` | shell de oficina; hospeda `salarios`, `planilla`, dashboards, CRUDs |
+
+`shared/` tiene componentes comunes (IconTile, Avatar, NumericStepper, Modal, Toast, charts, KPI cards), `lib/` (cliente Supabase, `local-db.ts`, `pdf-doc.ts`, sonido/vibración), `utils/kpis/`, `utils/pdf/` y `types/domain.types.ts`.
+
+## Rutas (`src/app/router.tsx`)
+
+- **Públicas**: `/login`, `/registro`, `/olvide-password`, `/reset-password`
+- **`AuthGuard`**: `/supervisor`, `/supervisor/{dashboard,trabajadores,asistencia,traslados,configuracion}`, `/captura/fecha`, `/captura/labor/:tipoLaborId/trabajadores[/:trabajadorId]`
+- **`AdminGuard`**: `/admin`, `/admin/{dashboard-finca,fincas,supervisores,trabajadores,salarios,planilla,asistencia,traslados,configuracion}`
+
+## Flujo de datos
+
+```
+componente → hook (useQuery/useMutation, key desde *-query.constants.ts)
+           → service (Supabase; mapea snake_case de la fila → camelCase del dominio)
+           → util puro
+```
+
+Ejemplo real de punta a punta: `admin/screens/PlanillaScreen.tsx` → `planilla/hooks/use-planilla-quincena.ts` → `planilla/services/planilla-service.ts` → `planilla/utils/construir-filas-planilla.ts` → `shared/utils/calcular-monto-quincena.ts`.
+
+## Backend
+
+Supabase real (Postgres + Auth + RLS + Storage). Migraciones en `supabase/migrations/`. El eje de aislamiento es **`finca_id`**, no un `organizacion_id` multi-tenant: un dueño con varias fincas.
+
+Tablas: `roles`, `fincas`, `trabajadores`, `salarios_trabajadores`, `labores`, `usuario`, `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`. Storage: bucket `trabajador-fotos`.
+
+Cliente único: `shared/lib/supabase-client.ts`. Envs: `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (`.env.local`, no versionado).
+
+## Qué NO existe
+
+- **No es offline-first.** El único IndexedDB es el draft de captura a medias (`captura/hooks/use-registro-draft.ts`) — capa de resiliencia, no fuente de verdad. Normalmente hay wifi.
+- **No hay backend propio ni edge functions.** Toda la lógica de servidor son policies RLS, triggers y funciones SQL.
+- **No hay monorepo.** `pnpm-workspace.yaml` existe pero la app es una sola.
+- **No hay `tailwind.config.js`.** Tailwind v4 CSS-first: `@import 'tailwindcss'` en `src/index.css` + `@tailwindcss/vite`.
+- **No hay librería de toasts.** Sistema propio en `shared/` (ver `docs/instruccions/3-notificaciones-toast.md`).
+- **No hay signup de admin.** Todo registro crea `supervisor` + `birrisito` server-side; a admin se promueve por SQL (`docs/instruccions/7-crear-usuario-admin.md`).
+- **El frontend no lee la tabla `labores`.** Usa `shared/constants/tipos-labor.constants.ts`; las dos se sincronizan a mano.
+- **`fincas.valor_hora` no lo consume nada.** Se guarda y se edita en `/admin/salarios`, pero ningún cálculo lo lee.
+- **No hay tests de componentes.** Solo utils y services (ver `convenciones.md`).
+- **CI mínima**: `.github/workflows/react-doctor.yml` corre React Doctor en PRs y en push a `main`, en modo advisory (nunca falla el check). No hay job de `build`, `lint` ni `vitest` — esos se corren en local.

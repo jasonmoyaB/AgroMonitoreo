@@ -1,6 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
-import { CalendarX2, ClipboardList, LayoutDashboard, LogOut, MapPin, PanelLeftClose, PanelLeftOpen, Sprout, User, UserPlus } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowLeftRight, CalendarX2, ClipboardList, LayoutDashboard, LogOut, MapPin, PanelLeftClose, PanelLeftOpen, Sprout, User, UserPlus } from 'lucide-react'
 import type { PerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
+import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
+import { NavBadge } from '../../../shared/components/NavBadge'
+import { TRASLADOS_QUERY_KEY } from '../../traslados/constants/traslados-query.constants'
+import { listarMisTraslados } from '../../traslados/services/traslados-service'
 
 interface SupervisorSidebarProps {
   isCollapsed: boolean
@@ -15,6 +20,7 @@ const NAV_ITEMS = [
   { to: '/supervisor', label: 'Labores', icon: ClipboardList },
   { to: '/supervisor/trabajadores', label: 'Trabajadores', icon: UserPlus },
   { to: '/supervisor/asistencia', label: 'Asistencia', icon: CalendarX2 },
+  { to: '/supervisor/traslados', label: 'Traslados', icon: ArrowLeftRight },
 ]
 
 export function SupervisorSidebar({ isCollapsed, isSigningOut, perfil, onToggle, onSignOut }: SupervisorSidebarProps) {
@@ -22,8 +28,20 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, perfil, onToggle,
   const labelClass = isCollapsed ? 'sr-only' : 'truncate'
   const sidebarWidth = isCollapsed ? 'md:w-20' : 'md:w-72'
 
+  const { usuario } = useUsuarioActual()
+  const { data: misTraslados = [] } = useQuery({
+    queryKey: [TRASLADOS_QUERY_KEY, usuario?.fincaId],
+    queryFn: () => listarMisTraslados(usuario?.fincaId as string),
+    enabled: !!usuario?.fincaId,
+  })
+  const trasladosPendientes = misTraslados.filter((traslado) => traslado.estado === 'pendiente').length
+
+  // mismo tope que AdminSidebar: en mobile el aside es shrink-0 dentro de un h-dvh y con el menu
+  // desplegado dejaba la section de contenido en 0px
   return (
-    <aside className={`neu-raised flex shrink-0 flex-col rounded-[2rem] p-3 ${sidebarWidth} md:h-full`}>
+    <aside
+      className={`neu-raised flex max-h-[50dvh] shrink-0 flex-col overflow-y-auto overscroll-contain rounded-[2rem] p-3 md:max-h-none ${sidebarWidth} md:h-full`}
+    >
       <div className="flex items-center justify-between gap-2">
         <Link to="/supervisor" className="flex min-h-12 min-w-0 items-center gap-3 rounded-2xl px-2 text-slate-900">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-white">
@@ -58,6 +76,7 @@ export function SupervisorSidebar({ isCollapsed, isSigningOut, perfil, onToggle,
             >
               <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span className={labelClass}>{label}</span>
+              {to === '/supervisor/traslados' && !isCollapsed && <NavBadge count={trasladosPendientes} />}
             </Link>
           )
         })}

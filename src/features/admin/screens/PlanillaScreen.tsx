@@ -1,0 +1,95 @@
+import { useState } from 'react'
+import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
+import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
+import { descargarBlob } from '../../../shared/lib/descargar-blob'
+import { formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
+import { AdminSidebar } from '../components/AdminSidebar'
+import { FincaSelector } from '../components/FincaSelector'
+import { PeriodoSelector } from '../components/PeriodoSelector'
+import { PlanillaTable } from '../components/PlanillaTable'
+import { useAdminDashboard } from '../hooks/use-admin-dashboard'
+import { useAniosDashboard } from '../hooks/use-anios-dashboard'
+import { useFincas } from '../hooks/use-fincas'
+import { OPCIONES_QUINCENA } from '../../planilla/constants/quincena.constants'
+import { usePeriodoQuincena } from '../../planilla/hooks/use-periodo-quincena'
+import { usePlanillaQuincena } from '../../planilla/hooks/use-planilla-quincena'
+import { generarPdfLiquidacion } from '../../planilla/utils/generar-pdf-liquidacion'
+import type { NumeroQuincena } from '../../planilla/types/planilla.types'
+import type { FilaPlanilla } from '../../planilla/types/planilla.types'
+
+export function PlanillaScreen() {
+  const dashboard = useAdminDashboard()
+  const { fincas } = useFincas()
+  const aniosDisponibles = useAniosDashboard()
+  const periodo = usePeriodoQuincena()
+  const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
+  const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
+  const fincaNombre = fincas.find((finca) => finca.id === fincaId)?.nombre ?? ''
+  const { filas, isLoading, pagar } = usePlanillaQuincena(fincaId, periodo.rango)
+  const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
+  const perfil = usePerfilSidebar()
+
+  const handlePagar = (fila: FilaPlanilla) => {
+    if (fincaId === null) return
+    pagar({
+      fincaId,
+      trabajadorId: fila.trabajadorId,
+      quincenaInicio: periodo.rango.inicio,
+      quincenaFin: periodo.rango.fin,
+      monto: fila.montoQuincena,
+      moneda: fila.moneda,
+    })
+  }
+
+  const handleDescargarPdf = (fila: FilaPlanilla) => {
+    const pdf = generarPdfLiquidacion({
+      nombreCompleto: fila.nombreCompleto,
+      fincaNombre,
+      inicio: fila.pago?.quincenaInicio ?? periodo.rango.inicio,
+      fin: fila.pago?.quincenaFin ?? periodo.rango.fin,
+      monto: fila.pago?.monto ?? fila.montoQuincena,
+      moneda: fila.pago?.moneda ?? fila.moneda,
+    })
+    descargarBlob(pdf, `liquidacion-${fila.nombreCompleto}-${periodo.rango.inicio}.pdf`)
+  }
+
+  return (
+    <main className="h-dvh overflow-hidden p-3 sm:p-4">
+      <div className="flex h-full min-w-0 flex-col gap-3 md:flex-row md:gap-4">
+        <AdminSidebar isCollapsed={dashboard.isSidebarCollapsed} isSigningOut={isSigningOut} perfil={perfil} onToggle={dashboard.toggleSidebar} onSignOut={handleCerrarSesion} />
+
+        <section className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
+          <header className="neu-raised mb-4 rounded-[2rem] p-5">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">Admin</p>
+            <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Planilla</h1>
+            <p className="mt-2 font-bold leading-7 text-slate-600">
+              Quincena del {formatearFechaIsoDdMmAaaa(periodo.rango.inicio)} al {formatearFechaIsoDdMmAaaa(periodo.rango.fin)}. El monto es la mitad del salario mensual: no depende de horas ni de producción.
+            </p>
+          </header>
+
+          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
+
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <PeriodoSelector anio={periodo.anio} mes={periodo.mes} aniosDisponibles={aniosDisponibles} onAnioChange={periodo.setAnio} onMesChange={periodo.setMes} />
+            <label className="neu-pressed flex min-h-14 items-center rounded-2xl px-3 font-black text-slate-700">
+              <span className="sr-only">Quincena</span>
+              <select
+                value={periodo.quincena}
+                onChange={(event) => periodo.setQuincena(Number(event.target.value) as NumeroQuincena)}
+                className="cursor-pointer bg-transparent outline-none"
+              >
+                {OPCIONES_QUINCENA.map((opcion) => (
+                  <option key={opcion.valor} value={opcion.valor}>
+                    {opcion.etiqueta}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <PlanillaTable filas={filas} isLoading={isLoading} onPagar={handlePagar} onDescargarPdf={handleDescargarPdf} />
+        </section>
+      </div>
+    </main>
+  )
+}

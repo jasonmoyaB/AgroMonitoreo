@@ -1,6 +1,10 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Building2, CalendarX2, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Sprout, User, UserPlus, Users, Warehouse } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowLeftRight, Building2, CalendarX2, DollarSign, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, ReceiptText, Sprout, User, UserPlus, Users, Warehouse } from 'lucide-react'
 import type { PerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
+import { NavBadge } from '../../../shared/components/NavBadge'
+import { TRASLADOS_QUERY_KEY } from '../../traslados/constants/traslados-query.constants'
+import { listarTrasladosPendientes } from '../../traslados/services/traslados-service'
 
 interface AdminSidebarProps {
   isCollapsed: boolean
@@ -16,7 +20,10 @@ const NAV_ITEMS = [
   { to: '/admin/fincas', label: 'Fincas', icon: Warehouse },
   { to: '/admin/supervisores', label: 'Supervisores', icon: Users },
   { to: '/admin/trabajadores', label: 'Trabajadores', icon: UserPlus },
+  { to: '/admin/salarios', label: 'Salarios', icon: DollarSign },
+  { to: '/admin/planilla', label: 'Planilla', icon: ReceiptText },
   { to: '/admin/asistencia', label: 'Asistencia', icon: CalendarX2 },
+  { to: '/admin/traslados', label: 'Traslados', icon: ArrowLeftRight },
 ]
 
 export function AdminSidebar({ isCollapsed, isSigningOut, perfil, onToggle, onSignOut }: AdminSidebarProps) {
@@ -24,8 +31,12 @@ export function AdminSidebar({ isCollapsed, isSigningOut, perfil, onToggle, onSi
   const labelClass = isCollapsed ? 'sr-only' : 'truncate'
   const sidebarWidth = isCollapsed ? 'md:w-20' : 'md:w-72'
 
+  const { data: trasladosPendientes = [] } = useQuery({ queryKey: [TRASLADOS_QUERY_KEY, 'pendientes'], queryFn: () => listarTrasladosPendientes() })
+
+  // en mobile el aside es shrink-0 dentro de un h-dvh: con el menu desplegado (9 items + perfil + salir)
+  // se comia el alto entero y la section de contenido quedaba en 0px. El tope lo deja scrollear a el.
   return (
-    <aside className={`neu-raised flex shrink-0 flex-col rounded-[2rem] p-3 ${sidebarWidth} md:h-full`}>
+    <aside className={`neu-raised flex max-h-[50dvh] shrink-0 flex-col overflow-y-auto overscroll-contain rounded-[2rem] p-3 md:max-h-none ${sidebarWidth} md:h-full`}>
       <div className="flex items-center justify-between gap-2">
         <Link to="/admin" className="flex min-h-12 min-w-0 items-center gap-3 rounded-2xl px-2 text-slate-900">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-white">
@@ -60,6 +71,7 @@ export function AdminSidebar({ isCollapsed, isSigningOut, perfil, onToggle, onSi
             >
               <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span className={labelClass}>{label}</span>
+              {to === '/admin/traslados' && !isCollapsed && <NavBadge count={trasladosPendientes.length} />}
             </Link>
           )
         })}

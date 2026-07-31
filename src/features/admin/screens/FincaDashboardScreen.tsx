@@ -7,9 +7,11 @@ import { TendenciaLineChart } from '../../../shared/components/TendenciaLineChar
 import { DescargarDashboardPdfButton } from '../../../shared/components/DescargarDashboardPdfButton'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { FincaSelector } from '../components/FincaSelector'
+import { PeriodoSelector } from '../components/PeriodoSelector'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useFincaDashboardKpis } from '../hooks/use-finca-dashboard-kpis'
 import { useFincas } from '../hooks/use-fincas'
+import { usePeriodoDashboard } from '../hooks/use-periodo-dashboard'
 import { useDescargarDashboardPdf } from '../../../shared/hooks/use-descargar-dashboard-pdf'
 
 const UNIDAD_GENERICA = 'unidades'
@@ -18,15 +20,17 @@ export function FincaDashboardScreen() {
   const dashboard = useAdminDashboard()
   const { fincas } = useFincas()
   const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
+  const periodo = usePeriodoDashboard()
   const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
   const fincaNombre = fincas.find((finca) => finca.id === fincaId)?.nombre ?? 'Finca'
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
-  const kpisFinca = useFincaDashboardKpis(fincaId)
+  const kpisFinca = useFincaDashboardKpis(fincaId, periodo.periodo)
+  const periodoNombre = periodo.periodoNombre
   const pdf = useDescargarDashboardPdf({
     archivoPrefijo: `dashboard-${fincaNombre}`,
     titulo: 'Dashboard por finca',
-    subtitulo: fincaNombre,
+    subtitulo: `${fincaNombre} — ${periodoNombre}`,
     kpis: kpisFinca.kpis,
     rankingLabores: kpisFinca.rankingLabores,
     rankingTrabajadores: kpisFinca.rankingTrabajadores,
@@ -43,12 +47,13 @@ export function FincaDashboardScreen() {
             <div>
               <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">Admin</p>
               <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Dashboard por finca</h1>
-              <p className="mt-2 max-w-2xl font-bold leading-7 text-slate-600">Elige una finca para ver su resumen del mes.</p>
+              <p className="mt-2 max-w-2xl font-bold leading-7 text-slate-600">Elige una finca y un mes para ver su resumen.</p>
             </div>
             <DescargarDashboardPdfButton isDownloading={pdf.isDownloading} onDescargar={pdf.descargar} />
           </header>
 
           <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
+          <PeriodoSelector anio={periodo.anio} mes={periodo.mes} aniosDisponibles={kpisFinca.aniosDisponibles} onAnioChange={periodo.setAnio} onMesChange={periodo.setMes} />
 
           {kpisFinca.isLoading ? (
             <p className="font-bold text-slate-600">Cargando datos…</p>
@@ -56,10 +61,10 @@ export function FincaDashboardScreen() {
             <>
               <DashboardKpiRow kpis={kpisFinca.kpis} />
               <div className="grid gap-3 md:grid-cols-2 md:gap-4">
-                <RankingBarChart titulo="Mejor labor del mes" items={kpisFinca.rankingLabores} unidad={UNIDAD_GENERICA} />
-                <RankingBarChart titulo="Mejor trabajador del mes" items={kpisFinca.rankingTrabajadores} unidad={UNIDAD_GENERICA} />
+                <RankingBarChart titulo={`Mejor labor · ${periodoNombre}`} items={kpisFinca.rankingLabores} unidad={UNIDAD_GENERICA} />
+                <RankingBarChart titulo={`Mejor trabajador · ${periodoNombre}`} items={kpisFinca.rankingTrabajadores} unidad={UNIDAD_GENERICA} />
               </div>
-              <TendenciaLineChart titulo="Producción diaria del mes" puntos={kpisFinca.tendenciaDiaria} unidad={UNIDAD_GENERICA} />
+              <TendenciaLineChart titulo={`Producción diaria · ${periodoNombre}`} puntos={kpisFinca.tendenciaDiaria} unidad={UNIDAD_GENERICA} />
             </>
           )}
         </section>

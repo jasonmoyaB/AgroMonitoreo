@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useToastStore } from '../../../shared/stores/toast-store'
 import type { Trabajador, TipoAusencia } from '../../../shared/types/domain.types'
-import { construirFechaIso } from '../../captura/utils/fecha-iso'
+import { construirFechaIso } from '../../../shared/utils/fecha-iso'
 import {
   ASISTENCIA_DIA_QUERY_KEY,
   ASISTENCIA_MES_QUERY_KEY,

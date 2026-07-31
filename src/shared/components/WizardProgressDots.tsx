@@ -11,7 +11,7 @@ export function WizardProgressDots({ paso, totalPasos }: WizardProgressDotsProps
       {pasos.map((numeroPaso) => (
         <span
           key={numeroPaso}
-          className={`h-2.5 rounded-full transition-all duration-200 ${
+          className={`h-2.5 rounded-full transition-[width,background-color] duration-200 ${
             numeroPaso === paso ? 'w-7 bg-emerald-600' : 'w-2.5 bg-slate-300'
           }`}
         />

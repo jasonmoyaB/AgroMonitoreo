@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import type { TrabajadorNombrable } from '../../../shared/types/domain.types'
 import { filtrarTrabajadoresPorNombre } from '../utils/filtrar-trabajadores-por-nombre'
 
-export function useBusquedaTrabajadores(trabajadoresOrdenados: readonly Trabajador[]) {
+export function useBusquedaTrabajadores<T extends TrabajadorNombrable>(trabajadoresOrdenados: readonly T[]) {
   const [busqueda, setBusqueda] = useState('')
 
   const trabajadoresFiltrados = useMemo(

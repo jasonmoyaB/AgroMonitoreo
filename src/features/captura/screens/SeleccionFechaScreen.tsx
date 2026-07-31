@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { WizardHeader } from '../components/WizardHeader'
+import { WizardHeader } from '../../../shared/components/WizardHeader'
 import { MesGrid } from '../components/MesGrid'
 import { NumericStepper } from '../../../shared/components/NumericStepper'
 import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
-import { construirFechaIso, descomponerFechaIso } from '../utils/fecha-iso'
+import { construirFechaIso, descomponerFechaIso } from '../../../shared/utils/fecha-iso'
 import { obtenerDiasEnMes } from '../utils/obtener-dias-en-mes'
 import { ANIO_MINIMO, ANIO_MAXIMO } from '../constants/captura.constants'
 

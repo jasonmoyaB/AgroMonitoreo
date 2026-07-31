@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -93,6 +98,7 @@ export type Database = {
           creado_en: string
           id: string
           nombre: string
+          valor_hora: number
         }
         Insert: {
           activa?: boolean
@@ -100,6 +106,7 @@ export type Database = {
           creado_en?: string
           id: string
           nombre: string
+          valor_hora?: number
         }
         Update: {
           activa?: boolean
@@ -107,6 +114,7 @@ export type Database = {
           creado_en?: string
           id?: string
           nombre?: string
+          valor_hora?: number
         }
         Relationships: []
       }
@@ -154,6 +162,64 @@ export type Database = {
           unidad_medida?: string | null
         }
         Relationships: []
+      }
+      pagos_quincenales: {
+        Row: {
+          creado_en: string
+          finca_id: string
+          id: string
+          moneda: string
+          monto: number
+          quincena_fin: string
+          quincena_inicio: string
+          registrado_por: string
+          trabajador_id: string
+        }
+        Insert: {
+          creado_en?: string
+          finca_id: string
+          id?: string
+          moneda: string
+          monto: number
+          quincena_fin: string
+          quincena_inicio: string
+          registrado_por?: string
+          trabajador_id: string
+        }
+        Update: {
+          creado_en?: string
+          finca_id?: string
+          id?: string
+          moneda?: string
+          monto?: number
+          quincena_fin?: string
+          quincena_inicio?: string
+          registrado_por?: string
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_quincenales_finca_id_fkey"
+            columns: ["finca_id"]
+            isOneToOne: false
+            referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_quincenales_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_quincenales_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registros_trabajo: {
         Row: {
@@ -238,6 +304,35 @@ export type Database = {
         }
         Relationships: []
       }
+      salarios_trabajadores: {
+        Row: {
+          actualizado_en: string
+          moneda: string
+          salario_mensual: number
+          trabajador_id: string
+        }
+        Insert: {
+          actualizado_en?: string
+          moneda?: string
+          salario_mensual?: number
+          trabajador_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          moneda?: string
+          salario_mensual?: number
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salarios_trabajadores_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: true
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trabajadores: {
         Row: {
           activo: boolean
@@ -272,6 +367,81 @@ export type Database = {
             columns: ["finca_id"]
             isOneToOne: false
             referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      traslados_trabajadores: {
+        Row: {
+          creado_en: string
+          estado: string
+          fecha: string
+          finca_destino_id: string
+          finca_origen_id: string
+          id: string
+          resuelto_en: string | null
+          resuelto_por: string | null
+          solicitado_por: string
+          trabajador_id: string
+        }
+        Insert: {
+          creado_en?: string
+          estado?: string
+          fecha: string
+          finca_destino_id: string
+          finca_origen_id: string
+          id?: string
+          resuelto_en?: string | null
+          resuelto_por?: string | null
+          solicitado_por?: string
+          trabajador_id: string
+        }
+        Update: {
+          creado_en?: string
+          estado?: string
+          fecha?: string
+          finca_destino_id?: string
+          finca_origen_id?: string
+          id?: string
+          resuelto_en?: string | null
+          resuelto_por?: string | null
+          solicitado_por?: string
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traslados_trabajadores_finca_destino_id_fkey"
+            columns: ["finca_destino_id"]
+            isOneToOne: false
+            referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traslados_trabajadores_finca_origen_id_fkey"
+            columns: ["finca_origen_id"]
+            isOneToOne: false
+            referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traslados_trabajadores_resuelto_por_fkey"
+            columns: ["resuelto_por"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traslados_trabajadores_solicitado_por_fkey"
+            columns: ["solicitado_por"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traslados_trabajadores_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
             referencedColumns: ["id"]
           },
         ]
@@ -469,4 +639,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

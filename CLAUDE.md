@@ -1,112 +1,121 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code in this repo. Paths: see `MAPA.md`.
 
-Can't find where something lives? Check `MAPA.md` first — quick path index, kept updated each task.
+**Code discovery: `codebase-memory` MCP first, not Grep/Glob.** `search_graph`, `trace_path`, `get_code_snippet`, `get_architecture`, `query_graph` (not indexed -> `index_repository`). Grep/Glob only for plain text, configs, non-code.
 
-**Code discovery: use `codebase-memory` MCP first, not Grep/Glob.** Any task needing to find a file, locate a symbol, trace where something lives, or map routes/imports -> use `search_graph`, `trace_path`, `get_code_snippet`, `get_architecture`, or `query_graph` (project not indexed yet -> `index_repository` first). Cheaper than raw grep across the repo. Fall back to Grep/Glob only for plain-text search, configs, or non-code files.
+## Contexto del proyecto
+
+- Arquitectura → @docs/contexto/arquitectura.md
+- Convenciones → @docs/contexto/convenciones.md
+- Decisiones → @docs/contexto/decisiones.md
+- Glosario → @docs/contexto/glosario.md
+- Flujo de trabajo → @docs/contexto/flujo-de-trabajo.md
+- Errores conocidos → @docs/contexto/errores-conocidos.md
 
 ## What this is
 
-PWA (React + TypeScript) to replace an Excel-based daily labor log for the farm **Birrisito** (Chile). A capataz (foreman) logs hours and quantity produced per worker per labor type each day; the app computes productivity (quantity/hours) that used to be calculated by hand in `docs/mano de obra.xlsx`.
+PWA (React + TS) replacing an Excel daily labor log (`docs/mano de obra.xlsx`) for finca **Birrisito**. A capataz logs hours + quantity per worker per labor each day; the app computes productivity (quantity/hours).
 
-**Critical UX constraint**: the primary users are agricultural workers/foremen, many with low literacy. The capture flow must stay icon-first with near-zero free text, large touch targets (≥88px), and numeric input only via +/- steppers — never a keyboard/number pad. Keep this in mind for any UI change in `features/captura`.
+**Hard UX constraint**: field users have low literacy. `features/captura` stays icon-first, near-zero free text, touch targets ≥88px, numbers only via +/- steppers — never a keyboard/number pad.
 
 ## Roles
 
-Two roles, one-way data flow:
+One-way flow: supervisor logs field data → admin/oficina reads it. No reverse flow.
 
-- **supervisor** (= "capataz" in the current code, e.g. `REGISTRADO_POR_LOCAL`) — logs all worker/labor/hours/quantity data in the field, and now also manages workers (`features/trabajadores`), tracks daily absences (`features/asistencia`), and views KPIs (`features/supervisor`). This is the only role with app-side screens built so far.
-- **admin/oficina** — built: `features/admin` (dashboard, fincas CRUD, supervisores CRUD, trabajadores/asistencia por finca, configuración), routes under `/admin/*` behind `AdminGuard`. Signup still always creates `supervisor` (see `crear_usuario_desde_auth()` below) — an `admin_oficina` user is promoted/created via the admin's own supervisores management (`20260714171722_permitir_gestion_admin_oficina_usuario.sql`), not via `/registro`.
+- **supervisor** ("capataz") — capture, workers, asistencia, traslados, own profile, KPIs.
+- **admin/oficina** — `/admin/*` behind `AdminGuard`: rollup + per-finca dashboards, fincas CRUD, supervisores CRUD, trabajadores/asistencia por finca, salarios, traslados, configuración. Reads across every `finca_id` (`20260714165119`).
 
-Flow: supervisor logs everything for the day → once logged, it reaches admin/oficina. No reverse flow (admin/oficina doesn't log field data).
+Signup always creates `supervisor` + `birrisito`, server-side — an `admin_oficina` is promoted from the admin's supervisores screen (`20260714171722`), never via `/registro`.
 
-### Backend (Supabase — live)
+## Backend (Supabase — live)
 
-Backend is real, not a plan anymore: Supabase (Postgres + Auth + RLS + Storage), migrations in `supabase/migrations/`. `finca_id` (not a multi-tenant `organizacion_id`) is the data-isolation axis, since this is one admin managing multiple farms they own, not a multi-org SaaS.
+Postgres + Auth + RLS + Storage, migrations in `supabase/migrations/`. Isolation axis is **`finca_id`**, not a multi-tenant `organizacion_id` — one admin owning several farms.
 
-- **Tables**: `roles` (seed: `admin_oficina`, `supervisor`), `fincas` (seed: `birrisito`), `trabajadores`, `labores` (the 11 labor types, now DB rows not just a frontend constant — see below), `usuario` (1:1 with `auth.users` via `auth_user_id`, holds `rol_id` + `finca_id`), `asistencia` (per-worker, per-day absence flag, migration `20260709224049_crear_tabla_asistencia.sql`; backs `features/asistencia`).
-- **Signup → `usuario` row**: `crear_usuario_desde_auth()` trigger (`AFTER INSERT ON auth.users`, `SECURITY DEFINER`) creates the `usuario` row. It used to read `rol`/`finca_id` from `raw_user_meta_data` (client-supplied signup payload); migration `20260708183000_no_confiar_rol_metadata_signup.sql` removed that — every signup is now hardcoded to `supervisor` + `birrisito` regardless of what the client sends, since trusting client metadata for role assignment is a privilege-escalation hole (anyone could've signed up requesting `admin_oficina`).
-- **RLS pattern**: `trabajadores` policies don't check `auth.uid()` directly — they join through `usuario` (`usuario.auth_user_id = auth.uid() and usuario.finca_id = trabajadores.finca_id and usuario.activo = true`). Any new table scoped by farm should follow this same join-through-`usuario` shape, not a bare `finca_id` column check.
-- **Storage**: `trabajador-fotos` bucket (public, 5MB limit, jpeg/png/webp only) for worker photos. Insert/update/delete scoped to the caller's `finca_id` via the same `usuario` join, using `storage.foldername(name)[1]` as the farm segment of the object path.
-- **Client**: `shared/lib/supabase-client.ts`, single `createClient` instance. Env vars `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local` (not committed).
-- **Supabase Advisors hardening** (`20260709165003`–`20260709165114`): dropped the broad public SELECT policy on `storage.objects` for `trabajador-fotos` (public bucket serves photos via direct URL, which bypasses RLS entirely — the SELECT policy only gated `.list()`/`.download()`, which the app never calls) and revoked EXECUTE on `crear_usuario_desde_auth()`/`rls_auto_enable()` (a Supabase-managed event-trigger helper, not one of ours) from `anon`/`authenticated`/`PUBLIC`. Gotcha hit while doing this: revoking from `anon`+`authenticated` alone isn't enough — Postgres grants EXECUTE to `PUBLIC` by default at function creation, and every role implicitly inherits that, so the advisor kept flagging it until `PUBLIC` was revoked too. Second gotcha: the signup trigger on `auth.users` fires as role `supabase_auth_admin`, which is not a member of `postgres`/`service_role` — revoking from `PUBLIC` broke its ability to fire until an explicit `grant execute ... to supabase_auth_admin` was added back. Verified end-to-end with a disposable signup against the live Auth API (row landed in `usuario` with `rol=supervisor`, `finca_id=birrisito`; user deleted after). Only remaining advisor: **leaked-password protection is disabled** — that one's a Dashboard → Auth → Policies toggle, not something a migration can flip.
+**Tables**: `roles`, `fincas` (+ `valor_hora`), `trabajadores`, `salarios_trabajadores` (1:1 with `trabajadores`; `salario_mensual`, `moneda` in `usd|colones`), `labores`, `usuario` (1:1 with `auth.users` via `auth_user_id`; holds `rol_id`, `finca_id`, `nombre`), `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`.
 
-### Local dev ≠ remote unless you grant explicitly (`20260709171000`)
+- **`registros_trabajo`**: `registrado_por` defaults via `public.usuario_actual_id()` (`auth.uid()` → `usuario.id`), so the client never passes it.
+- **`traslados_trabajadores`** (`20260724173240`): one-day loan of a worker between fincas, `estado` = `pendiente|aprobado|rechazado`. No "return" action — it expires by date scoping. Partial unique index blocks a second live row per worker+date; `resolver_traslado_trabajador()` stamps `resuelto_por`/`resuelto_en`, rejects any update to an already-resolved row, and pins `trabajador_id`/`fecha`/both `finca_*` to their original values so approving can only move `estado`; check constraint rejects origen = destino.
+- **`pagos_quincenales`** (`20260729163414`): one row per worker per quincena. `monto`/`moneda` are a **snapshot** — raising a salary later never rewrites what was already paid. Admin-only, cross-finca, and deliberately no UPDATE/DELETE policy: a paid quincena is corrected with a new adjustment, not by editing the past. Same migration adds `tocar_actualizado_en()`, which stamps `salarios_trabajadores.actualizado_en` server-side (the client used to send it).
+- **Signup trigger**: `crear_usuario_desde_auth()` (`AFTER INSERT ON auth.users`, `SECURITY DEFINER`). Role/finca are hardcoded, never read from `raw_user_meta_data` (`20260708183000`) — trusting client metadata was a privilege-escalation hole.
+- **Storage**: `trabajador-fotos` bucket (public, 5MB, jpeg/png/webp). Writes scoped by `storage.foldername(name)[1]` = finca.
+- **Client**: `shared/lib/supabase-client.ts`, single `createClient<Database>`. `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local` (uncommitted).
 
-`registros_trabajo` (the daily hours/quantity table) is now also on Supabase, not IndexedDB — `features/captura/services/registros-service.ts` and the supervisor KPI dashboard both read/write it for real.
+### Two rules learned the hard way
 
-Found while first exercising that table through the real REST API (not just `tsc`): `permission denied for table trabajadores` for an authenticated user, despite a correct RLS policy. Root cause was **not RLS** — it was a missing table-level `GRANT`. The hosted Supabase project already had broad `SELECT/INSERT/UPDATE/DELETE` grants to `anon`/`authenticated` on every table (a platform default set at project creation, invisible in our migration history), but `supabase db reset` locally runs the opposite: an explicit `revoke ... from anon, authenticated, service_role` as part of the CLI's own secure-by-default init. So every table we'd created relied on an implicit grant that only exists on the remote project — local dev looked fine (schema applied) but every real query as `authenticated` would 403. **Rule going forward: every migration that creates a table must include its own `grant select, insert, update, delete on table public.x to authenticated;`** — don't rely on the hosted default, since it doesn't reproduce locally and won't reproduce on a fresh project either. (Granted to `authenticated` only, not `anon` — no policy in this schema gives `anon` anything, so an `anon` grant would be privilege without purpose.)
+1. **RLS joins through `usuario`**, never a bare column check:
+   `usuario.auth_user_id = auth.uid() and usuario.finca_id = <tabla>.finca_id and usuario.activo = true`. Follow this shape for every farm-scoped table.
+2. **Every migration creating a table must also `grant select, insert, update, delete on table public.x to authenticated;`** — the hosted project grants this by invisible platform default, but `supabase db reset` revokes it locally, so a missing grant 403s in local dev while `tsc` and the schema look fine. Grant to `authenticated` only; no policy here gives `anon` anything.
+
+Related gotchas, if you touch `SECURITY DEFINER` functions: Postgres grants EXECUTE to `PUBLIC` at creation, so revoking from `anon`+`authenticated` alone leaves the advisor flagging it; and the signup trigger runs as `supabase_auth_admin`, which needs its grant added back explicitly. Only open advisor: leaked-password protection (Dashboard toggle, no migration can flip it).
 
 ## Commands
 
-Package manager is **pnpm only** — do not use npm or yarn.
+**pnpm only** — no npm/yarn.
 
 ```bash
-pnpm install          # install deps
-pnpm dev              # start dev server (Vite)
-pnpm build            # tsc -b (typecheck) && vite build — must pass before considering work done
-pnpm exec tsc -b --noEmit   # typecheck only, no build output — fast check while iterating on types, still run pnpm build before calling work done
-pnpm exec vitest run  # run all tests once
+pnpm dev              # dev server
+pnpm build            # tsc -b && vite build — must pass before work is done
+pnpm exec tsc -b --noEmit   # fast typecheck while iterating
+pnpm exec vitest run  # tests
 pnpm lint             # oxlint
-pnpm preview          # serve the production build locally
+pnpm db:types         # regenerate src/shared/types/supabase.types.ts after any migration
 ```
 
-**`pnpm dlx react-doctor --verbose` gate: must show 100%.** Below 100% -> keep fixing + rescanning, loop till 100%. Real bug -> fix code. False positive -> verify by reading actual code/bundle behind finding (don't assume), then add entry to `.react-doctor/false-positives.md` with reasoning, rescan.
+**`pnpm dlx react-doctor --verbose` must show 100%.** Below that -> fix + rescan, loop. Real bug -> fix code. False positive -> verify against actual code/bundle (don't assume), then log it in `.react-doctor/false-positives.md` and rescan.
 
-Tests (vitest) live under root `/test`, mirroring `src/` paths — not colocated (e.g. `src/features/x/utils/foo.ts` → `test/features/x/utils/foo.test.ts`). Only worth writing for utils with real branching logic (validation, calculations); skip trivial one-liners.
+Tests live in root `/test`, mirroring `src/` (`src/features/x/utils/foo.ts` → `test/features/x/utils/foo.test.ts`), not colocated. Write them for utils with real branching (validation, calculations); skip one-liners.
 
 ## Architecture
 
-### Layering (enforced, see `.claude/skills/senior-dev/SKILL.md`)
-
 ```
 components/  → UI only, no fetching, no business logic
-hooks/       → state + effects + data fetching (TanStack Query), no JSX
-services/    → data access, currently backed by IndexedDB, no UI/state
+hooks/       → state + effects + TanStack Query, no JSX
+services/    → data access (Supabase), no UI/state
 utils/       → pure functions, no framework imports
-types/       → interfaces only
-constants/   → fixed/seed values only
-stores/      → Zustand global state, no UI
+types/ constants/ stores/  → interfaces / fixed values / Zustand
 ```
 
-Dependency direction is one-way: `components → hooks → services → utils`, and `components → stores/types/constants`. A component in one feature never imports another feature's component directly.
+One-way: `components → hooks → services → utils`, plus `components → stores/types/constants`.
 
-**Cross-feature reality check**: the graph-verified import edges show more cross-feature coupling than a single sanctioned case. In practice: (1) `captura/utils/fecha-iso.ts` and `captura/utils/obtener-dias-en-mes.ts` are the two most-reused utils in the whole codebase (fan-in 7-8) — `supervisor` and `asistencia` both import them directly for date math; they're pure functions with zero framework/feature coupling, so this is tolerated, but they're prime candidates to move to `shared/utils/` next time either is touched. (2) `supervisor/hooks/use-dashboard-kpis.ts` and `use-trabajador-metricas.ts` import `captura/hooks/use-todos-registros.ts` and `use-trabajadores-por-finca.ts` — KPIs are computed over capture data, so supervisor reaching into captura's hooks is expected. (3) `captura/screens/TrabajadoresScreen.tsx` imports `asistencia/hooks/use-ausentes-del-dia.ts` (to hide/flag absent workers in the capture grid), and two `supervisor/components/*` (`AusenciaCalendarioForm`, `CalendarioAusentesPanel`) import utils from both `asistencia` and `captura` directly. None of these cross a *component* boundary (only hooks/utils), so the hard rule above still holds — but treat "one sanctioned cross-feature import" as inaccurate; the real rule is "components never cross features, hooks/utils sometimes do when the data genuinely originates in another feature."
+**Cross-feature rule**: components never import another feature's components. Hooks/utils may, when the data genuinely originates there — e.g. `supervisor` KPI hooks read `captura/hooks/use-todos-registros.ts`; `captura/screens/TrabajadoresScreen.tsx` reads `asistencia` and `traslados` hooks to flag absent/loaned workers. `captura/services/trabajadores-service.ts` re-exports from `features/trabajadores` — don't duplicate that query. `captura/utils/obtener-dias-en-mes.ts` is read by `planilla` from outside the feature; `fecha-iso.ts` already moved to `shared/utils/` — move this one too next time it's touched.
 
-Hard limits carried over from the same skill file (still binding for any new code here): ~150 lines/file, ~30 lines/function, ≤3 function params (use an object beyond that), ≤5 component props, no `any` (use `unknown` + narrowing), no magic numbers/strings without a named constant.
+Hard limits: ~150 lines/file, ~30 lines/function, ≤3 function params (object beyond that), ≤5 component props, no `any` (use `unknown` + narrowing), no unnamed magic numbers/strings.
 
-### Structure
+### Features
 
-- `src/app/router.tsx` — React Router data router, only route wiring. `/login` and `/registro` are public; `/supervisor`, `/supervisor/dashboard`, `/supervisor/trabajadores`, `/supervisor/asistencia`, `/captura/*` sit behind `AuthGuard`; `/admin/*` (dashboard, fincas, supervisores, trabajadores, asistencia, configuración) sits behind `AdminGuard`.
-- `src/features/auth/` — login/register screens, `AuthGuard` (redirects to `/login` if there's no Supabase session), `use-auth-session.ts` (wraps `supabase.auth.getSession` + `onAuthStateChange`), `auth-service.ts` (`iniciarSesion`/`registrarSupervisor`/`cerrarSesion`, thin wrappers over `supabase.auth`).
-- `src/features/trabajadores/` — worker CRUD against Supabase (`trabajadores-service.ts`): list/create/update/toggle-active, plus photo upload to the `trabajador-fotos` bucket with client-side validation (`validar-foto-trabajador.ts` checks MIME + magic bytes, not just the file extension) before it ever hits Storage. Screen lives in `features/supervisor/screens/TrabajadoresCrudScreen.tsx` — the feature itself is headless (services/hooks/utils only), the CRUD screen composes it into the supervisor app shell.
-- `src/features/captura/` — the foreman-facing capture flow (screens → components → hooks → services → utils → types → constants). `features/captura/services/trabajadores-service.ts` re-exports `listarTrabajadoresPorFinca` from `features/trabajadores/services/trabajadores-service.ts` (capture needs to read workers, but worker CRUD belongs to `trabajadores`); don't duplicate that query. `TrabajadoresScreen.tsx` also imports `asistencia/hooks/use-ausentes-del-dia.ts` directly to flag absent workers in the capture grid — see the cross-feature note under Layering. Don't extend either into a components-importing-components pattern.
-- `src/features/asistencia/` — daily absence tracking (mark a worker absent/present, weekly attendance table, monthly absence calendar, PDF export of absences). Headless feature (services/hooks/utils/types/constants only, no screens) hosted by `features/supervisor/screens/AsistenciaScreen.tsx`, same composition pattern as `TrabajadoresCrudScreen`. Backed by the `asistencia` table (see Backend). Reuses `captura/utils/fecha-iso.ts` and `obtener-dias-en-mes.ts` for date math instead of duplicating it.
-- `src/features/supervisor/` — the supervisor's app shell: `SupervisorDashboardScreen` (labor-type task list, entry point after login), `DashboardScreen` (monthly KPIs/ranking/trend charts), `TrabajadoresCrudScreen` (hosts the `trabajadores` feature's form/table), `AsistenciaScreen` (hosts the `asistencia` feature: weekly table, absence calendar, PDF export). KPI calculations (`calcular-kpis-mensuales.ts`, `calcular-tendencia-diaria.ts`) currently run over `RegistroTrabajo[]` read from IndexedDB (see persistence section below) — they are not yet reading from Supabase.
-- `src/features/admin/` — admin/oficina app shell (`AdminGuard`-gated): `AdminDashboardScreen` (rollup KPIs across fincas), `FincasCrudScreen`, `SupervisoresCrudScreen` (manage supervisor/admin users, `services/supervisores-service.ts`), `TrabajadoresPorFincaScreen`, `AsistenciaPorFincaScreen`, `AdminConfiguracionScreen`. Reads across every `finca_id` rather than being scoped to one, per the multi-farm RLS from `20260714165119_permitir_lectura_multi_finca_admin_oficina.sql`.
-- `src/shared/` — cross-feature primitives: `components/` (IconTile, Avatar, NumericStepper, StepperButton, LaborIcon), `stores/captura-session-store.ts` (Zustand: current labor type + date), `lib/` (`supabase-client.ts`, `local-db.ts` idb-keyval wrapper, `play-sound.ts`, `vibrate.ts`), `types/domain.types.ts` (Finca, TipoLabor, Trabajador, RegistroTrabajo), `constants/` (the one farm; the 11 labor types are now also DB rows in `labores` but the frontend constant hasn't been replaced by a fetch yet).
+- `app/router.tsx` — routes only. Public: `/login`, `/registro`, `/olvide-password`, `/reset-password`. `AuthGuard`: `/supervisor/*`, `/captura/*`. `AdminGuard`: `/admin/*`.
+- `features/auth` — login/registro/recuperación, `AuthGuard`, session hook, login cooldown.
+- `features/captura` — the foreman flow. `/supervisor` (labor list) → `/captura/labor/:tipoLaborId/trabajadores` (grid, green check if already logged today) → `.../:trabajadorId` (hours + quantity steppers → confirm).
+- `features/trabajadores` — headless: worker CRUD + photo upload (`validar-foto-trabajador.ts` checks MIME **and** magic bytes), per-worker metrics modal.
+- `features/asistencia` — headless: daily absence, weekly table, monthly calendar, PDF export.
+- `features/traslados` — request/approve one-day worker loans between fincas; badges on both origin and destination sides.
+- `features/perfil` — headless: edit own name, change password.
+- `features/planilla` — headless: quincena range (1–15 / 16–end), rows crossing current salary with the already-registered payment, register payment, liquidación PDF. Hosted by `admin/screens/PlanillaScreen.tsx` at `/admin/planilla`.
+- `features/supervisor` — supervisor shell; hosts the headless features above. KPIs read `registros_trabajo` from Supabase.
+- `features/admin` — admin shell (see Roles).
+- `shared/` — `components/` (IconTile, Avatar, NumericStepper, Modal, Toast, charts, KPI cards), `stores/` (captura session, toasts), `lib/` (supabase client, `local-db.ts`, `pdf-doc.ts`, sound/vibrate), `utils/kpis/`, `utils/pdf/`, `types/domain.types.ts`.
 
-### Capture flow
+### Payroll (`/admin/salarios`, `/admin/planilla`)
 
-Route chain: labor type is picked from the supervisor dashboard task list (`/supervisor`) → `/captura/labor/:tipoLaborId/trabajadores` (worker grid, photo/initials, green check if already logged today) → `/captura/labor/:tipoLaborId/trabajadores/:trabajadorId` (hours + quantity steppers → confirm). Farm selection is skipped because only Birrisito exists (`shared/constants/finca.constants.ts`), but `Finca` is modeled as a real entity so an admin can add more later.
+Admin types a fixed **monthly** salary per worker; the quincena is simply half, rounded per currency (colones to the unit, usd to 2 decimals — `shared/utils/calcular-monto-quincena.ts`). Not computed from hours or production. `fincas.valor_hora` is stored and editable but **nothing consumes it yet** — no pay calculation reads it.
 
-### Data / persistence today
+Paying is a separate step: `/admin/planilla` writes a row to `pagos_quincenales` whose `monto`/`moneda` are frozen at that moment. So the table shows what was actually paid when a payment exists, and only falls back to today's computed half when it doesn't — raising a salary never rewrites a past quincena (`planilla/utils/construir-filas-planilla.ts`). Cut is calendar 1–15 / 16–end of month, 24 payments a year.
 
-Everything that matters is on Supabase now: auth (`auth.users` + `usuario`), `trabajadores`, `fincas`, `labores`, `roles`, and `registros_trabajo` (the hours/quantity punches — the core daily-log data this app exists to replace) are all real Postgres tables with RLS, reached through `features/auth`, `features/trabajadores`, and `features/captura/services/registros-service.ts`. `registrado_por` on `registros_trabajo` defaults via `public.usuario_actual_id()` (a `stable` SQL function resolving `auth.uid()` → `usuario.id`), so the client never has to pass it. Verified end-to-end against the real REST API (insert, default fill-in, read-back), not just typechecked.
+Salary lives in its own table `salarios_trabajadores`, **not** as columns on `trabajadores`, and this is load-bearing: RLS is row-level, so any policy on `trabajadores` exposes every column of the rows it reaches. `trabajadores_select_activos_multi_finca` deliberately opens the whole table (traslados needs to list other fincas' workers) and `trabajadores_update_own_finca` lets a supervisor write his own finca's rows. While salary sat on `trabajadores`, both applied to it. Never move it back, and never add another sensitive column there.
 
-The one thing still IndexedDB-only is the **in-progress draft** (`use-registro-draft.ts`, 300ms debounce) — that's intentional, it's a resilience layer for a half-filled form, not the source of truth. Resilience against a dropped connection (not full offline-first, since wifi is normally available in the field) is three-layered: that local draft autosave, an optimistic mutation with retry (`use-crear-registro.ts`, TanStack Query `retry: 3`), and the PWA service worker (`vite-plugin-pwa`, `registerType: 'autoUpdate'`).
+### Persistence
 
-`shared/lib/supabase-client.ts` is typed with the generated `Database` type (`shared/types/supabase.types.ts`, regenerate via `supabase gen types typescript`) — every `.from('table')` call is now column-checked at compile time.
+Everything real is Supabase. The **only** IndexedDB thing left is the in-progress capture draft (`use-registro-draft.ts`, 300ms debounce) — a resilience layer for a half-filled form, not a source of truth. Dropped-connection resilience is three layers: that draft, optimistic mutation with `retry: 3`, and the PWA service worker (`vite-plugin-pwa`, `autoUpdate`). Not offline-first; wifi is normally available.
 
 ### The 11 labor types
 
-Seeded in `shared/constants/tipos-labor.constants.ts` from the sheet names in `docs/mano de obra.xlsx`: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Each has an icon, a distinct color, and a unit of measure (`cajas`/`tramos`/etc.) driving whether/how the quantity stepper renders. If new labor types are added today, they go here — nothing about them is hardcoded into the capture screens. Note this now duplicates the seeded `public.labores` table (migration `20260708172256_crear_tabla_labores.sql`); the frontend constant hasn't been switched over to fetching from Supabase yet, so the two need to be kept in sync by hand until that migration happens.
+`shared/constants/tipos-labor.constants.ts`: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Each carries icon, color, unit (`cajas`/`tramos`/…) driving the quantity stepper. This duplicates the seeded `public.labores` table — the frontend still doesn't fetch it, so **keep both in sync by hand**.
 
 ### Styling
 
-Tailwind CSS v4, CSS-first config — there is no `tailwind.config.js`; the only setup is `@import 'tailwindcss'` in `src/index.css` plus the `@tailwindcss/vite` plugin in `vite.config.ts`.
+Tailwind v4, CSS-first: no `tailwind.config.js`, just `@import 'tailwindcss'` in `src/index.css` + `@tailwindcss/vite`. Preserve the neumorphic tokens (`neu-raised`, `neu-pressed`) unless deliberately redesigning.
 
-## Bundled skills that do NOT apply to this repo
+## Skills that do NOT apply here
 
-This machine's global `.claude/skills/` (and `.agents/skills/`) include `agrotrace-rules` and `search-first`, which document conventions for a **different, unrelated project** called "AgroTrace" — a multi-tenant SaaS with an `organizacion_id`-per-table isolation model and an `apps/web/src/...` monorepo layout. None of that applies here: this repo is a flat single-app Vite project, single-admin/multi-farm (not multi-org), and its isolation axis (once the backend exists) is `finca_id`. Do not import the `organizacion_id` RLS pattern or look for `apps/web` paths in this codebase.
+Global `agrotrace-rules` and `search-first` document **AgroTrace**, a different project: multi-tenant `organizacion_id`, `apps/web/...` monorepo. This repo is a flat single-app Vite project isolated by `finca_id`. Ignore both.

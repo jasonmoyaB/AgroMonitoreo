@@ -12,7 +12,7 @@ export function AlfabetoIndice({ onSeleccionarRango }: AlfabetoIndiceProps) {
           key={rango.etiqueta}
           type="button"
           onClick={() => onSeleccionarRango(rango)}
-          className="neu-raised min-h-12 shrink-0 cursor-pointer rounded-xl px-5 text-base font-black text-slate-700 transition-all duration-150 active:neu-pressed active:scale-95 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-slate-700"
+          className="neu-raised min-h-12 shrink-0 cursor-pointer rounded-xl px-5 text-base font-black text-slate-700 transition-[transform,box-shadow] duration-150 active:neu-pressed active:scale-95 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-slate-700"
         >
           {rango.etiqueta}
         </button>

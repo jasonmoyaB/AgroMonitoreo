@@ -2,32 +2,34 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { WorkersGrid } from '../components/WorkersGrid'
 import { ProgresoDelDia } from '../components/ProgresoDelDia'
-import { WizardHeader } from '../components/WizardHeader'
+import { WizardHeader } from '../../../shared/components/WizardHeader'
 import { AlfabetoIndice } from '../components/AlfabetoIndice'
 import { BuscadorTrabajador } from '../components/BuscadorTrabajador'
 import { AvisoBloqueoTrabajadorOverlay } from '../components/AvisoBloqueoTrabajadorOverlay'
 import { ConfirmarExtraOverlay } from '../components/ConfirmarExtraOverlay'
-import { useTrabajadoresPorFinca } from '../hooks/use-trabajadores-por-finca'
+import { useTrabajadoresDisponibles } from '../hooks/use-trabajadores-disponibles'
 import { useRegistrosDelDia } from '../hooks/use-registros-del-dia'
 import { useSaltarATrabajador } from '../hooks/use-saltar-a-trabajador'
 import { useBusquedaTrabajadores } from '../hooks/use-busqueda-trabajadores'
 import { useAusentesDelDia } from '../../asistencia/hooks/use-ausentes-del-dia'
+import { useTrabajadoresTrasladadosHoy } from '../../traslados/hooks/use-trabajadores-trasladados-hoy'
 import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
 import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { UMBRAL_INDICE_ALFABETO } from '../constants/captura.constants'
 import { ordenarTrabajadoresAlfabeticamente } from '../utils/ordenar-trabajadores-alfabeticamente'
 import { obtenerIdsRegistradosPorLabor } from '../utils/obtener-ids-registrados'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import type { TrabajadorDisponible } from '../types/trabajador-disponible.types'
 
 const TOTAL_PASOS_CAPTURA = 2
 const MENSAJE_AUSENTE = 'El trabajador esta ausente'
 
-type TipoDialogoTrabajador = 'ausente' | 'yaRegistrado'
+type TipoDialogoTrabajador = 'ausente' | 'traslado' | 'yaRegistrado'
 
 interface DialogoTrabajador {
   tipo: TipoDialogoTrabajador
-  trabajador: Trabajador
+  trabajador: TrabajadorDisponible
+  fincaDestino?: string
 }
 
 export function TrabajadoresScreen() {
@@ -37,9 +39,10 @@ export function TrabajadoresScreen() {
   const [dialogo, setDialogo] = useState<DialogoTrabajador | null>(null)
 
   const { usuario } = useUsuarioActual()
-  const { data: trabajadores = [] } = useTrabajadoresPorFinca(usuario?.fincaId)
+  const { data: trabajadores = [] } = useTrabajadoresDisponibles(usuario?.fincaId, fecha)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
   const { data: ausencias = [] } = useAusentesDelDia(usuario?.fincaId, fecha)
+  const { data: trasladados = [] } = useTrabajadoresTrasladadosHoy(usuario?.fincaId, fecha)
   const tipoLabor = TIPOS_LABOR.find((labor) => labor.id === tipoLaborId)
 
   const trabajadoresOrdenados = ordenarTrabajadoresAlfabeticamente(trabajadores)
@@ -47,8 +50,14 @@ export function TrabajadoresScreen() {
   const saltarATrabajador = useSaltarATrabajador(trabajadoresOrdenados)
   const idsRegistrados = obtenerIdsRegistradosPorLabor(registros, tipoLaborId)
   const idsAusentes = new Set(ausencias.map((ausencia) => ausencia.trabajadorId))
+  const fincaDestinoPorTrasladado = new Map(trasladados.map((trasladado) => [trasladado.trabajadorId, trasladado.fincaDestinoNombre]))
 
-  function manejarSeleccion(trabajador: Trabajador) {
+  function manejarSeleccion(trabajador: TrabajadorDisponible) {
+    const fincaDestino = fincaDestinoPorTrasladado.get(trabajador.id)
+    if (fincaDestino) {
+      setDialogo({ tipo: 'traslado', trabajador, fincaDestino })
+      return
+    }
     if (idsAusentes.has(trabajador.id)) {
       setDialogo({ tipo: 'ausente', trabajador })
       return
@@ -86,14 +95,15 @@ export function TrabajadoresScreen() {
           trabajadores={trabajadoresFiltrados}
           idsRegistrados={idsRegistrados}
           idsAusentes={idsAusentes}
+          fincaDestinoPorTrasladado={fincaDestinoPorTrasladado}
           onSeleccionar={manejarSeleccion}
         />
       </div>
       <ProgresoDelDia registrados={registrados} total={trabajadores.length} />
       <AvisoBloqueoTrabajadorOverlay
-        visible={dialogo?.tipo === 'ausente'}
+        visible={dialogo?.tipo === 'ausente' || dialogo?.tipo === 'traslado'}
         nombreTrabajador={dialogo?.trabajador.nombreCompleto ?? ''}
-        mensaje={MENSAJE_AUSENTE}
+        mensaje={dialogo?.tipo === 'traslado' ? `Esta de traslado en ${dialogo.fincaDestino}` : MENSAJE_AUSENTE}
         onCerrar={() => setDialogo(null)}
       />
       <ConfirmarExtraOverlay

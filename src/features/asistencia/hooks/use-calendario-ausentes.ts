@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ASISTENCIA_MES_QUERY_KEY } from '../constants/asistencia-query.constants'
 import { listarAsistenciaPorRango } from '../services/asistencia-service'
-import { construirFechaIso } from '../../captura/utils/fecha-iso'
+import { construirFechaIso } from '../../../shared/utils/fecha-iso'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 
 export function useCalendarioAusentes(fincaId: string | undefined) {

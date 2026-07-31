@@ -1,7 +1,8 @@
 import { DIAS_SEMANA } from '../constants/calendario.constants'
 import type { AsistenciaConTrabajador } from '../types/asistencia.types'
 import { obtenerEspaciosCalendario } from './obtener-espacios-calendario'
-import { construirFechaIso, formatearFechaIsoDdMmAaaa } from '../../captura/utils/fecha-iso'
+import { construirFechaIso, formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
+import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import { MESES } from '../../captura/constants/meses.constants'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 import { textoPdf as texto, crearBlobPdf } from '../../../shared/lib/pdf-doc'
@@ -88,7 +89,7 @@ function pintarNombreAusente(x: number, y: number, nombre: string): string {
 }
 
 function pintarPie(): string {
-  return texto(`Generado: ${formatearFechaIsoDdMmAaaa(new Date().toISOString().slice(0, 10))}`, PAGE.margin, 42, 9, '0.35 0.35 0.35')
+  return texto(`Generado: ${formatearFechaIsoDdMmAaaa(fechaLocalIso())}`, PAGE.margin, 42, 9, '0.35 0.35 0.35')
 }
 
 function agruparPorFecha(registros: readonly AsistenciaConTrabajador[]): Map<string, AsistenciaConTrabajador[]> {

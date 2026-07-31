@@ -1,5 +1,5 @@
 import type { RegistroTrabajo } from '../../../shared/types/domain.types'
-import { descomponerFechaIso } from '../../captura/utils/fecha-iso'
+import { descomponerFechaIso } from '../../../shared/utils/fecha-iso'
 import type { TrabajadorMetricasFiltros } from '../types/trabajador-metricas.types'
 
 export function filtrarRegistrosTrabajador(

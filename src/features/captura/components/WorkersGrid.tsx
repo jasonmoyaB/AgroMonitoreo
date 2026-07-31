@@ -1,14 +1,15 @@
-import { WorkerCard, type EstadoWorkerCard } from './WorkerCard'
-import type { Trabajador } from '../../../shared/types/domain.types'
+import { WorkerCard, type AvisoWorkerCard, type EstadoWorkerCard } from './WorkerCard'
+import type { TrabajadorDisponible } from '../types/trabajador-disponible.types'
 
 interface WorkersGridProps {
-  trabajadores: readonly Trabajador[]
+  trabajadores: readonly TrabajadorDisponible[]
   idsRegistrados: ReadonlySet<string>
   idsAusentes: ReadonlySet<string>
-  onSeleccionar: (trabajador: Trabajador) => void
+  fincaDestinoPorTrasladado: ReadonlyMap<string, string>
+  onSeleccionar: (trabajador: TrabajadorDisponible) => void
 }
 
-export function WorkersGrid({ trabajadores, idsRegistrados, idsAusentes, onSeleccionar }: WorkersGridProps) {
+export function WorkersGrid({ trabajadores, idsRegistrados, idsAusentes, fincaDestinoPorTrasladado, onSeleccionar }: WorkersGridProps) {
   if (trabajadores.length === 0) {
     return <p className="p-8 text-center text-lg font-semibold text-slate-500">Sin resultados</p>
   }
@@ -21,7 +22,7 @@ export function WorkersGrid({ trabajadores, idsRegistrados, idsAusentes, onSelec
           id={`trabajador-${trabajador.id}`}
           trabajador={trabajador}
           estado={obtenerEstado(trabajador.id, idsRegistrados)}
-          estaAusente={idsAusentes.has(trabajador.id)}
+          aviso={obtenerAviso(trabajador.id, idsAusentes, fincaDestinoPorTrasladado)}
           onClick={() => onSeleccionar(trabajador)}
         />
       ))}
@@ -32,4 +33,11 @@ export function WorkersGrid({ trabajadores, idsRegistrados, idsAusentes, onSelec
 function obtenerEstado(id: string, idsRegistrados: ReadonlySet<string>): EstadoWorkerCard {
   if (idsRegistrados.has(id)) return 'registrado'
   return 'pendiente'
+}
+
+function obtenerAviso(id: string, idsAusentes: ReadonlySet<string>, fincaDestinoPorTrasladado: ReadonlyMap<string, string>): AvisoWorkerCard {
+  const fincaDestino = fincaDestinoPorTrasladado.get(id)
+  if (fincaDestino) return { tipo: 'traslado', fincaDestino }
+  if (idsAusentes.has(id)) return { tipo: 'ausente' }
+  return null
 }

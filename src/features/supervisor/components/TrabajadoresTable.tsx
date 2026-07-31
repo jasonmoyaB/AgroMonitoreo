@@ -3,15 +3,20 @@ import type { Trabajador } from '../../../shared/types/domain.types'
 
 const AVATAR_SIZE_PX = 40
 
-interface TrabajadoresTableProps {
-  trabajadores: readonly Trabajador[]
-  isLoading: boolean
+interface TrabajadoresTableActions {
   onEdit: (trabajador: Trabajador) => void
   onToggleActive: (trabajador: Trabajador) => void
   onSelectTrabajador: (trabajador: Trabajador) => void
 }
 
-export function TrabajadoresTable({ trabajadores, isLoading, onEdit, onToggleActive, onSelectTrabajador }: TrabajadoresTableProps) {
+interface TrabajadoresTableProps {
+  trabajadores: readonly Trabajador[]
+  isLoading: boolean
+  fincaDestinoPorTrasladado: ReadonlyMap<string, string>
+  actions: TrabajadoresTableActions
+}
+
+export function TrabajadoresTable({ trabajadores, isLoading, fincaDestinoPorTrasladado, actions }: TrabajadoresTableProps) {
   if (isLoading) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">Cargando trabajadores.</p>
   if (!trabajadores.length) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">No se encontraron trabajadores.</p>
 
@@ -37,9 +42,8 @@ export function TrabajadoresTable({ trabajadores, isLoading, onEdit, onToggleAct
               <TrabajadoresTableRow
                 key={trabajador.id}
                 trabajador={trabajador}
-                onEdit={onEdit}
-                onToggleActive={onToggleActive}
-                onSelectTrabajador={onSelectTrabajador}
+                fincaDestino={fincaDestinoPorTrasladado.get(trabajador.id) ?? null}
+                actions={actions}
               />
             ))}
           </tbody>
@@ -51,15 +55,14 @@ export function TrabajadoresTable({ trabajadores, isLoading, onEdit, onToggleAct
 
 interface TrabajadoresTableRowProps {
   trabajador: Trabajador
-  onEdit: (trabajador: Trabajador) => void
-  onToggleActive: (trabajador: Trabajador) => void
-  onSelectTrabajador: (trabajador: Trabajador) => void
+  fincaDestino: string | null
+  actions: TrabajadoresTableActions
 }
 
-function TrabajadoresTableRow({ trabajador, onEdit, onToggleActive, onSelectTrabajador }: TrabajadoresTableRowProps) {
+function TrabajadoresTableRow({ trabajador, fincaDestino, actions }: TrabajadoresTableRowProps) {
   return (
     <tr
-      onClick={() => onSelectTrabajador(trabajador)}
+      onClick={() => actions.onSelectTrabajador(trabajador)}
       className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45"
     >
       <td className="px-5 py-3">
@@ -69,13 +72,20 @@ function TrabajadoresTableRow({ trabajador, onEdit, onToggleActive, onSelectTrab
         </div>
       </td>
       <td className="px-5 py-3">
-        <span
-          className={`inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide ${
-            trabajador.activo ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'
-          }`}
-        >
-          {trabajador.activo ? 'Activo' : 'Inactivo'}
-        </span>
+        <div className="flex flex-wrap gap-1.5">
+          <span
+            className={`inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide ${
+              trabajador.activo ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'
+            }`}
+          >
+            {trabajador.activo ? 'Activo' : 'Inactivo'}
+          </span>
+          {fincaDestino && (
+            <span className="inline-flex min-h-8 items-center rounded-full bg-sky-100 px-3 text-xs font-black uppercase tracking-wide text-sky-900">
+              Trabajador trasladado a: {fincaDestino}
+            </span>
+          )}
+        </div>
       </td>
       <td className="px-5 py-3">
         <div className="flex justify-end gap-2">
@@ -83,7 +93,7 @@ function TrabajadoresTableRow({ trabajador, onEdit, onToggleActive, onSelectTrab
             type="button"
             onClick={(event) => {
               event.stopPropagation()
-              onEdit(trabajador)
+              actions.onEdit(trabajador)
             }}
             className="neu-pressed min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-slate-800"
           >
@@ -93,7 +103,7 @@ function TrabajadoresTableRow({ trabajador, onEdit, onToggleActive, onSelectTrab
             type="button"
             onClick={(event) => {
               event.stopPropagation()
-              onToggleActive(trabajador)
+              actions.onToggleActive(trabajador)
             }}
             className={`min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-white shadow-lg ${
               trabajador.activo ? 'bg-red-700 shadow-red-900/20' : 'bg-green-700 shadow-green-900/20'
