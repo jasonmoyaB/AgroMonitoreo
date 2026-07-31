@@ -4,7 +4,7 @@ import { formatearMonto } from '../../../shared/utils/formatear-monto'
 import type { FilaPlanilla } from '../../planilla/types/planilla.types'
 
 const AVATAR_SIZE_PX = 40
-const COLUMNAS = ['Trabajador', 'Salario mensual', 'Ausencias', 'Monto quincena', 'Estado', ''] as const
+const COLUMNAS = ['Trabajador', 'Salario mensual', 'Monto semanal', 'Ausencias', 'Monto quincena', 'Estado', ''] as const
 
 interface PlanillaAcciones {
   onPagar: (fila: FilaPlanilla) => void
@@ -25,7 +25,7 @@ export function PlanillaTable({ filas, isLoading, actions }: PlanillaTableProps)
   return (
     <div className="neu-raised overflow-hidden rounded-[2rem]">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[48rem] border-collapse text-left">
+        <table className="w-full min-w-[56rem] border-collapse text-left">
           <thead>
             <tr className="border-b border-slate-900/10">
               {COLUMNAS.map((columna) => (
@@ -69,6 +69,7 @@ function PlanillaFila({ fila, actions }: PlanillaFilaProps) {
         </div>
       </td>
       <td className="px-5 py-3 font-bold text-slate-600">{formatearMonto(fila.salarioMensual, fila.moneda)}</td>
+      <td className="px-5 py-3 font-bold text-slate-600">{formatearMonto(fila.montoSemanal, fila.moneda)}</td>
       <td className="px-5 py-3">
         <CeldaAusencias fila={fila} resumen={{ diasAusentes, deduccion, moneda }} onVer={actions.onVerAusencias} />
       </td>

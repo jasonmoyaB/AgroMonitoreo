@@ -32,6 +32,8 @@ export interface FilaPlanilla {
   fotoUrl: string | null
   salarioMensual: number
   moneda: Moneda
+  // referencia informativa: el salario mensual llevado a semana. no se paga ni se registra
+  montoSemanal: number
   // bruto de la quincena: la mitad del salario, sin descontar ausencias
   montoQuincena: number
   // los dias faltados dentro del rango, ordenados: la cantidad es .length y el detalle

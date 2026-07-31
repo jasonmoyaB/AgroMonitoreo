@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { DollarSign } from 'lucide-react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { descargarBlob } from '../../../shared/lib/descargar-blob'
@@ -92,6 +94,13 @@ export function PlanillaScreen() {
                 ))}
               </select>
             </label>
+            <Link
+              to="/admin/salarios"
+              className="neu-raised flex min-h-14 items-center gap-2 rounded-2xl px-4 font-black text-green-900 transition-colors duration-200 hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+            >
+              <DollarSign className="h-5 w-5" aria-hidden="true" />
+              Salarios
+            </Link>
           </div>
 
           <PlanillaTable

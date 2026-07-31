@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeftRight, Building2, CalendarX2, DollarSign, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, ReceiptText, Sprout, User, UserPlus, Users, Warehouse } from 'lucide-react'
+import { ArrowLeftRight, Building2, CalendarX2, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, ReceiptText, Sprout, User, UserPlus, Users, Warehouse } from 'lucide-react'
 import type { PerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { NavBadge } from '../../../shared/components/NavBadge'
 import { TRASLADOS_QUERY_KEY } from '../../traslados/constants/traslados-query.constants'
@@ -20,7 +20,8 @@ const NAV_ITEMS = [
   { to: '/admin/fincas', label: 'Fincas', icon: Warehouse },
   { to: '/admin/supervisores', label: 'Supervisores', icon: Users },
   { to: '/admin/trabajadores', label: 'Trabajadores', icon: UserPlus },
-  { to: '/admin/salarios', label: 'Salarios', icon: DollarSign },
+  // Salarios sale del sidebar a proposito: se entra desde el boton de /admin/planilla,
+  // que es donde el admin ya esta parado cuando le falta cargar un salario
   { to: '/admin/planilla', label: 'Planilla', icon: ReceiptText },
   { to: '/admin/asistencia', label: 'Asistencia', icon: CalendarX2 },
   { to: '/admin/traslados', label: 'Traslados', icon: ArrowLeftRight },

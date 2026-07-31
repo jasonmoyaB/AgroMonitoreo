@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { AdminSidebar } from '../components/AdminSidebar'
@@ -32,6 +34,16 @@ export function SalariosScreen() {
             <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Salarios</h1>
             <p className="mt-2 font-bold leading-7 text-slate-600">Elige una finca para ver y editar el salario mensual de cada trabajador.</p>
           </header>
+
+          <div className="mb-4">
+            <Link
+              to="/admin/planilla"
+              className="neu-raised inline-flex min-h-14 items-center gap-2 rounded-2xl px-4 font-black text-green-900 transition-colors duration-200 hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+            >
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+              Volver a planilla
+            </Link>
+          </div>
 
           <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
 

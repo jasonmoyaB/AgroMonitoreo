@@ -38,6 +38,12 @@ describe('construirFilasPlanilla', () => {
     expect(filas.every((fila) => fila.pago === null)).toBe(true)
   })
 
+  it('el monto semanal sale del salario mensual y no lo tocan las ausencias', () => {
+    const [ana] = construir([], [ausencia('a', '2026-07-08')])
+    expect(ana.montoSemanal).toBe(100000)
+    expect(construir()[1].montoSemanal).toBe(250)
+  })
+
   it('sin ausencias el neto es igual al bruto', () => {
     const filas = construir()
     expect(filas.map((fila) => fila.montoNeto)).toEqual([200000, 500])

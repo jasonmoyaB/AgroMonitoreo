@@ -1,4 +1,5 @@
 import { calcularMontoQuincena } from '../../../shared/utils/calcular-monto-quincena'
+import { calcularMontoSemanal } from '../../../shared/utils/calcular-monto-semanal'
 import { calcularDeduccionAusencias } from './calcular-deduccion-ausencias'
 import type { Finca, SalarioTrabajador } from '../../../shared/types/domain.types'
 import type { AsistenciaConTrabajador } from '../../asistencia/types/asistencia.types'
@@ -31,6 +32,7 @@ export function construirFilasPlanilla({ salarios, pagos, ausencias, finca }: Co
       fotoUrl: salario.fotoUrl,
       salarioMensual: salario.salarioMensual,
       moneda: salario.moneda,
+      montoSemanal: calcularMontoSemanal(salario.salarioMensual, salario.moneda),
       montoQuincena,
       ausencias: ausenciasDelTrabajador,
       // el clamp importa: mas ausencias que dias de quincena no pueden pagar en negativo
