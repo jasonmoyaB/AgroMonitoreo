@@ -99,6 +99,7 @@ export type Database = {
           id: string
           nombre: string
           valor_hora: number
+          valor_hora_usd: number
         }
         Insert: {
           activa?: boolean
@@ -107,6 +108,7 @@ export type Database = {
           id: string
           nombre: string
           valor_hora?: number
+          valor_hora_usd?: number
         }
         Update: {
           activa?: boolean
@@ -115,6 +117,7 @@ export type Database = {
           id?: string
           nombre?: string
           valor_hora?: number
+          valor_hora_usd?: number
         }
         Relationships: []
       }
@@ -166,10 +169,12 @@ export type Database = {
       pagos_quincenales: {
         Row: {
           creado_en: string
+          dias_ausentes: number
           finca_id: string
           id: string
           moneda: string
           monto: number
+          monto_bruto: number
           quincena_fin: string
           quincena_inicio: string
           registrado_por: string
@@ -177,10 +182,12 @@ export type Database = {
         }
         Insert: {
           creado_en?: string
+          dias_ausentes?: number
           finca_id: string
           id?: string
           moneda: string
           monto: number
+          monto_bruto?: number
           quincena_fin: string
           quincena_inicio: string
           registrado_por?: string
@@ -188,10 +195,12 @@ export type Database = {
         }
         Update: {
           creado_en?: string
+          dias_ausentes?: number
           finca_id?: string
           id?: string
           moneda?: string
           monto?: number
+          monto_bruto?: number
           quincena_fin?: string
           quincena_inicio?: string
           registrado_por?: string
@@ -502,7 +511,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      es_admin_oficina: { Args: never; Returns: boolean }
       usuario_actual_id: { Args: never; Returns: string }
     }
     Enums: {

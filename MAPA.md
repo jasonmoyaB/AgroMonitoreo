@@ -29,6 +29,7 @@
 | Zustand store de sesión de captura | `src/shared/stores/captura-session-store.ts` |
 | Las 11 labores (constante frontend) | `src/shared/constants/tipos-labor.constants.ts` |
 | Migraciones Supabase | `supabase/migrations/` |
+| Schema `private` (helpers `SECURITY DEFINER`, fuera de la API de PostgREST) | creado en `supabase/migrations/20260803232810_mover_es_admin_oficina_a_schema_private.sql` — hoy solo `private.es_admin_oficina()`, usada por las policies de `usuario` y `fincas` |
 | Contexto del proyecto (arquitectura, convenciones, decisiones, glosario, flujo, gotchas) | `docs/contexto/` — referenciado desde `CLAUDE.md` y `AGENTS.md` |
 | Docs sueltos (seguridad, cambios puntuales) | `docs/` |
 | Reglas responsive (shell, sidebar, grids, tablas) | `docs/RESPONSIVE.md` |

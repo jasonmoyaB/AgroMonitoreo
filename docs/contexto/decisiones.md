@@ -50,6 +50,12 @@ El hook `password_verification_attempt` requiere plan Teams/Enterprise. *En su l
 **12. Grant explícito por tabla en cada migración.**
 El proyecto hosteado otorga los permisos a `authenticated` por default invisible, pero `supabase db reset` los revoca en local. Sin el `grant`, el esquema aplica limpio y `tsc` pasa, pero la app 403ea en local. Solo a `authenticated`; ninguna policy le da nada a `anon`.
 
+**12b. Schema `private` para los helpers `SECURITY DEFINER`** (`20260803232810`).
+`public` lo expone PostgREST (`api.schemas` en `config.toml`), así que toda función ahí es llamable en `/rest/v1/rpc/<fn>` y el advisor la marca (0028/0029). A `es_admin_oficina` no se le puede revocar el EXECUTE: aparece en el `USING` de tres policies y esas expresiones corren con los privilegios de quien consulta. Se la mueve a `private`, que no está expuesto, con `grant usage on schema private to authenticated`. Es el patrón que recomiendan los propios docs de Supabase. Toda función lleva además `set search_path = ''` con el cuerpo calificado, para que no quede ningún schema escribible en la ruta de resolución. *Descartado*: revocar el EXECUTE (rompía las pantallas de admin) y pasarla a `SECURITY INVOKER` (existe justamente para cortar la recursión de RLS al subconsultar `usuario` dentro de una policy sobre `usuario`).
+
+**12c. Los dos warnings de Auth quedan abiertos, a propósito.**
+`auth_leaked_password_protection` requiere plan Pro y la org está en Free; `auth_insufficient_mfa_options` exigiría además construir el enrolamiento MFA, que no encaja con capataces de baja alfabetización. Activar MFA solo para silenciar el advisor sería teatro: nadie podría usarlo sin esa pantalla. Se revisa si algún día se sube a Pro.
+
 ## Infraestructura y dependencias
 
 **13. Sistema de toasts propio, sin librería externa.**

@@ -41,13 +41,14 @@ Postgres + Auth + RLS + Storage, migrations in `supabase/migrations/`. Isolation
 - **Storage**: `trabajador-fotos` bucket (public, 5MB, jpeg/png/webp). Writes scoped by `storage.foldername(name)[1]` = finca.
 - **Client**: `shared/lib/supabase-client.ts`, single `createClient<Database>`. `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local` (uncommitted).
 
-### Two rules learned the hard way
+### Three rules learned the hard way
 
 1. **RLS joins through `usuario`**, never a bare column check:
    `usuario.auth_user_id = auth.uid() and usuario.finca_id = <tabla>.finca_id and usuario.activo = true`. Follow this shape for every farm-scoped table.
 2. **Every migration creating a table must also `grant select, insert, update, delete on table public.x to authenticated;`** — the hosted project grants this by invisible platform default, but `supabase db reset` revokes it locally, so a missing grant 403s in local dev while `tsc` and the schema look fine. Grant to `authenticated` only; no policy here gives `anon` anything.
+3. **A `SECURITY DEFINER` helper goes in schema `private`, never `public`** (`20260803232810`) — `public` is exposed by PostgREST, so anything there is reachable at `/rest/v1/rpc/<fn>` and the advisor flags it. `private` is not in `api.schemas`, so `grant usage on schema private to authenticated` keeps RLS working without exposing an endpoint. `private.es_admin_oficina()` is the reference case. Every function also carries `set search_path = ''` with a fully qualified body.
 
-Related gotchas, if you touch `SECURITY DEFINER` functions: Postgres grants EXECUTE to `PUBLIC` at creation, so revoking from `anon`+`authenticated` alone leaves the advisor flagging it; and the signup trigger runs as `supabase_auth_admin`, which needs its grant added back explicitly. Only open advisor: leaked-password protection (Dashboard toggle, no migration can flip it).
+Related gotchas, if you touch `SECURITY DEFINER` functions: `revoke execute ... from public` only drops the `PUBLIC` pseudo-role grant — Supabase's *default privileges* additionally grant EXECUTE to `anon` and `authenticated` on every new function in `public`, so those two must be revoked **by name**. A trigger function needs no EXECUTE from the firing role at all (Postgres checks it at `create trigger`), but a function used inside an RLS policy does. And the signup trigger runs as `supabase_auth_admin`, which needs its grant added back explicitly. Open advisors, both Auth-side and both accepted on purpose: leaked-password protection (needs Pro plan) and insufficient MFA options (no enrolment UI, and field supervisors are low-literacy).
 
 ## Commands
 
