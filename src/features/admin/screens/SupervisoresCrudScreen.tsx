@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { Modal } from '../../../shared/components/Modal'
@@ -14,6 +15,8 @@ export function SupervisoresCrudScreen() {
   const { fincas } = useFincas()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
+  const [fincaFiltroId, setFincaFiltroId] = useState('')
+  const visibles = fincaFiltroId ? supervisores.supervisores.filter((supervisor) => supervisor.fincaId === fincaFiltroId) : supervisores.supervisores
 
   return (
     <main className="h-dvh overflow-hidden p-3 sm:p-4">
@@ -27,9 +30,25 @@ export function SupervisoresCrudScreen() {
               <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Supervisores</h1>
               <p className="mt-2 font-bold leading-7 text-slate-600">Usuarios registrados. Asigna su finca y rol.</p>
             </div>
+
+            <label className="flex flex-col gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
+              Finca
+              <select
+                value={fincaFiltroId}
+                onChange={(event) => setFincaFiltroId(event.target.value)}
+                className="neu-pressed min-h-11 rounded-2xl px-4 text-sm font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+              >
+                <option value="">Todas</option>
+                {fincas.map((finca) => (
+                  <option key={finca.id} value={finca.id}>
+                    {finca.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
           </header>
 
-          <SupervisoresTable supervisores={supervisores.supervisores} isLoading={supervisores.isLoading} onEdit={supervisores.onOpenEdit} onToggleActive={supervisores.alternarEstado} />
+          <SupervisoresTable supervisores={visibles} isLoading={supervisores.isLoading} onEdit={supervisores.onOpenEdit} onToggleActive={supervisores.alternarEstado} />
         </section>
 
         <Modal isOpen={supervisores.isFormOpen} title="Editar supervisor" onClose={supervisores.onCloseForm}>
