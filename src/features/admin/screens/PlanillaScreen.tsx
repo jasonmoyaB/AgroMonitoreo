@@ -8,6 +8,7 @@ import { AusenciasQuincenaModal } from '../components/AusenciasQuincenaModal'
 import { FincaSelector } from '../components/FincaSelector'
 import { PeriodoSelector } from '../components/PeriodoSelector'
 import { PlanillaTable } from '../components/PlanillaTable'
+import { ValorHoraFinca } from '../components/ValorHoraFinca'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useAniosDashboard } from '../hooks/use-anios-dashboard'
 import { useFincas } from '../hooks/use-fincas'
@@ -28,7 +29,7 @@ export function PlanillaScreen() {
   const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
   const finca = fincas.find((item) => item.id === fincaId) ?? null
   const fincaNombre = finca?.nombre ?? ''
-  const { filas, isLoading, pagar } = usePlanillaQuincena(finca, periodo.rango)
+  const { filas, isLoading, pagar, guardarSalario } = usePlanillaQuincena(finca, periodo.rango)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
 
@@ -70,11 +71,13 @@ export function PlanillaScreen() {
             <p className="text-xs font-black uppercase tracking-[0.24em] text-green-800">Admin</p>
             <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Planilla</h1>
             <p className="mt-2 font-bold leading-7 text-slate-600">
-              Quincena del {formatearFechaIsoDdMmAaaa(periodo.rango.inicio)} al {formatearFechaIsoDdMmAaaa(periodo.rango.fin)}. El monto es la mitad del salario mensual menos los días de ausencia, a valor hora × 8.
+              Quincena del {formatearFechaIsoDdMmAaaa(periodo.rango.inicio)} al {formatearFechaIsoDdMmAaaa(periodo.rango.fin)}. El monto es la mitad del salario mensual menos los días de ausencia, a valor hora × 8. El salario se edita en la misma tabla.
             </p>
           </header>
 
           <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
+
+          {finca && <ValorHoraFinca finca={finca} />}
 
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <PeriodoSelector anio={periodo.anio} mes={periodo.mes} aniosDisponibles={aniosDisponibles} onAnioChange={periodo.setAnio} onMesChange={periodo.setMes} />
@@ -97,7 +100,7 @@ export function PlanillaScreen() {
           <PlanillaTable
             filas={filas}
             isLoading={isLoading}
-            actions={{ onPagar: handlePagar, onDescargarPdf: handleDescargarPdf, onVerAusencias: setFilaAusencias }}
+            actions={{ onPagar: handlePagar, onDescargarPdf: handleDescargarPdf, onVerAusencias: setFilaAusencias, onGuardarSalario: guardarSalario }}
           />
         </section>
 

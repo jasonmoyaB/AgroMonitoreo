@@ -1,15 +1,17 @@
 import { Check, Download } from 'lucide-react'
 import { Avatar } from '../../../shared/components/Avatar'
 import { formatearMonto } from '../../../shared/utils/formatear-monto'
-import type { FilaPlanilla } from '../../planilla/types/planilla.types'
+import { CeldasSalario } from './CeldasSalario'
+import type { EdicionSalario, FilaPlanilla } from '../../planilla/types/planilla.types'
 
 const AVATAR_SIZE_PX = 40
-const COLUMNAS = ['Trabajador', 'Salario mensual', 'Monto semanal', 'Ausencias', 'Monto quincena', 'Estado', ''] as const
+const COLUMNAS = ['Trabajador', 'Salario mensual', 'Moneda', 'Monto semanal', 'Ausencias', 'Monto quincena', 'Estado', ''] as const
 
 interface PlanillaAcciones {
   onPagar: (fila: FilaPlanilla) => void
   onDescargarPdf: (fila: FilaPlanilla) => void
   onVerAusencias: (fila: FilaPlanilla) => void
+  onGuardarSalario: (input: EdicionSalario) => void
 }
 
 interface PlanillaTableProps {
@@ -25,7 +27,7 @@ export function PlanillaTable({ filas, isLoading, actions }: PlanillaTableProps)
   return (
     <div className="neu-raised overflow-hidden rounded-[2rem]">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[56rem] border-collapse text-left">
+        <table className="w-full min-w-[64rem] border-collapse text-left">
           <thead>
             <tr className="border-b border-slate-900/10">
               {COLUMNAS.map((columna) => (
@@ -68,7 +70,7 @@ function PlanillaFila({ fila, actions }: PlanillaFilaProps) {
           <span className="truncate text-base font-black text-slate-900">{fila.nombreCompleto}</span>
         </div>
       </td>
-      <td className="px-5 py-3 font-bold text-slate-600">{formatearMonto(fila.salarioMensual, fila.moneda)}</td>
+      <CeldasSalario fila={fila} onGuardar={actions.onGuardarSalario} />
       <td className="px-5 py-3 font-bold text-slate-600">{formatearMonto(fila.montoSemanal, fila.moneda)}</td>
       <td className="px-5 py-3">
         <CeldaAusencias fila={fila} resumen={{ diasAusentes, deduccion, moneda }} onVer={actions.onVerAusencias} />
@@ -99,7 +101,7 @@ function PlanillaFila({ fila, actions }: PlanillaFilaProps) {
             type="button"
             onClick={() => actions.onPagar(fila)}
             disabled={fila.salarioMensual <= 0}
-            title={fila.salarioMensual <= 0 ? 'Primero asigna un salario mensual en la pantalla de Salarios' : undefined}
+            title={fila.salarioMensual <= 0 ? 'Primero escribe el salario mensual en esta misma fila' : undefined}
             className="neu-raised min-h-11 cursor-pointer rounded-xl px-4 font-black text-green-900 transition-colors duration-200 hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Pagar quincena

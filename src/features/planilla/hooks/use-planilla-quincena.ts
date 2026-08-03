@@ -1,18 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { listarSalariosPorFinca } from '../../admin/services/salarios-service'
+import { guardarSalario, listarSalariosPorFinca } from '../../admin/services/salarios-service'
 import { listarAsistenciaPorRango } from '../../asistencia/services/asistencia-service'
 import { useToastStore } from '../../../shared/stores/toast-store'
 import { PLANILLA_QUERY_KEY } from '../constants/quincena.constants'
 import { listarPagosQuincena, registrarPagoQuincena } from '../services/planilla-service'
 import { construirFilasPlanilla } from '../utils/construir-filas-planilla'
 import type { Finca } from '../../../shared/types/domain.types'
-import type { FilaPlanilla, NuevoPagoQuincenal, RangoQuincena } from '../types/planilla.types'
+import type { EdicionSalario, FilaPlanilla, NuevoPagoQuincenal, RangoQuincena } from '../types/planilla.types'
 
 interface PlanillaQuincena {
   filas: FilaPlanilla[]
   isLoading: boolean
   pagar: (input: NuevoPagoQuincenal) => void
   isPagando: boolean
+  guardarSalario: (input: EdicionSalario) => void
 }
 
 const SIN_DATOS = { salarios: [], pagos: [], ausencias: [] }
@@ -49,5 +50,13 @@ export function usePlanillaQuincena(finca: Finca | null, rango: RangoQuincena): 
     onError: (error) => mostrarToast({ type: 'error', title: 'No se pudo registrar el pago', description: error.message }),
   })
 
-  return { filas, isLoading, pagar: pago.mutate, isPagando: pago.isPending }
+  // el salario se edita en la misma tabla, asi que invalida la query de la planilla y no
+  // una propia: la fila recalcula la quincena sin salir de la pantalla
+  const salario = useMutation({
+    mutationFn: (input: EdicionSalario) => guardarSalario(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+    onError: (error) => mostrarToast({ type: 'error', title: 'No se pudo guardar el salario', description: error.message }),
+  })
+
+  return { filas, isLoading, pagar: pago.mutate, isPagando: pago.isPending, guardarSalario: salario.mutate }
 }

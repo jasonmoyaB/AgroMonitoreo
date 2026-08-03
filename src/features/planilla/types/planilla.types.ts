@@ -46,6 +46,13 @@ export interface FilaPlanilla {
   pago: PagoQuincenal | null
 }
 
+// patch parcial: cada control de la fila manda solo su campo (ver guardarSalario)
+export interface EdicionSalario {
+  trabajadorId: string
+  salarioMensual?: number
+  moneda?: Moneda
+}
+
 export interface NuevoPagoQuincenal {
   fincaId: string
   trabajadorId: string
