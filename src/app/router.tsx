@@ -5,12 +5,11 @@ import {
   CapturaRegistroScreen,
 } from "../features/captura";
 import {
-  AdminGuard,
-  AuthGuard,
   ForgotPasswordScreen,
   LoginScreen,
   RegisterScreen,
   ResetPasswordScreen,
+  RouteGuard,
 } from "../features/auth";
 import {
   AsistenciaScreen,
@@ -45,7 +44,7 @@ export const router = createBrowserRouter([
       { path: "/olvide-password", element: <ForgotPasswordScreen /> },
       { path: "/reset-password", element: <ResetPasswordScreen /> },
       {
-        element: <AuthGuard />,
+        element: <RouteGuard />,
         children: [
           { path: "/supervisor", element: <SupervisorDashboardScreen /> },
           { path: "/supervisor/dashboard", element: <DashboardScreen /> },
@@ -75,7 +74,7 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        element: <AdminGuard />,
+        element: <RouteGuard soloAdmin />,
         children: [
           { path: "/admin", element: <AdminDashboardScreen /> },
           { path: "/admin/dashboard-finca", element: <FincaDashboardScreen /> },

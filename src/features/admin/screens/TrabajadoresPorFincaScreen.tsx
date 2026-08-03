@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { AdminSidebar } from '../components/AdminSidebar'
@@ -7,7 +6,7 @@ import { FincaSelector } from '../components/FincaSelector'
 import { TrabajadorMetricasModal } from '../../trabajadores/components/TrabajadorMetricasModal'
 import { TrabajadoresFilterBar } from '../../trabajadores/components/TrabajadoresFilterBar'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
-import { useFincas } from '../hooks/use-fincas'
+import { useFincaSeleccionada } from '../hooks/use-finca-seleccionada'
 import { useTrabajadoresFincaAdmin } from '../hooks/use-trabajadores-finca-admin'
 import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores-filtro'
 import { useTrabajadorMetricasModal } from '../../trabajadores/hooks/use-trabajador-metricas-modal'
@@ -16,10 +15,8 @@ const FINCA_NOMBRE_VACIO = ''
 
 export function TrabajadoresPorFincaScreen() {
   const dashboard = useAdminDashboard()
-  const { fincas } = useFincas()
-  const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
-  const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
-  const fincaNombre = fincas.find((finca) => finca.id === fincaId)?.nombre ?? FINCA_NOMBRE_VACIO
+  const { fincas, fincaId, finca, seleccionar } = useFincaSeleccionada()
+  const fincaNombre = finca?.nombre ?? FINCA_NOMBRE_VACIO
   const trabajadores = useTrabajadoresFincaAdmin(fincaId)
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
   const metricasModal = useTrabajadorMetricasModal()
@@ -38,7 +35,7 @@ export function TrabajadoresPorFincaScreen() {
             <p className="mt-2 font-bold leading-7 text-slate-600">Elige una finca para ver su lista de trabajadores.</p>
           </header>
 
-          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
+          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={seleccionar} />
 
           <TrabajadoresFilterBar filtros={filtro.filtros} onFiltroChange={filtro.updateFiltro} onResetFiltros={filtro.resetFiltros} />
 

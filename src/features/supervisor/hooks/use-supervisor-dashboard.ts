@@ -26,7 +26,6 @@ export function useSupervisorDashboard() {
 
   return {
     laboresPendientes: LABORES_PENDIENTES,
-    totalLabores: LABORES_PENDIENTES.length,
     isSidebarCollapsed,
     toggleSidebar,
     seleccionarLaborPendiente,

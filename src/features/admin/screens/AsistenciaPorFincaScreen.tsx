@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useAusenciasTrabajador } from '../../asistencia/hooks/use-ausencias-trabajador'
 import { useAsistenciaSemana } from '../../asistencia/hooks/use-asistencia-semana'
 import { useCalendarioAusentes } from '../../asistencia/hooks/use-calendario-ausentes'
@@ -22,17 +21,15 @@ import type { Finca } from '../../../shared/types/domain.types'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { FincaSelector } from '../components/FincaSelector'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
-import { useFincas } from '../hooks/use-fincas'
+import { useFincaSeleccionada } from '../hooks/use-finca-seleccionada'
 import { useTrabajadoresFincaAdmin } from '../hooks/use-trabajadores-finca-admin'
 
 const FINCA_VACIA: Pick<Finca, 'id' | 'nombre'> = { id: '', nombre: '' }
 
 export function AsistenciaPorFincaScreen() {
   const dashboard = useAdminDashboard()
-  const { fincas } = useFincas()
-  const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
-  const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
-  const finca = fincas.find((item) => item.id === fincaId) ?? FINCA_VACIA
+  const { fincas, fincaId, finca: fincaSeleccionada, seleccionar } = useFincaSeleccionada()
+  const finca = fincaSeleccionada ?? FINCA_VACIA
   const asistencia = useAsistenciaSemana(fincaId ?? undefined)
   const trabajadores = useTrabajadoresFincaAdmin(fincaId)
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
@@ -70,7 +67,7 @@ export function AsistenciaPorFincaScreen() {
             />
           </header>
 
-          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
+          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={seleccionar} />
 
           <TrabajadoresFilterBar filtros={filtro.filtros} onFiltroChange={filtro.updateFiltro} onResetFiltros={filtro.resetFiltros} mostrarAusentes onVerAusentes={ausentesModal.abrir} />
 

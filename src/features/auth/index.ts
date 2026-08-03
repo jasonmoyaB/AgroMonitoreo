@@ -1,5 +1,4 @@
-export { AuthGuard } from './components/AuthGuard'
-export { AdminGuard } from './components/AdminGuard'
+export { RouteGuard } from './components/RouteGuard'
 export { LoginScreen } from './screens/LoginScreen'
 export { RegisterScreen } from './screens/RegisterScreen'
 export { ForgotPasswordScreen } from './screens/ForgotPasswordScreen'

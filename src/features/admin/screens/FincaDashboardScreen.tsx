@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { DashboardKpiRow } from '../../../shared/components/DashboardKpiRow'
@@ -10,19 +9,18 @@ import { FincaSelector } from '../components/FincaSelector'
 import { PeriodoSelector } from '../components/PeriodoSelector'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useFincaDashboardKpis } from '../hooks/use-finca-dashboard-kpis'
-import { useFincas } from '../hooks/use-fincas'
+import { useFincaSeleccionada } from '../hooks/use-finca-seleccionada'
 import { usePeriodoDashboard } from '../hooks/use-periodo-dashboard'
 import { useDescargarDashboardPdf } from '../../../shared/hooks/use-descargar-dashboard-pdf'
 
 const UNIDAD_GENERICA = 'unidades'
+const FINCA_NOMBRE_FALLBACK = 'Finca'
 
 export function FincaDashboardScreen() {
   const dashboard = useAdminDashboard()
-  const { fincas } = useFincas()
-  const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
+  const { fincas, fincaId, finca, seleccionar } = useFincaSeleccionada()
   const periodo = usePeriodoDashboard()
-  const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
-  const fincaNombre = fincas.find((finca) => finca.id === fincaId)?.nombre ?? 'Finca'
+  const fincaNombre = finca?.nombre ?? FINCA_NOMBRE_FALLBACK
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
   const kpisFinca = useFincaDashboardKpis(fincaId, periodo.periodo)
@@ -52,7 +50,7 @@ export function FincaDashboardScreen() {
             <DescargarDashboardPdfButton isDownloading={pdf.isDownloading} onDescargar={pdf.descargar} />
           </header>
 
-          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
+          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={seleccionar} />
           <PeriodoSelector anio={periodo.anio} mes={periodo.mes} aniosDisponibles={kpisFinca.aniosDisponibles} onAnioChange={periodo.setAnio} onMesChange={periodo.setMes} />
 
           {kpisFinca.isLoading ? (

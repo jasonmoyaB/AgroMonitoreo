@@ -11,7 +11,7 @@ import { PlanillaTable } from '../components/PlanillaTable'
 import { ValorHoraFinca } from '../components/ValorHoraFinca'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useAniosDashboard } from '../hooks/use-anios-dashboard'
-import { useFincas } from '../hooks/use-fincas'
+import { useFincaSeleccionada } from '../hooks/use-finca-seleccionada'
 import { OPCIONES_QUINCENA } from '../../planilla/constants/quincena.constants'
 import { usePeriodoQuincena } from '../../planilla/hooks/use-periodo-quincena'
 import { usePlanillaQuincena } from '../../planilla/hooks/use-planilla-quincena'
@@ -21,13 +21,10 @@ import type { FilaPlanilla } from '../../planilla/types/planilla.types'
 
 export function PlanillaScreen() {
   const dashboard = useAdminDashboard()
-  const { fincas } = useFincas()
+  const { fincas, fincaId, finca, seleccionar } = useFincaSeleccionada()
   const aniosDisponibles = useAniosDashboard()
   const periodo = usePeriodoQuincena()
-  const [fincaSeleccionadaId, setFincaSeleccionadaId] = useState<string | null>(null)
   const [filaAusencias, setFilaAusencias] = useState<FilaPlanilla | null>(null)
-  const fincaId = fincaSeleccionadaId ?? fincas[0]?.id ?? null
-  const finca = fincas.find((item) => item.id === fincaId) ?? null
   const fincaNombre = finca?.nombre ?? ''
   const { filas, isLoading, pagar, guardarSalario } = usePlanillaQuincena(finca, periodo.rango)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
@@ -75,7 +72,7 @@ export function PlanillaScreen() {
             </p>
           </header>
 
-          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={setFincaSeleccionadaId} />
+          <FincaSelector fincas={fincas} fincaSeleccionadaId={fincaId} onSeleccionar={seleccionar} />
 
           {finca && <ValorHoraFinca finca={finca} />}
 

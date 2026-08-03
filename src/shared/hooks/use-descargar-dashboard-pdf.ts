@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useToastStore } from '../stores/toast-store'
 import { descargarBlob } from '../lib/descargar-blob'
 import { generarPdfDashboard } from '../utils/pdf/generar-pdf-dashboard'
-import { quitarDiacriticos } from '../utils/quitar-diacriticos'
+import { crearSlugArchivo } from '../utils/crear-slug-archivo'
 import type { DashboardKpis, RankingItem, TendenciaPunto } from '../types/kpis.types'
 
 interface UseDescargarDashboardPdfInput {
@@ -38,6 +38,5 @@ export function useDescargarDashboardPdf(input: UseDescargarDashboardPdfInput) {
 
 function crearNombreArchivo(prefijo: string): string {
   const hoy = new Date()
-  const slug = quitarDiacriticos(prefijo).toLowerCase().replace(/[^a-z0-9]+/g, '-')
-  return `${slug}-${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}.pdf`
+  return `${crearSlugArchivo(prefijo)}-${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}.pdf`
 }

@@ -2,7 +2,11 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthSession } from '../hooks/use-auth-session'
 import { useUsuarioActual } from '../hooks/use-usuario-actual'
 
-export function AuthGuard() {
+interface RouteGuardProps {
+  soloAdmin?: boolean
+}
+
+export function RouteGuard({ soloAdmin = false }: RouteGuardProps) {
   const { session, isLoading: isLoadingSession } = useAuthSession()
   const { usuario, isLoading: isLoadingUsuario } = useUsuarioActual(!!session)
 
@@ -15,7 +19,10 @@ export function AuthGuard() {
   }
 
   if (!session) return <Navigate to="/login" replace />
-  if (usuario?.rol === 'admin_oficina') return <Navigate to="/admin" replace />
+
+  const esAdmin = usuario?.rol === 'admin_oficina'
+  if (soloAdmin && !esAdmin) return <Navigate to="/supervisor" replace />
+  if (!soloAdmin && esAdmin) return <Navigate to="/admin" replace />
 
   return <Outlet />
 }
