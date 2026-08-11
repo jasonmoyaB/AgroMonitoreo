@@ -77,7 +77,7 @@ function TrabajadoresTableRow({ trabajador, fincaDestino, actions }: Trabajadore
           <span className={`${BADGE_CLASS} ${trabajador.activo ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}`}>
             {trabajador.activo ? 'Activo' : 'Inactivo'}
           </span>
-          <span className={`${BADGE_CLASS} ${trabajador.asegurado ? 'bg-sky-100 text-sky-900' : 'bg-amber-100 text-amber-900'}`}>
+          <span className={`${BADGE_CLASS} ${trabajador.asegurado ? 'bg-indigo-100 text-indigo-900' : 'bg-amber-100 text-amber-900'}`}>
             {trabajador.asegurado ? 'Asegurado' : 'No asegurado'}
           </span>
           {fincaDestino && <span className={`${BADGE_CLASS} bg-sky-100 text-sky-900`}>Trabajador trasladado a: {fincaDestino}</span>}

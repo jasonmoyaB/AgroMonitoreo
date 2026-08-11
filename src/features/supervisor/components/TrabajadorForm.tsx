@@ -45,19 +45,19 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
       </label>
 
       <div className="grid grid-cols-2 gap-3" role="group" aria-label="Estado del trabajador">
-        <button type="button" onClick={() => actions.onFieldChange('activo', true)} className={crearEstadoClass(values.activo)}>
+        <button type="button" aria-pressed={values.activo} onClick={() => actions.onFieldChange('activo', true)} className={crearEstadoClass(values.activo)}>
           Activo
         </button>
-        <button type="button" onClick={() => actions.onFieldChange('activo', false)} className={crearEstadoClass(!values.activo)}>
+        <button type="button" aria-pressed={!values.activo} onClick={() => actions.onFieldChange('activo', false)} className={crearEstadoClass(!values.activo)}>
           Inactivo
         </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3" role="group" aria-label="Seguro del trabajador">
-        <button type="button" onClick={() => actions.onFieldChange('asegurado', true)} className={crearEstadoClass(values.asegurado)}>
+        <button type="button" aria-pressed={values.asegurado} onClick={() => actions.onFieldChange('asegurado', true)} className={crearEstadoClass(values.asegurado)}>
           Asegurado
         </button>
-        <button type="button" onClick={() => actions.onFieldChange('asegurado', false)} className={crearEstadoClass(!values.asegurado)}>
+        <button type="button" aria-pressed={!values.asegurado} onClick={() => actions.onFieldChange('asegurado', false)} className={crearEstadoClass(!values.asegurado)}>
           No asegurado
         </button>
       </div>
