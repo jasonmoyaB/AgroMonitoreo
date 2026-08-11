@@ -53,6 +53,15 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
         </button>
       </div>
 
+      <div className="grid grid-cols-2 gap-3" role="group" aria-label="Seguro del trabajador">
+        <button type="button" onClick={() => actions.onFieldChange('asegurado', true)} className={crearEstadoClass(values.asegurado)}>
+          Asegurado
+        </button>
+        <button type="button" onClick={() => actions.onFieldChange('asegurado', false)} className={crearEstadoClass(!values.asegurado)}>
+          No asegurado
+        </button>
+      </div>
+
       {error && <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">{error}</p>}
 
       <button type="submit" disabled={isSubmitting} className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60">

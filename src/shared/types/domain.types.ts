@@ -43,6 +43,7 @@ export interface Trabajador {
   nombreCompleto: string
   fotoUrl: string | null
   activo: boolean
+  asegurado: boolean
 }
 
 // vive en salarios_trabajadores, no en trabajadores: RLS es row-level, y las policies
