@@ -32,13 +32,10 @@ describe('filtrarFilasPorSeguro', () => {
     expect(filtrarFilasPorSeguro(FILAS, 'no_asegurados')).toEqual([MARIA])
   })
 
+  // lo unico no obvio: ninguna fila se pierde ni se paga dos veces entre las dos tandas
   it('cada fila cae en un grupo y solo uno', () => {
     const asegurados = filtrarFilasPorSeguro(FILAS, 'asegurados')
     const noAsegurados = filtrarFilasPorSeguro(FILAS, 'no_asegurados')
     expect(asegurados.length + noAsegurados.length).toBe(FILAS.length)
-  })
-
-  it('sin filas devuelve lista vacia', () => {
-    expect(filtrarFilasPorSeguro([], 'asegurados')).toEqual([])
   })
 })

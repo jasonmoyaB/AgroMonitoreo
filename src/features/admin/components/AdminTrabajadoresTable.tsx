@@ -36,22 +36,23 @@ export function AdminTrabajadoresTable({ trabajadores, isLoading, onSelectTrabaj
             {trabajadores.map((trabajador) => (
               <tr
                 key={trabajador.id}
-                tabIndex={0}
-                role="button"
                 onClick={() => onSelectTrabajador(trabajador)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    onSelectTrabajador(trabajador)
-                  }
-                }}
-                className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-green-700"
+                className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45"
               >
                 <td className="px-5 py-3">
-                  <div className="flex min-w-0 items-center gap-3">
+                  {/* el nombre es el control accesible de la fila: el tr no puede ser role=button
+                      con el boton de editar adentro, y asi las metricas se abren tambien por teclado */}
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onSelectTrabajador(trabajador)
+                    }}
+                    className="flex min-w-0 cursor-pointer items-center gap-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700"
+                  >
                     <Avatar nombre={trabajador.nombreCompleto} fotoUrl={trabajador.fotoUrl} size={AVATAR_SIZE_PX} />
                     <span className="truncate text-base font-black text-slate-900">{trabajador.nombreCompleto}</span>
-                  </div>
+                  </button>
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex flex-wrap gap-1.5">

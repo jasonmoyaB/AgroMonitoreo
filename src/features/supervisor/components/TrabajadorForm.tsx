@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Avatar } from '../../../shared/components/Avatar'
+import { crearClaseToggle } from '../../../shared/utils/crear-clase-toggle'
 import type { TrabajadoresCrudActions, TrabajadoresCrudState } from '../../trabajadores/types/trabajador-crud.types'
 
 const TAMANO_AVATAR_PREVIEW_PX = 72
@@ -72,6 +73,5 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
 }
 
 function crearEstadoClass(isSelected: boolean) {
-  const selectedClass = isSelected ? 'bg-green-700 text-white shadow-lg shadow-green-900/20' : 'neu-pressed text-slate-700'
-  return `min-h-14 cursor-pointer rounded-2xl px-4 text-lg font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 ${selectedClass}`
+  return crearClaseToggle(isSelected, 'text-lg')
 }

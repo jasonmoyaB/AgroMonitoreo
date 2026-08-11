@@ -19,8 +19,7 @@ import { usePlanillaQuincena } from '../../planilla/hooks/use-planilla-quincena'
 import { GRUPO_SEGURO_INICIAL } from '../../planilla/constants/seguro.constants'
 import { filtrarFilasPorSeguro } from '../../planilla/utils/filtrar-filas-por-seguro'
 import { generarPdfLiquidacion } from '../../planilla/utils/generar-pdf-liquidacion'
-import type { GrupoSeguro, NumeroQuincena } from '../../planilla/types/planilla.types'
-import type { FilaPlanilla } from '../../planilla/types/planilla.types'
+import type { FilaPlanilla, GrupoSeguro, NumeroQuincena } from '../../planilla/types/planilla.types'
 
 export function PlanillaScreen() {
   const dashboard = useAdminDashboard()

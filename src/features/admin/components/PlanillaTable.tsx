@@ -89,11 +89,7 @@ function PlanillaFila({ fila, actions }: PlanillaFilaProps) {
   )
 }
 
-interface CeldaEstadoProps {
-  pagada: boolean
-}
-
-function CeldaEstado({ pagada }: CeldaEstadoProps) {
+function CeldaEstado({ pagada }: { pagada: boolean }) {
   if (!pagada) return <span className="text-xs font-black uppercase tracking-wider text-slate-500">Pendiente</span>
 
   return (

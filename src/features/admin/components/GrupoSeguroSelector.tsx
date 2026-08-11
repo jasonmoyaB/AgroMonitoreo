@@ -24,6 +24,8 @@ export function GrupoSeguroSelector({ grupo, onGrupoChange }: GrupoSeguroSelecto
   )
 }
 
+// no usa crearClaseToggle: sin seleccionar va neu-raised, no neu-pressed. son dos botones
+// elevados sobre el fondo, no un par hundido dentro de un formulario
 function crearGrupoClass(isSelected: boolean) {
   const selectedClass = isSelected ? 'bg-green-700 text-white shadow-lg shadow-green-900/20' : 'neu-raised text-slate-700'
   return `min-h-14 cursor-pointer rounded-2xl px-4 font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 ${selectedClass}`

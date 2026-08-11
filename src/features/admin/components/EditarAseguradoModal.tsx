@@ -1,4 +1,5 @@
 import { Modal } from '../../../shared/components/Modal'
+import { crearClaseToggle } from '../../../shared/utils/crear-clase-toggle'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 interface EditarAseguradoModalProps {
@@ -39,6 +40,5 @@ export function EditarAseguradoModal({ trabajador, isGuardando, onCambiar, onClo
 }
 
 function crearSeguroClass(isSelected: boolean) {
-  const selectedClass = isSelected ? 'bg-green-700 text-white shadow-lg shadow-green-900/20' : 'neu-pressed text-slate-700'
-  return `min-h-14 cursor-pointer rounded-2xl px-4 text-lg font-black disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 ${selectedClass}`
+  return crearClaseToggle(isSelected, 'text-lg disabled:cursor-not-allowed disabled:opacity-60')
 }

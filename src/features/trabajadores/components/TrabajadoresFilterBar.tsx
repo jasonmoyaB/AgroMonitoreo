@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react'
+import { crearClaseToggle } from '../../../shared/utils/crear-clase-toggle'
 import type { EstadoFiltro, TrabajadoresFiltros } from '../types/trabajador-filtro.types'
 
 const OPCION_TODOS: { valor: EstadoFiltro; etiqueta: string } = { valor: 'todos', etiqueta: 'Todos' }
@@ -64,6 +65,5 @@ export function TrabajadoresFilterBar({ filtros, onFiltroChange, onResetFiltros,
 }
 
 function crearEstadoClass(isSelected: boolean) {
-  const selectedClass = isSelected ? 'bg-green-700 text-white shadow-lg shadow-green-900/20' : 'neu-pressed text-slate-700'
-  return `min-h-14 cursor-pointer whitespace-nowrap rounded-2xl px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 ${selectedClass}`
+  return crearClaseToggle(isSelected, 'whitespace-nowrap text-sm')
 }
