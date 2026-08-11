@@ -6,13 +6,14 @@ interface SalarioRow {
   id: string
   nombre_completo: string
   foto_url: string | null
+  asegurado: boolean
   salario: { salario_mensual: number; moneda: Moneda } | null
 }
 
 export async function listarSalariosPorFinca(fincaId: string, client: SupabaseClient = supabase): Promise<SalarioTrabajador[]> {
   const { data, error } = await client
     .from('trabajadores')
-    .select('id, nombre_completo, foto_url, salario:salarios_trabajadores(salario_mensual, moneda)')
+    .select('id, nombre_completo, foto_url, asegurado, salario:salarios_trabajadores(salario_mensual, moneda)')
     .eq('finca_id', fincaId)
     .order('nombre_completo', { ascending: true })
     .returns<SalarioRow[]>()
@@ -22,6 +23,7 @@ export async function listarSalariosPorFinca(fincaId: string, client: SupabaseCl
     trabajadorId: row.id,
     nombreCompleto: row.nombre_completo,
     fotoUrl: row.foto_url,
+    asegurado: row.asegurado,
     // sin fila en salarios_trabajadores todavia: el trabajador se creo despues de la
     // migracion y nadie le puso salario
     salarioMensual: row.salario?.salario_mensual ?? 0,

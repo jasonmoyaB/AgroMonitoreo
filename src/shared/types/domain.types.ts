@@ -55,6 +55,7 @@ export interface SalarioTrabajador {
   fotoUrl: string | null
   salarioMensual: number
   moneda: Moneda
+  asegurado: boolean
 }
 
 export interface RegistroTrabajo {

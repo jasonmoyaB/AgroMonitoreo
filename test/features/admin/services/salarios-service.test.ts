@@ -33,17 +33,17 @@ function clienteEscritura(error: { message: string } | null = null) {
 describe('listarSalariosPorFinca', () => {
   it('mapea la fila anidada de salarios a la forma del dominio', async () => {
     const { client } = clienteLectura({
-      data: [{ id: 't1', nombre_completo: 'Alvin Alcantara', foto_url: 'foto.jpg', salario: { salario_mensual: 350000, moneda: 'colones' } }],
+      data: [{ id: 't1', nombre_completo: 'Alvin Alcantara', foto_url: 'foto.jpg', asegurado: true, salario: { salario_mensual: 350000, moneda: 'colones' } }],
     })
 
     expect(await listarSalariosPorFinca('birrisito', client)).toEqual([
-      { trabajadorId: 't1', nombreCompleto: 'Alvin Alcantara', fotoUrl: 'foto.jpg', salarioMensual: 350000, moneda: 'colones' },
+      { trabajadorId: 't1', nombreCompleto: 'Alvin Alcantara', fotoUrl: 'foto.jpg', asegurado: true, salarioMensual: 350000, moneda: 'colones' },
     ])
   })
 
   it('un trabajador sin fila de salario cae en cero colones, no en NaN ni undefined', async () => {
     const { client } = clienteLectura({
-      data: [{ id: 't2', nombre_completo: 'Maria Rojas', foto_url: null, salario: null }],
+      data: [{ id: 't2', nombre_completo: 'Maria Rojas', foto_url: null, asegurado: false, salario: null }],
     })
 
     const [salario] = await listarSalariosPorFinca('birrisito', client)
@@ -51,11 +51,12 @@ describe('listarSalariosPorFinca', () => {
     expect(salario.salarioMensual).toBe(0)
     expect(salario.moneda).toBe('colones')
     expect(salario.fotoUrl).toBeNull()
+    expect(salario.asegurado).toBe(false)
   })
 
   it('respeta un salario de cero guardado a proposito en dolares', async () => {
     const { client } = clienteLectura({
-      data: [{ id: 't3', nombre_completo: 'Pedro Mora', foto_url: null, salario: { salario_mensual: 0, moneda: 'usd' } }],
+      data: [{ id: 't3', nombre_completo: 'Pedro Mora', foto_url: null, asegurado: true, salario: { salario_mensual: 0, moneda: 'usd' } }],
     })
 
     const [salario] = await listarSalariosPorFinca('birrisito', client)

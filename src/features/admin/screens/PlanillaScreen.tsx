@@ -6,6 +6,7 @@ import { formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { AusenciasQuincenaModal } from '../components/AusenciasQuincenaModal'
 import { FincaSelector } from '../components/FincaSelector'
+import { GrupoSeguroSelector } from '../components/GrupoSeguroSelector'
 import { PeriodoSelector } from '../components/PeriodoSelector'
 import { PlanillaTable } from '../components/PlanillaTable'
 import { ValorHoraFinca } from '../components/ValorHoraFinca'
@@ -15,8 +16,10 @@ import { useFincaSeleccionada } from '../hooks/use-finca-seleccionada'
 import { OPCIONES_QUINCENA } from '../../planilla/constants/quincena.constants'
 import { usePeriodoQuincena } from '../../planilla/hooks/use-periodo-quincena'
 import { usePlanillaQuincena } from '../../planilla/hooks/use-planilla-quincena'
+import { GRUPO_SEGURO_INICIAL } from '../../planilla/constants/seguro.constants'
+import { filtrarFilasPorSeguro } from '../../planilla/utils/filtrar-filas-por-seguro'
 import { generarPdfLiquidacion } from '../../planilla/utils/generar-pdf-liquidacion'
-import type { NumeroQuincena } from '../../planilla/types/planilla.types'
+import type { GrupoSeguro, NumeroQuincena } from '../../planilla/types/planilla.types'
 import type { FilaPlanilla } from '../../planilla/types/planilla.types'
 
 export function PlanillaScreen() {
@@ -25,8 +28,10 @@ export function PlanillaScreen() {
   const aniosDisponibles = useAniosDashboard()
   const periodo = usePeriodoQuincena()
   const [filaAusencias, setFilaAusencias] = useState<FilaPlanilla | null>(null)
+  const [grupoSeguro, setGrupoSeguro] = useState<GrupoSeguro>(GRUPO_SEGURO_INICIAL)
   const fincaNombre = finca?.nombre ?? ''
   const { filas, isLoading, pagar, guardarSalario } = usePlanillaQuincena(finca, periodo.rango)
+  const filasDelGrupo = filtrarFilasPorSeguro(filas, grupoSeguro)
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
 
@@ -94,8 +99,10 @@ export function PlanillaScreen() {
             </label>
           </div>
 
+          <GrupoSeguroSelector grupo={grupoSeguro} onGrupoChange={setGrupoSeguro} />
+
           <PlanillaTable
-            filas={filas}
+            filas={filasDelGrupo}
             isLoading={isLoading}
             actions={{ onPagar: handlePagar, onDescargarPdf: handleDescargarPdf, onVerAusencias: setFilaAusencias, onGuardarSalario: guardarSalario }}
           />

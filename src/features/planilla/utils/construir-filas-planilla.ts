@@ -30,6 +30,7 @@ export function construirFilasPlanilla({ salarios, pagos, ausencias, finca }: Co
       trabajadorId: salario.trabajadorId,
       nombreCompleto: salario.nombreCompleto,
       fotoUrl: salario.fotoUrl,
+      asegurado: salario.asegurado,
       salarioMensual: salario.salarioMensual,
       moneda: salario.moneda,
       montoSemanal: calcularMontoSemanal(salario.salarioMensual, salario.moneda),
