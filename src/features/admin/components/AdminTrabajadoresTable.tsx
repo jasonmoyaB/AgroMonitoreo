@@ -2,14 +2,16 @@ import { Avatar } from '../../../shared/components/Avatar'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 const AVATAR_SIZE_PX = 40
+const BADGE_CLASS = 'inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide'
 
 interface AdminTrabajadoresTableProps {
   trabajadores: readonly Trabajador[]
   isLoading: boolean
   onSelectTrabajador: (trabajador: Trabajador) => void
+  onEditarSeguro: (trabajador: Trabajador) => void
 }
 
-export function AdminTrabajadoresTable({ trabajadores, isLoading, onSelectTrabajador }: AdminTrabajadoresTableProps) {
+export function AdminTrabajadoresTable({ trabajadores, isLoading, onSelectTrabajador, onEditarSeguro }: AdminTrabajadoresTableProps) {
   if (isLoading) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">Cargando trabajadores.</p>
   if (!trabajadores.length) return <p className="neu-raised rounded-3xl p-5 font-black text-slate-700">Esta finca no tiene trabajadores registrados.</p>
 
@@ -24,6 +26,9 @@ export function AdminTrabajadoresTable({ trabajadores, isLoading, onSelectTrabaj
               </th>
               <th scope="col" className="px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
                 Estado
+              </th>
+              <th scope="col" className="px-5 py-4 text-right text-xs font-black uppercase tracking-[0.18em] text-slate-600">
+                Acciones
               </th>
             </tr>
           </thead>
@@ -49,13 +54,26 @@ export function AdminTrabajadoresTable({ trabajadores, isLoading, onSelectTrabaj
                   </div>
                 </td>
                 <td className="px-5 py-3">
-                  <span
-                    className={`inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide ${
-                      trabajador.activo ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'
-                    }`}
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className={`${BADGE_CLASS} ${trabajador.activo ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}`}>
+                      {trabajador.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                    <span className={`${BADGE_CLASS} ${trabajador.asegurado ? 'bg-indigo-100 text-indigo-900' : 'bg-amber-100 text-amber-900'}`}>
+                      {trabajador.asegurado ? 'Asegurado' : 'No asegurado'}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-5 py-3 text-right">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onEditarSeguro(trabajador)
+                    }}
+                    className="neu-pressed min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-slate-800"
                   >
-                    {trabajador.activo ? 'Activo' : 'Inactivo'}
-                  </span>
+                    Editar
+                  </button>
                 </td>
               </tr>
             ))}

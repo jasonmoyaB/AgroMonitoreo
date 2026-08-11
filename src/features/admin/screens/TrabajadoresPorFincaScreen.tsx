@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { AdminTrabajadoresTable } from '../components/AdminTrabajadoresTable'
+import { EditarAseguradoModal } from '../components/EditarAseguradoModal'
 import { FincaSelector } from '../components/FincaSelector'
 import { TrabajadorMetricasModal } from '../../trabajadores/components/TrabajadorMetricasModal'
 import { TrabajadoresFilterBar } from '../../trabajadores/components/TrabajadoresFilterBar'
@@ -10,6 +12,7 @@ import { useFincaSeleccionada } from '../hooks/use-finca-seleccionada'
 import { useTrabajadoresFincaAdmin } from '../hooks/use-trabajadores-finca-admin'
 import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores-filtro'
 import { useTrabajadorMetricasModal } from '../../trabajadores/hooks/use-trabajador-metricas-modal'
+import type { Trabajador } from '../../../shared/types/domain.types'
 
 const FINCA_NOMBRE_VACIO = ''
 
@@ -22,6 +25,13 @@ export function TrabajadoresPorFincaScreen() {
   const metricasModal = useTrabajadorMetricasModal()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
+  const [trabajadorEditando, setTrabajadorEditando] = useState<Trabajador | null>(null)
+
+  function cambiarSeguro(asegurado: boolean) {
+    if (!trabajadorEditando) return
+    trabajadores.cambiarAsegurado({ id: trabajadorEditando.id, asegurado })
+    setTrabajadorEditando(null)
+  }
 
   return (
     <main className="h-dvh overflow-hidden p-3 sm:p-4">
@@ -43,6 +53,7 @@ export function TrabajadoresPorFincaScreen() {
             trabajadores={filtro.trabajadoresFiltrados}
             isLoading={trabajadores.isLoading}
             onSelectTrabajador={metricasModal.abrir}
+            onEditarSeguro={setTrabajadorEditando}
           />
         </section>
 
@@ -50,6 +61,13 @@ export function TrabajadoresPorFincaScreen() {
           state={metricasModal}
           actions={{ onFiltroChange: metricasModal.updateFiltro, onResetFiltros: metricasModal.resetFiltros, onClose: metricasModal.cerrar }}
           fincaNombre={fincaNombre}
+        />
+
+        <EditarAseguradoModal
+          trabajador={trabajadorEditando}
+          isGuardando={trabajadores.isGuardandoAsegurado}
+          onCambiar={cambiarSeguro}
+          onClose={() => setTrabajadorEditando(null)}
         />
       </div>
     </main>

@@ -74,6 +74,14 @@ export async function cambiarEstadoTrabajador(trabajador: Trabajador, client: Su
   return mapTrabajador(data)
 }
 
+// patch parcial a proposito: manda solo asegurado para no pisar el resto de la fila
+export async function cambiarAseguradoTrabajador(input: { id: string; asegurado: boolean }, client: SupabaseClient = supabase): Promise<Trabajador> {
+  const { data, error } = await client.from('trabajadores').update({ asegurado: input.asegurado }).eq('id', input.id).select(TRABAJADORES_COLUMNS).single()
+
+  if (error) throw new Error(`cambiarAseguradoTrabajador: ${error.message}`)
+  return mapTrabajador(data)
+}
+
 function mapTrabajador(row: { id: string; finca_id: string; nombre_completo: string; foto_url: string | null; activo: boolean; asegurado: boolean }): Trabajador {
   return {
     id: row.id,
