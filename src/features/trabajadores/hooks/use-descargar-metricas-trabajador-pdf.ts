@@ -1,6 +1,6 @@
 import { useToastStore } from '../../../shared/stores/toast-store'
 import { descargarBlob } from '../../../shared/lib/descargar-blob'
-import { quitarDiacriticos } from '../../../shared/utils/quitar-diacriticos'
+import { crearSlugArchivo } from '../../../shared/utils/crear-slug-archivo'
 import { generarPdfMetricasTrabajador } from '../utils/generar-pdf-metricas-trabajador'
 import type { MetricaPorLabor, TrabajadorMetricasTotales } from '../types/trabajador-metricas.types'
 
@@ -24,8 +24,5 @@ export function useDescargarMetricasTrabajadorPdf({ trabajadorNombre, fincaNombr
 }
 
 function crearNombreArchivo(trabajadorNombre: string): string {
-  const slug = quitarDiacriticos(trabajadorNombre.toLowerCase())
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-  return `metricas-${slug || 'trabajador'}.pdf`
+  return `metricas-${crearSlugArchivo(trabajadorNombre) || 'trabajador'}.pdf`
 }

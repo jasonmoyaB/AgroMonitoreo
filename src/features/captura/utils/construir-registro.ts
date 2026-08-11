@@ -1,5 +1,4 @@
 import type { RegistroTrabajo, TipoLabor } from '../../../shared/types/domain.types'
-import { crearIdRegistro } from './crear-id-registro'
 import { REGISTRADO_POR_LOCAL } from '../constants/captura.constants'
 
 interface ConstruirRegistroParams {
@@ -13,7 +12,7 @@ interface ConstruirRegistroParams {
 
 export function construirRegistro(params: ConstruirRegistroParams): RegistroTrabajo {
   return {
-    id: crearIdRegistro(),
+    id: crypto.randomUUID(),
     fincaId: params.fincaId,
     trabajadorId: params.trabajadorId,
     tipoLaborId: params.tipoLabor.id,

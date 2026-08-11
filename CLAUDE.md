@@ -32,22 +32,23 @@ Signup always creates `supervisor` + `birrisito`, server-side — an `admin_ofic
 
 Postgres + Auth + RLS + Storage, migrations in `supabase/migrations/`. Isolation axis is **`finca_id`**, not a multi-tenant `organizacion_id` — one admin owning several farms.
 
-**Tables**: `roles`, `fincas` (+ `valor_hora`), `trabajadores`, `salarios_trabajadores` (1:1 with `trabajadores`; `salario_mensual`, `moneda` in `usd|colones`), `labores`, `usuario` (1:1 with `auth.users` via `auth_user_id`; holds `rol_id`, `finca_id`, `nombre`), `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`.
+**Tables**: `roles`, `fincas` (+ `valor_hora`, `valor_hora_usd`), `trabajadores`, `salarios_trabajadores` (1:1 with `trabajadores`; `salario_mensual`, `moneda` in `usd|colones`), `labores`, `usuario` (1:1 with `auth.users` via `auth_user_id`; holds `rol_id`, `finca_id`, `nombre`), `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`.
 
 - **`registros_trabajo`**: `registrado_por` defaults via `public.usuario_actual_id()` (`auth.uid()` → `usuario.id`), so the client never passes it.
 - **`traslados_trabajadores`** (`20260724173240`): one-day loan of a worker between fincas, `estado` = `pendiente|aprobado|rechazado`. No "return" action — it expires by date scoping. Partial unique index blocks a second live row per worker+date; `resolver_traslado_trabajador()` stamps `resuelto_por`/`resuelto_en`, rejects any update to an already-resolved row, and pins `trabajador_id`/`fecha`/both `finca_*` to their original values so approving can only move `estado`; check constraint rejects origen = destino.
-- **`pagos_quincenales`** (`20260729163414`): one row per worker per quincena. `monto`/`moneda` are a **snapshot** — raising a salary later never rewrites what was already paid. Admin-only, cross-finca, and deliberately no UPDATE/DELETE policy: a paid quincena is corrected with a new adjustment, not by editing the past. Same migration adds `tocar_actualizado_en()`, which stamps `salarios_trabajadores.actualizado_en` server-side (the client used to send it).
+- **`pagos_quincenales`** (`20260729163414`): one row per worker per quincena. `monto`/`moneda`/`monto_bruto`/`dias_ausentes` are a **snapshot** — raising a salary, changing `valor_hora` or deleting an absence later never rewrites what was already paid, and the liquidación PDF can still explain the net it printed (`20260731185135`). Admin-only, cross-finca, and deliberately no UPDATE/DELETE policy: a paid quincena is corrected with a new adjustment, not by editing the past. Same migration adds `tocar_actualizado_en()`, which stamps `salarios_trabajadores.actualizado_en` server-side (the client used to send it).
 - **Signup trigger**: `crear_usuario_desde_auth()` (`AFTER INSERT ON auth.users`, `SECURITY DEFINER`). Role/finca are hardcoded, never read from `raw_user_meta_data` (`20260708183000`) — trusting client metadata was a privilege-escalation hole.
 - **Storage**: `trabajador-fotos` bucket (public, 5MB, jpeg/png/webp). Writes scoped by `storage.foldername(name)[1]` = finca.
 - **Client**: `shared/lib/supabase-client.ts`, single `createClient<Database>`. `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local` (uncommitted).
 
-### Two rules learned the hard way
+### Three rules learned the hard way
 
 1. **RLS joins through `usuario`**, never a bare column check:
    `usuario.auth_user_id = auth.uid() and usuario.finca_id = <tabla>.finca_id and usuario.activo = true`. Follow this shape for every farm-scoped table.
 2. **Every migration creating a table must also `grant select, insert, update, delete on table public.x to authenticated;`** — the hosted project grants this by invisible platform default, but `supabase db reset` revokes it locally, so a missing grant 403s in local dev while `tsc` and the schema look fine. Grant to `authenticated` only; no policy here gives `anon` anything.
+3. **A `SECURITY DEFINER` helper goes in schema `private`, never `public`** (`20260803232810`) — `public` is exposed by PostgREST, so anything there is reachable at `/rest/v1/rpc/<fn>` and the advisor flags it. `private` is not in `api.schemas`, so `grant usage on schema private to authenticated` keeps RLS working without exposing an endpoint. `private.es_admin_oficina()` is the reference case. Every function also carries `set search_path = ''` with a fully qualified body.
 
-Related gotchas, if you touch `SECURITY DEFINER` functions: Postgres grants EXECUTE to `PUBLIC` at creation, so revoking from `anon`+`authenticated` alone leaves the advisor flagging it; and the signup trigger runs as `supabase_auth_admin`, which needs its grant added back explicitly. Only open advisor: leaked-password protection (Dashboard toggle, no migration can flip it).
+Related gotchas, if you touch `SECURITY DEFINER` functions: `revoke execute ... from public` only drops the `PUBLIC` pseudo-role grant — Supabase's *default privileges* additionally grant EXECUTE to `anon` and `authenticated` on every new function in `public`, so those two must be revoked **by name**. A trigger function needs no EXECUTE from the firing role at all (Postgres checks it at `create trigger`), but a function used inside an RLS policy does. And the signup trigger runs as `supabase_auth_admin`, which needs its grant added back explicitly. Open advisors, both Auth-side and both accepted on purpose: leaked-password protection (needs Pro plan) and insufficient MFA options (no enrolment UI, and field supervisors are low-literacy).
 
 ## Commands
 
@@ -98,7 +99,9 @@ Hard limits: ~150 lines/file, ~30 lines/function, ≤3 function params (object b
 
 ### Payroll (`/admin/salarios`, `/admin/planilla`)
 
-Admin types a fixed **monthly** salary per worker; the quincena is simply half, rounded per currency (colones to the unit, usd to 2 decimals — `shared/utils/calcular-monto-quincena.ts`). Not computed from hours or production. `fincas.valor_hora` is stored and editable but **nothing consumes it yet** — no pay calculation reads it.
+Admin types a fixed **monthly** salary per worker; the quincena's **gross** is simply half, rounded per currency (colones to the unit, usd to 2 decimals — `shared/utils/redondear-por-moneda.ts`, shared with the absence deduction so gross − deduction always closes). Not computed from hours or production.
+
+**Absences are deducted** (`20260731185134`/`20260731185135`): one absent day costs `valor_hora × JORNADA_NORMAL_HORAS` (8). Every `asistencia` row in the quincena's date range counts — all three types (`vacaciones`, `permisos`, `permisos_medicos`), by explicit user decision, despite vacations being paid leave under CR law. Net is clamped at 0. `fincas` now carries **two** hourly rates, `valor_hora` (colones) and `valor_hora_usd`; the one matching the worker's `moneda` is used, and `0` means "undefined" → deduct nothing rather than deduct wrong. Deduction runs in `planilla/utils/calcular-deduccion-ausencias.ts`, applied in `construir-filas-planilla.ts`.
 
 Paying is a separate step: `/admin/planilla` writes a row to `pagos_quincenales` whose `monto`/`moneda` are frozen at that moment. So the table shows what was actually paid when a payment exists, and only falls back to today's computed half when it doesn't — raising a salary never rewrites a past quincena (`planilla/utils/construir-filas-planilla.ts`). Cut is calendar 1–15 / 16–end of month, 24 payments a year.
 

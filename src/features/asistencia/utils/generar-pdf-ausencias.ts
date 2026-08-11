@@ -23,11 +23,7 @@ export function generarPdfAusencias(input: GenerarPdfAusenciasInput): Blob {
 }
 
 function crearStream(input: GenerarPdfAusenciasInput): string {
-  return [pintarFondo(), pintarEncabezado(input), pintarResumen(input.registros), pintarCalendario(input), pintarPie()].join('\n')
-}
-
-function pintarFondo(): string {
-  return ''
+  return [pintarEncabezado(input), pintarResumen(input.registros), pintarCalendario(input), pintarPie()].join('\n')
 }
 
 function pintarEncabezado({ fincaNombre, anio, mes }: GenerarPdfAusenciasInput): string {

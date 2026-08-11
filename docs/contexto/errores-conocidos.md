@@ -10,6 +10,18 @@ El proyecto hosteado da los permisos a `authenticated` por default invisible; `s
 **`SECURITY DEFINER` y el advisor.**
 Postgres otorga EXECUTE a `PUBLIC` al crear la función: revocar solo de `anon` y `authenticated` deja el advisor prendido igual. Y el trigger de signup corre como `supabase_auth_admin`, así que a ese rol hay que devolverle el grant explícitamente.
 
+**`revoke ... from public` no saca los grants de Supabase.**
+Es la otra mitad del error de arriba, y muerde al revés. `20260709165032` y `20260714171722` revocaron de `public` creyendo que cerraban el tema, pero el ACL real seguía teniendo `anon=X` y `authenticated=X`: esos grants no vienen del pseudo-rol `PUBLIC` sino de los *default privileges* que Supabase aplica a toda función nueva en el schema `public`. Hay que revocar de `anon` y `authenticated` **por nombre**. Síntoma: el advisor sigue marcando 0028/0029 aunque la migración "ya lo arregló".
+
+**A una función usada en una policy no se le puede quitar el EXECUTE.**
+Las expresiones de una policy corren con los privilegios de quien consulta, así que `es_admin_oficina` necesita su grant a `authenticated` sí o sí. Para sacarla del advisor se la **mueve** a schema `private` (`20260803232810`), no se la revoca. Un trigger es el caso opuesto: no necesita EXECUTE del rol que dispara la sentencia, porque Postgres lo chequea al `create trigger`.
+
+**Las policies siguen a la función al cambiar de schema, el plpgsql no.**
+`alter function ... set schema` es transparente para `pg_policy` (guarda el OID), pero un cuerpo plpgsql resuelve el nombre en runtime: `evitar_escalada_privilegios_usuario` llamaba a `public.es_admin_oficina()` y había que repuntarlo a mano o reventaba al dispararse.
+
+**Los 2 warnings de Auth del advisor están abiertos a propósito.**
+`auth_leaked_password_protection` necesita plan Pro (la org está en Free) y `auth_insufficient_mfa_options` necesitaría además una pantalla de enrolamiento MFA, que no encaja con supervisores de campo con baja alfabetización. Ninguna migración los cierra: no perder tiempo buscándoles el fix en SQL.
+
 **`max_rows = 1000` de PostgREST trunca en silencio.**
 Traer la tabla entera de `registros_trabajo` cortaba apenas pasado el primer mes de uso, y los KPIs salían bajos sin ningún aviso. Acotar al rango pedido y paginar hasta que la base deje de devolver filas — ver `captura/services/registros-service.ts`.
 
@@ -66,4 +78,6 @@ Va adentro de la misma section que el contenido para que se suba con el scroll. 
 
 **`captura/utils/obtener-dias-en-mes.ts` lo usa `planilla` desde otra feature.** `fecha-iso.ts` ya se movió a `shared/utils/`; este quedó a medio camino. Moverlo también la próxima vez que se toque.
 
-**`fincas.valor_hora` se guarda y se edita pero no lo lee ningún cálculo.** Es un campo huérfano a la espera de una regla de negocio.
+**Cambiar `valor_hora` no reescribe una quincena ya pagada, y está bien.** El pago congela `monto_bruto` y `dias_ausentes`, así que la fila pagada y la liquidación siguen mostrando lo de ese día. Si el descuento sale distinto al esperado, mirar primero si la fila ya tiene pago.
+
+**`valor_hora_usd` en 0 no descuenta nada.** Es a propósito (`calcular-deduccion-ausencias.ts`): descontar 1750 *dólares* por hora sería peor que no descontar. Si un trabajador en USD aparece sin descuento pese a tener ausencias, falta cargar el valor hora en USD en `/admin/salarios`.

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { listarTodosTrabajadoresPorFinca } from '../../trabajadores/services/trabajadores-service'
-import { TRABAJADORES_ADMIN_QUERY_KEY } from '../constants/salarios-query.constants'
+import { TRABAJADORES_ADMIN_QUERY_KEY } from '../constants/trabajadores-admin-query.constants'
 
 export function useTrabajadoresFincaAdmin(fincaId: string | null) {
   const { data: trabajadores = [], isLoading } = useQuery({

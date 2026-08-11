@@ -6,7 +6,7 @@ Términos del dominio, tal como aparecen en el código.
 
 | Término | Qué es | Dónde |
 |---|---|---|
-| **Finca** | Unidad de aislamiento de todo el sistema. La única real hoy es `birrisito`. Tiene `valor_hora` (guardado, sin consumidor). | tabla `fincas`, `Finca` en `domain.types.ts` |
+| **Finca** | Unidad de aislamiento de todo el sistema. La única real hoy es `birrisito`. Tiene `valor_hora` y `valor_hora_usd`, que fijan el costo del día ausente. | tabla `fincas`, `Finca` en `domain.types.ts` |
 | **Capataz / supervisor** | Quien carga los datos en campo. Rol `supervisor`. Todo signup crea uno. | rol `supervisor`, `features/supervisor` |
 | **Admin de oficina** | Lee lo que cargó el campo y gestiona fincas, supervisores, salarios y planilla. Cruza todas las fincas. Se promueve por SQL. | rol `admin_oficina`, `features/admin` |
 | **Usuario** | Fila 1:1 con `auth.users` vía `auth_user_id`; guarda `rol_id`, `finca_id`, `nombre`. Es por donde todas las policies RLS hacen join. | tabla `usuario` |
@@ -39,11 +39,12 @@ El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inv
 |---|---|---|
 | **Salario mensual** | Monto fijo que el admin escribe a mano por trabajador, en `usd` o `colones`. No se calcula desde horas ni producción. | tabla `salarios_trabajadores`, `/admin/salarios` |
 | **Quincena** | Medio mes calendario: 1–15 y 16–fin de mes. 24 por año. | `planilla/utils/obtener-rango-quincena.ts` |
-| **Monto de quincena** | `salario_mensual / 2`, redondeado según moneda (colones al entero, USD a 2 decimales). | `shared/utils/calcular-monto-quincena.ts` |
+| **Monto de quincena** | Bruto: `salario_mensual / 2`, redondeado según moneda (colones al entero, USD a 2 decimales). Neto: bruto menos las ausencias de esa quincena, topado en 0. | `shared/utils/calcular-monto-quincena.ts`, `planilla/utils/construir-filas-planilla.ts` |
 | **Planilla** | La vista de la quincena: todos los trabajadores de una finca con su monto y si ya se pagó. | `features/planilla`, `/admin/planilla` |
 | **Pago quincenal** | El registro financiero del pago. `monto` y `moneda` son un snapshot congelado: subir un salario después no reescribe lo ya pagado. | tabla `pagos_quincenales` |
 | **Liquidación** | El PDF por trabajador de esa quincena. | `planilla/utils/generar-pdf-liquidacion.ts` |
-| **Valor hora** | Campo de `fincas`, editable en `/admin/salarios`. **Hoy no lo lee ningún cálculo.** | `fincas.valor_hora` |
+| **Valor hora** | Dos campos de `fincas`, editables en `/admin/salarios`: `valor_hora` (colones) y `valor_hora_usd`. Se usa el que coincide con la moneda del salario. `0` = sin definir, no descuenta. | `fincas.valor_hora`, `fincas.valor_hora_usd` |
+| **Día ausente** | Lo que cuesta una falta: `valor_hora × 8`. Con 1750 son 14 000. | `planilla/utils/calcular-deduccion-ausencias.ts` |
 
 ## Siglas
 

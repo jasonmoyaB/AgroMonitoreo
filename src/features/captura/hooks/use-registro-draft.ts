@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { readLocalValue, writeLocalValue } from '../../../shared/lib/local-db'
+import { get, set } from 'idb-keyval'
 
 interface RegistroDraft {
   horas: number
@@ -25,14 +25,14 @@ export function useRegistroDraft(trabajadorId: string, tipoLaborId: string, fech
 
   useEffect(() => {
     setEstado((actual) => ({ ...actual, cargado: false }))
-    readLocalValue(clave, DRAFT_INICIAL).then((valorGuardado) => {
-      setEstado({ draft: valorGuardado, cargado: true })
+    get<RegistroDraft>(clave).then((valorGuardado) => {
+      setEstado({ draft: valorGuardado ?? DRAFT_INICIAL, cargado: true })
     })
   }, [clave])
 
   useEffect(() => {
     if (!cargado) return
-    const timeoutId = setTimeout(() => writeLocalValue(clave, draft), DEMORA_GUARDADO_MS)
+    const timeoutId = setTimeout(() => set(clave, draft), DEMORA_GUARDADO_MS)
     return () => clearTimeout(timeoutId)
   }, [clave, draft, cargado])
 
@@ -42,7 +42,7 @@ export function useRegistroDraft(trabajadorId: string, tipoLaborId: string, fech
 
   function limpiarDraft() {
     setDraft(DRAFT_INICIAL)
-    writeLocalValue(clave, DRAFT_INICIAL)
+    set(clave, DRAFT_INICIAL)
   }
 
   return { draft, setDraft, limpiarDraft, cargado }
