@@ -2,6 +2,7 @@ import { Avatar } from '../../../shared/components/Avatar'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 const AVATAR_SIZE_PX = 40
+const BADGE_CLASS = 'inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide'
 
 interface TrabajadoresTableActions {
   onEdit: (trabajador: Trabajador) => void
@@ -73,18 +74,13 @@ function TrabajadoresTableRow({ trabajador, fincaDestino, actions }: Trabajadore
       </td>
       <td className="px-5 py-3">
         <div className="flex flex-wrap gap-1.5">
-          <span
-            className={`inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide ${
-              trabajador.activo ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'
-            }`}
-          >
+          <span className={`${BADGE_CLASS} ${trabajador.activo ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}`}>
             {trabajador.activo ? 'Activo' : 'Inactivo'}
           </span>
-          {fincaDestino && (
-            <span className="inline-flex min-h-8 items-center rounded-full bg-sky-100 px-3 text-xs font-black uppercase tracking-wide text-sky-900">
-              Trabajador trasladado a: {fincaDestino}
-            </span>
-          )}
+          <span className={`${BADGE_CLASS} ${trabajador.asegurado ? 'bg-indigo-100 text-indigo-900' : 'bg-amber-100 text-amber-900'}`}>
+            {trabajador.asegurado ? 'Asegurado' : 'No asegurado'}
+          </span>
+          {fincaDestino && <span className={`${BADGE_CLASS} bg-sky-100 text-sky-900`}>Trabajador trasladado a: {fincaDestino}</span>}
         </div>
       </td>
       <td className="px-5 py-3">

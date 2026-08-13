@@ -4,7 +4,7 @@ import type { Trabajador } from '../../../shared/types/domain.types'
 import { BUCKET_FOTOS_TRABAJADORES, EXTENSION_POR_MIME, type TipoMimePermitido } from '../constants/foto-trabajador.constants'
 import type { ActualizarTrabajadorInput, CrearTrabajadorInput } from '../types/trabajador-form.types'
 
-const TRABAJADORES_COLUMNS = 'id, finca_id, nombre_completo, foto_url, activo'
+const TRABAJADORES_COLUMNS = 'id, finca_id, nombre_completo, foto_url, activo, asegurado'
 
 export async function subirFotoTrabajador(input: { fincaId: string; archivo: File }, client: SupabaseClient = supabase): Promise<string> {
   const extension = EXTENSION_POR_MIME[input.archivo.type as TipoMimePermitido]
@@ -46,6 +46,7 @@ export async function crearTrabajador(input: CrearTrabajadorInput, client: Supab
       nombre_completo: input.nombreCompleto.trim(),
       foto_url: input.fotoUrl.trim() || null,
       activo: input.activo,
+      asegurado: input.asegurado,
     })
     .select(TRABAJADORES_COLUMNS)
     .single()
@@ -57,7 +58,7 @@ export async function crearTrabajador(input: CrearTrabajadorInput, client: Supab
 export async function actualizarTrabajador(input: ActualizarTrabajadorInput, client: SupabaseClient = supabase): Promise<Trabajador> {
   const { data, error } = await client
     .from('trabajadores')
-    .update({ nombre_completo: input.nombreCompleto.trim(), foto_url: input.fotoUrl.trim() || null, activo: input.activo })
+    .update({ nombre_completo: input.nombreCompleto.trim(), foto_url: input.fotoUrl.trim() || null, activo: input.activo, asegurado: input.asegurado })
     .eq('id', input.id)
     .select(TRABAJADORES_COLUMNS)
     .single()
@@ -73,12 +74,21 @@ export async function cambiarEstadoTrabajador(trabajador: Trabajador, client: Su
   return mapTrabajador(data)
 }
 
-function mapTrabajador(row: { id: string; finca_id: string; nombre_completo: string; foto_url: string | null; activo: boolean }): Trabajador {
+// patch parcial a proposito: manda solo asegurado para no pisar el resto de la fila
+export async function cambiarAseguradoTrabajador(input: { id: string; asegurado: boolean }, client: SupabaseClient = supabase): Promise<Trabajador> {
+  const { data, error } = await client.from('trabajadores').update({ asegurado: input.asegurado }).eq('id', input.id).select(TRABAJADORES_COLUMNS).single()
+
+  if (error) throw new Error(`cambiarAseguradoTrabajador: ${error.message}`)
+  return mapTrabajador(data)
+}
+
+function mapTrabajador(row: { id: string; finca_id: string; nombre_completo: string; foto_url: string | null; activo: boolean; asegurado: boolean }): Trabajador {
   return {
     id: row.id,
     fincaId: row.finca_id,
     nombreCompleto: row.nombre_completo,
     fotoUrl: row.foto_url,
     activo: row.activo,
+    asegurado: row.asegurado,
   }
 }

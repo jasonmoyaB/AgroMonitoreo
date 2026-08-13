@@ -43,16 +43,19 @@ export interface Trabajador {
   nombreCompleto: string
   fotoUrl: string | null
   activo: boolean
+  asegurado: boolean
 }
 
 // vive en salarios_trabajadores, no en trabajadores: RLS es row-level, y las policies
-// de trabajadores alcanzan toda la tabla para que traslados pueda listar otras fincas
+// de trabajadores alcanzan toda la tabla para que traslados pueda listar otras fincas.
+// asegurado es la unica excepcion, con el alcance aceptado a proposito: decisiones.md 3b
 export interface SalarioTrabajador {
   trabajadorId: string
   nombreCompleto: string
   fotoUrl: string | null
   salarioMensual: number
   moneda: Moneda
+  asegurado: boolean
 }
 
 export interface RegistroTrabajo {

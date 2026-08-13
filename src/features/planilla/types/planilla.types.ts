@@ -26,10 +26,14 @@ export interface PagoQuincenal {
   creadoEn: string
 }
 
+// la planilla se paga en dos tandas separadas, una por grupo
+export type GrupoSeguro = 'asegurados' | 'no_asegurados'
+
 export interface FilaPlanilla {
   trabajadorId: string
   nombreCompleto: string
   fotoUrl: string | null
+  asegurado: boolean
   salarioMensual: number
   moneda: Moneda
   // referencia informativa: el salario mensual llevado a semana. no se paga ni se registra

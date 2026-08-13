@@ -5,8 +5,8 @@ import type { AsistenciaConTrabajador } from '../../../../src/features/asistenci
 import type { PagoQuincenal } from '../../../../src/features/planilla/types/planilla.types'
 
 const SALARIOS: SalarioTrabajador[] = [
-  { trabajadorId: 'a', nombreCompleto: 'Ana', fotoUrl: null, salarioMensual: 400000, moneda: 'colones' },
-  { trabajadorId: 'b', nombreCompleto: 'Beto', fotoUrl: null, salarioMensual: 1000, moneda: 'usd' },
+  { trabajadorId: 'a', nombreCompleto: 'Ana', fotoUrl: null, asegurado: true, salarioMensual: 400000, moneda: 'colones' },
+  { trabajadorId: 'b', nombreCompleto: 'Beto', fotoUrl: null, asegurado: false, salarioMensual: 1000, moneda: 'usd' },
 ]
 
 const FINCA = { valorHora: 1750, valorHoraUsd: 2 }

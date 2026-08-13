@@ -1,11 +1,14 @@
 import { Check, Download } from 'lucide-react'
 import { Avatar } from '../../../shared/components/Avatar'
 import { formatearMonto } from '../../../shared/utils/formatear-monto'
+import { CeldaAusencias } from './CeldaAusencias'
 import { CeldasSalario } from './CeldasSalario'
 import type { EdicionSalario, FilaPlanilla } from '../../planilla/types/planilla.types'
 
 const AVATAR_SIZE_PX = 40
-const COLUMNAS = ['Trabajador', 'Salario mensual', 'Moneda', 'Monto semanal', 'Ausencias', 'Monto quincena', 'Estado', ''] as const
+const COLUMNAS = ['Trabajador', 'Salario mensual', 'Moneda', 'Ausencias', 'Monto semanal', 'Monto quincena', 'Estado', ''] as const
+const BOTON_ACCION_CLASS =
+  'min-h-11 cursor-pointer rounded-xl font-black text-green-900 transition-colors duration-200 hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900'
 
 interface PlanillaAcciones {
   onPagar: (fila: FilaPlanilla) => void
@@ -71,70 +74,58 @@ function PlanillaFila({ fila, actions }: PlanillaFilaProps) {
         </div>
       </td>
       <CeldasSalario fila={fila} onGuardar={actions.onGuardarSalario} />
-      <td className="px-5 py-3 font-bold text-slate-600">{formatearMonto(fila.montoSemanal, fila.moneda)}</td>
       <td className="px-5 py-3">
         <CeldaAusencias fila={fila} resumen={{ diasAusentes, deduccion, moneda }} onVer={actions.onVerAusencias} />
       </td>
+      <td className="px-5 py-3 font-bold text-slate-600">{formatearMonto(fila.montoSemanal, fila.moneda)}</td>
       <td className="px-5 py-3 text-base font-black text-slate-900">{formatearMonto(monto, moneda)}</td>
       <td className="px-5 py-3">
-        {pagada ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-green-700/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-green-800">
-            <Check className="h-3.5 w-3.5" aria-hidden="true" />
-            Pagada
-          </span>
-        ) : (
-          <span className="text-xs font-black uppercase tracking-wider text-slate-500">Pendiente</span>
-        )}
+        <CeldaEstado pagada={pagada} />
       </td>
       <td className="px-5 py-3">
-        {pagada ? (
-          <button
-            type="button"
-            onClick={() => actions.onDescargarPdf(fila)}
-            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl px-3 font-black text-green-900 transition-colors duration-200 hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
-          >
-            <Download className="h-4 w-4" aria-hidden="true" />
-            Liquidación
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => actions.onPagar(fila)}
-            disabled={fila.salarioMensual <= 0}
-            title={fila.salarioMensual <= 0 ? 'Primero escribe el salario mensual en esta misma fila' : undefined}
-            className="neu-raised min-h-11 cursor-pointer rounded-xl px-4 font-black text-green-900 transition-colors duration-200 hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Pagar quincena
-          </button>
-        )}
+        <CeldaAcciones fila={fila} pagada={pagada} actions={actions} />
       </td>
     </tr>
   )
 }
 
-interface CeldaAusenciasProps {
-  fila: FilaPlanilla
-  resumen: { diasAusentes: number; deduccion: number; moneda: FilaPlanilla['moneda'] }
-  onVer: (fila: FilaPlanilla) => void
+function CeldaEstado({ pagada }: { pagada: boolean }) {
+  if (!pagada) return <span className="text-xs font-black uppercase tracking-wider text-slate-500">Pendiente</span>
+
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-700/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-green-800">
+      <Check className="h-3.5 w-3.5" aria-hidden="true" />
+      Pagada
+    </span>
+  )
 }
 
-// solo es boton cuando hay fechas que mostrar: una fila pagada conserva el conteo del
-// snapshot aunque despues borren las ausencias, y el modal quedaria vacio
-function CeldaAusencias({ fila, resumen, onVer }: CeldaAusenciasProps) {
-  const { diasAusentes, deduccion, moneda } = resumen
-  if (diasAusentes === 0) return <span className="font-bold text-slate-400">—</span>
+interface CeldaAccionesProps {
+  fila: FilaPlanilla
+  pagada: boolean
+  actions: Pick<PlanillaAcciones, 'onPagar' | 'onDescargarPdf'>
+}
 
-  const etiqueta = `${diasAusentes} ${diasAusentes === 1 ? 'día' : 'días'} · −${formatearMonto(deduccion, moneda)}`
-  if (fila.ausencias.length === 0) return <span className="font-black text-amber-700">{etiqueta}</span>
+function CeldaAcciones({ fila, pagada, actions }: CeldaAccionesProps) {
+  if (pagada) {
+    return (
+      <button type="button" onClick={() => actions.onDescargarPdf(fila)} className={`${BOTON_ACCION_CLASS} flex items-center gap-2 px-3`}>
+        <Download className="h-4 w-4" aria-hidden="true" />
+        Liquidación
+      </button>
+    )
+  }
 
+  const sinSalario = fila.salarioMensual <= 0
   return (
     <button
       type="button"
-      onClick={() => onVer(fila)}
-      title="Ver qué días faltó"
-      className="min-h-11 cursor-pointer rounded-xl px-2 font-black text-amber-700 underline decoration-dotted underline-offset-4 transition-colors duration-200 hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+      onClick={() => actions.onPagar(fila)}
+      disabled={sinSalario}
+      title={sinSalario ? 'Primero escribe el salario mensual en esta misma fila' : undefined}
+      className={`${BOTON_ACCION_CLASS} neu-raised px-4 disabled:cursor-not-allowed disabled:opacity-50`}
     >
-      {etiqueta}
+      Pagar quincena
     </button>
   )
 }

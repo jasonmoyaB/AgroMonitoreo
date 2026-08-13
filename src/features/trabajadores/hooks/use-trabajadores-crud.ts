@@ -8,7 +8,7 @@ import { actualizarTrabajador, cambiarEstadoTrabajador, crearTrabajador, listarT
 import { useFotoTrabajador } from './use-foto-trabajador'
 import type { TrabajadorFormValues } from '../types/trabajador-form.types'
 
-const TRABAJADOR_INICIAL: TrabajadorFormValues = { nombreCompleto: '', fotoUrl: '', activo: true }
+const TRABAJADOR_INICIAL: TrabajadorFormValues = { nombreCompleto: '', fotoUrl: '', activo: true, asegurado: false }
 
 interface EstadoFormularioTrabajador {
   values: TrabajadorFormValues
@@ -47,7 +47,7 @@ export function useTrabajadoresCrud() {
   function editarTrabajador(trabajador: Trabajador) {
     setForm({
       trabajadorEditando: trabajador,
-      values: { nombreCompleto: trabajador.nombreCompleto, fotoUrl: trabajador.fotoUrl ?? '', activo: trabajador.activo },
+      values: { nombreCompleto: trabajador.nombreCompleto, fotoUrl: trabajador.fotoUrl ?? '', activo: trabajador.activo, asegurado: trabajador.asegurado },
       error: null,
       isFormOpen: true,
     })
