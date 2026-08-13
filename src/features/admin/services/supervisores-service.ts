@@ -40,8 +40,12 @@ export async function invitarUsuario(email: string, client: SupabaseClient = sup
 async function leerMensajeFuncion(error: Error): Promise<string> {
   if (!(error instanceof FunctionsHttpError)) return error.message
 
-  const cuerpo = await error.context.json().catch(() => null)
-  return typeof cuerpo?.error === 'string' ? cuerpo.error : error.message
+  try {
+    const cuerpo = await error.context.json()
+    return typeof cuerpo?.error === 'string' ? cuerpo.error : error.message
+  } catch {
+    return error.message
+  }
 }
 
 export async function actualizarSupervisor(input: ActualizarSupervisorInput, client: SupabaseClient = supabase): Promise<Supervisor> {
