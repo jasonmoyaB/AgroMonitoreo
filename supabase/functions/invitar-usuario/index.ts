@@ -50,12 +50,13 @@ async function verificarAdminOficina(authorization: string): Promise<boolean> {
   if (!user) return false
 
   // RLS aplica con el JWT del llamador: solo alcanza su propia fila.
-  const { data } = await client
+const { data, error } = await client
     .from('usuario')
     .select('activo, rol:roles(nombre)')
     .eq('auth_user_id', user.id)
     .single<{ activo: boolean; rol: { nombre: string } | null }>()
 
+  if (error) return false
   return data?.activo === true && data.rol?.nombre === 'admin_oficina'
 }
 
