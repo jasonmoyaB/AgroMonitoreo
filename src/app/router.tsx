@@ -7,7 +7,6 @@ import {
 import {
   ForgotPasswordScreen,
   LoginScreen,
-  RegisterScreen,
   ResetPasswordScreen,
   RouteGuard,
 } from "../features/auth";
@@ -40,7 +39,6 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", element: <Navigate to="/supervisor" replace /> },
       { path: "/login", element: <LoginScreen /> },
-      { path: "/registro", element: <RegisterScreen /> },
       { path: "/olvide-password", element: <ForgotPasswordScreen /> },
       { path: "/reset-password", element: <ResetPasswordScreen /> },
       {

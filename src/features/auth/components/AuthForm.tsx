@@ -2,17 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sprout } from 'lucide-react'
 import { useAuthForm } from '../hooks/use-auth-form'
-import { PasswordChecklist } from './PasswordChecklist'
-import { AUTH_FORM_CONTENT } from '../constants/auth-form-content.constants'
-import type { AuthMode } from '../types/auth.types'
+import { AUTH_FORM_CONTENT as content } from '../constants/auth-form-content.constants'
 
-interface AuthFormProps {
-  mode: AuthMode
-}
-
-export function AuthForm({ mode }: AuthFormProps) {
-  const content = AUTH_FORM_CONTENT[mode]
-  const form = useAuthForm(mode)
+export function AuthForm() {
+  const form = useAuthForm()
   const [mostrarPassword, setMostrarPassword] = useState(false)
 
   return (
@@ -66,8 +59,8 @@ export function AuthForm({ mode }: AuthFormProps) {
               value={form.password}
               onChange={(event) => form.setPassword(event.target.value)}
               className="min-h-14 flex-1 bg-transparent text-base font-bold text-slate-900 outline-none placeholder:text-slate-500"
-              placeholder={mode === 'register' ? 'Crea una contraseña segura' : 'Tu contraseña'}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              placeholder="Tu contraseña"
+              autoComplete="current-password"
               required
             />
             <button
@@ -80,16 +73,12 @@ export function AuthForm({ mode }: AuthFormProps) {
               {mostrarPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
             </button>
           </span>
-          {mode === 'register' && <PasswordChecklist password={form.password} />}
-          {mode === 'login' && (
-            <Link className="mt-2 inline-block text-sm font-bold text-green-800 underline decoration-2 underline-offset-4" to="/olvide-password">
-              ¿Olvidaste tu contraseña?
-            </Link>
-          )}
+          <Link className="mt-2 inline-block text-sm font-bold text-green-800 underline decoration-2 underline-offset-4" to="/olvide-password">
+            ¿Olvidaste tu contraseña?
+          </Link>
         </div>
 
         {form.error && <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{form.error}</p>}
-        {form.notice && <p className="rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-800">{form.notice}</p>}
 
         <button
           type="submit"
@@ -104,12 +93,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         </button>
       </form>
 
-      <p className="mt-8 text-center text-sm font-bold text-slate-600">
-        {content.footer}{' '}
-        <Link className="text-green-800 underline decoration-2 underline-offset-4" to={content.linkTo}>
-          {content.linkText}
-        </Link>
-      </p>
+      <p className="mt-8 text-center text-sm font-bold text-slate-600">{content.aviso}</p>
     </div>
   )
 }

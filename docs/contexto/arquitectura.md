@@ -35,7 +35,7 @@ Los componentes nunca importan componentes de otra feature. Hooks y utils sí pu
 
 | Feature | Qué es |
 |---|---|
-| `auth` | login / registro / recuperación, `AuthGuard`, `AdminGuard`, cooldown de login |
+| `auth` | login / recuperación / alta por invitación, `AuthGuard`, `AdminGuard`, cooldown de login |
 | `captura` | el flujo del capataz en campo (labor → trabajador → horas/cantidad) |
 | `trabajadores` | headless: CRUD + foto, modal de métricas por trabajador |
 | `asistencia` | headless: ausencia diaria, tabla semanal, calendario mensual, PDF |
@@ -49,7 +49,7 @@ Los componentes nunca importan componentes de otra feature. Hooks y utils sí pu
 
 ## Rutas (`src/app/router.tsx`)
 
-- **Públicas**: `/login`, `/registro`, `/olvide-password`, `/reset-password`
+- **Públicas**: `/login`, `/olvide-password`, `/reset-password` (esta última también recibe la invitación, con `?invitacion=1`)
 - **`AuthGuard`**: `/supervisor`, `/supervisor/{dashboard,trabajadores,asistencia,traslados,configuracion}`, `/captura/fecha`, `/captura/labor/:tipoLaborId/trabajadores[/:trabajadorId]`
 - **`AdminGuard`**: `/admin`, `/admin/{dashboard-finca,fincas,supervisores,trabajadores,salarios,planilla,asistencia,traslados,configuracion}`
 
@@ -74,11 +74,11 @@ Cliente único: `shared/lib/supabase-client.ts`. Envs: `VITE_SUPABASE_URL` y `VI
 ## Qué NO existe
 
 - **No es offline-first.** El único IndexedDB es el draft de captura a medias (`captura/hooks/use-registro-draft.ts`) — capa de resiliencia, no fuente de verdad. Normalmente hay wifi.
-- **No hay backend propio ni edge functions.** Toda la lógica de servidor son policies RLS, triggers y funciones SQL.
+- **No hay backend propio.** Casi toda la lógica de servidor son policies RLS, triggers y funciones SQL. La única excepción es `supabase/functions/invitar-usuario/`: existe solo porque invitar requiere el `service_role`, que no puede vivir en el front.
 - **No hay monorepo.** `pnpm-workspace.yaml` existe pero la app es una sola.
 - **No hay `tailwind.config.js`.** Tailwind v4 CSS-first: `@import 'tailwindcss'` en `src/index.css` + `@tailwindcss/vite`.
 - **No hay librería de toasts.** Sistema propio en `shared/` (ver `docs/instruccions/3-notificaciones-toast.md`).
-- **No hay signup de admin.** Todo registro crea `supervisor` + `birrisito` server-side; a admin se promueve por SQL (`docs/instruccions/7-crear-usuario-admin.md`).
+- **No hay signup público.** `enable_signup = false`: nadie se registra solo, ni por pantalla ni por `POST /auth/v1/signup`. El admin invita por correo desde `/admin/supervisores`; el invitado entra como `supervisor` + `birrisito` server-side y a admin se lo promueve después desde esa misma tabla (`docs/instruccions/7-crear-usuario-admin.md`).
 - **El frontend no lee la tabla `labores`.** Usa `shared/constants/tipos-labor.constants.ts`; las dos se sincronizan a mano.
 - **No hay tests de componentes.** Solo utils y services (ver `convenciones.md`).
 - **CI mínima**: `.github/workflows/react-doctor.yml` corre React Doctor en PRs y en push a `main`, en modo advisory (nunca falla el check). No hay job de `build`, `lint` ni `vitest` — esos se corren en local.

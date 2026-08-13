@@ -48,10 +48,10 @@ En CI corre solo React Doctor (`.github/workflows/react-doctor.yml`), en PRs y e
 
 ## Deploy
 
-- **Vercel** → `https://agromonitoreo.vercel.app`. `vercel.json` solo tiene el rewrite SPA (`/(.*)` → `/index.html`).
-- Envs de producción en Vercel: `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`. Vite las hornea en **build time**: si faltan, el build no falla — la app pega a Supabase vacío en runtime.
+- **Vercel** → `https://www.agromonitoreo.com` (dominio propio, comprado en Vercel; el apex redirige a `www`, y `agromonitoreo.vercel.app` sigue respondiendo). `vercel.json` solo tiene el rewrite SPA (`/(.*)` → `/index.html`).
+- Envs de producción en Vercel: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` y `VITE_APP_URL`. Vite las hornea en **build time**: si faltan, el build no falla — la app pega a Supabase vacío en runtime, y los links de los correos de auth salen mal.
 - La config de Auth del proyecto remoto (Site URL, Redirect URLs, SMTP, rate limits) va **por Dashboard, no por git**. `supabase/config.toml` solo aplica a `supabase start` local, y sus cambios requieren `supabase stop && supabase start`. Detalle y gotchas: `docs/instruccions/8-recuperacion-password-prod.md`.
 
 `[PENDIENTE: no está documentado si el deploy a producción es automático por push a main o manual desde el dashboard de Vercel.]`
 
-`[PENDIENTE: sin dominio propio todavía. Al comprarlo hay que actualizar Site URL y Redirect URLs en Supabase.]`
+La URL canónica vive en 4 lugares que nadie valida entre sí: `APP_URL` (secret de la edge function `invitar-usuario`), `VITE_APP_URL` (Vercel), `Site URL` y `Redirect URLs` (Supabase Auth). Al cambiar de dominio hay que tocar los cuatro — ver `docs/instruccions/9-invitaciones-por-correo.md`.

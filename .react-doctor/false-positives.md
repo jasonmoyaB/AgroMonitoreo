@@ -140,3 +140,18 @@ authored code — editing either is overwritten on the next `pnpm dev` start, an
 Workbox file isn't ours to change regardless. Root-caused instead: `dev-dist/` is now in
 `.gitignore` and untracked from git, so `react-doctor` (which "respects .gitignore" for
 untracked files per its own `--help`) stops scanning it.
+
+## `deslop/unused-file`
+
+### `supabase/functions/invitar-usuario/index.ts`
+
+Nada del repo lo importa, y no debe importarlo: es el entrypoint de una edge function de
+Supabase, no un módulo de la app. Su "llamador" es el runtime de Deno vía `Deno.serve(...)`
+en la última línea del archivo, y el front lo alcanza por HTTP (`client.functions.invoke
+('invitar-usuario', ...)` en `src/features/admin/services/supervisores-service.ts`), nunca
+por import — el bundle de Vite ni siquiera lo ve (`tsconfig.app.json` tiene `include:
+["src"]`). Se deploya aparte con `supabase functions deploy invitar-usuario`.
+
+Borrarlo rompería el único camino de alta de usuarios. Suprimido por path en
+`doctor.config.json` (`supabase/functions/**`) porque cualquier edge function futura va a
+dar exactamente el mismo falso positivo, por la misma razón.

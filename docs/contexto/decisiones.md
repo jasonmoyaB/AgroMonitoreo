@@ -44,6 +44,15 @@ Suma de todas las labores del trabajador ese día, ordenadas por `creado_en`; ex
 **9. El trigger de signup hardcodea rol y finca** (`20260708183000_no_confiar_rol_metadata_signup.sql`).
 `crear_usuario_desde_auth()` nunca lee `raw_user_meta_data`: confiar en metadata del cliente era un agujero de escalación de privilegios. *Descartado*: signup self-serve de admin — se reemplazó por un runbook SQL manual (`docs/instruccions/7-crear-usuario-admin.md`), intencional porque la app tiene un solo dueño.
 
+**9b. Alta de usuarios solo por invitación del admin** (`supabase/functions/invitar-usuario/`).
+`enable_signup = false` en `[auth]` y `[auth.email]`, y el toggle equivalente apagado en el Dashboard del proyecto remoto. Borrar la pantalla `/registro` **no** era el control: sin ese flag, `POST /auth/v1/signup` seguía abierto y cualquiera se daba de alta con un curl. La UI solo dejó de ofrecerlo.
+El invitar necesita `service_role`, que no puede vivir en el front → primera (y única) edge function del repo. Valida el JWT del llamador y que su fila de `usuario` sea `admin_oficina` **activo**; `verify_jwt` sola no alcanza porque un supervisor también tiene JWT válido. Después llama `auth.admin.inviteUserByEmail` con `redirectTo` al `/reset-password?invitacion=1`.
+El trigger `crear_usuario_desde_auth()` no se tocó: la invitación inserta en `auth.users` igual que un signup, así que el invitado sigue naciendo `supervisor`/`birrisito` y **ninguna metadata del cliente se lee** (misma razón que la decisión 9). Promover a `admin_oficina` sigue siendo la pantalla `/admin/supervisores`. *Descartado*: pedir rol y finca en el form de invitación (más UI y más superficie que auditar para una sola finca); y un endpoint en Vercel (`/api`), que obligaba a copiar el `service_role` a las env de Vercel, heredadas además por cada preview deployment.
+`APP_URL` es secret de la función y es obligatorio: sin él el link cae al `Site URL`, y el invitado entraría con sesión activa a `/` **sin haber definido contraseña**.
+
+**9c. Los correos los manda Supabase Auth vía SMTP de Resend, sin código.**
+`inviteUserByEmail` usa el mismo pipeline SMTP y las mismas plantillas que la recuperación de contraseña: configurar `smtp.resend.com` en Auth → SMTP Settings arregla los dos flujos de una. El servicio default de Supabase topa en 2 emails/hora y solo entrega a miembros del proyecto — inservible para prod. *Descartado*: SDK de Resend, `react-email` o cualquier librería de mail; serían una dependencia nueva y un segundo camino de envío para el mismo correo.
+
 **10. Los campos de auditoría los sella la base, no el cliente.**
 `registrado_por` entra por default `usuario_actual_id()`; `actualizado_en` lo pone el trigger `tocar_actualizado_en()` (`20260729163414`). Antes lo mandaba `salarios-service.ts`. Mismo criterio que `resolver_traslado_trabajador()` y `crear_usuario_desde_auth()`.
 

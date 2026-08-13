@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
 import type { RolNombre } from '../../../shared/types/domain.types'
 import type { ActualizarSupervisorInput, Supervisor } from '../types/supervisor.types'
@@ -25,6 +25,27 @@ export async function listarSupervisores(client: SupabaseClient = supabase): Pro
 
   if (error) throw new Error(`listarSupervisores: ${error.message}`)
   return data.map(mapSupervisor)
+}
+
+export async function invitarUsuario(email: string, client: SupabaseClient = supabase): Promise<void> {
+  // La edge function tiene el service_role y valida que el llamador sea admin_oficina.
+  const { error } = await client.functions.invoke('invitar-usuario', {
+    body: { email: email.trim().toLowerCase() },
+  })
+
+  if (error) throw new Error(`invitarUsuario: ${await leerMensajeFuncion(error)}`)
+}
+
+// invoke() no lee el cuerpo cuando el status no es 2xx: el mensaje real viaja en error.context.
+async function leerMensajeFuncion(error: Error): Promise<string> {
+  if (!(error instanceof FunctionsHttpError)) return error.message
+
+  try {
+    const cuerpo = await error.context.json()
+    return typeof cuerpo?.error === 'string' ? cuerpo.error : error.message
+  } catch {
+    return error.message
+  }
 }
 
 export async function actualizarSupervisor(input: ActualizarSupervisorInput, client: SupabaseClient = supabase): Promise<Supervisor> {

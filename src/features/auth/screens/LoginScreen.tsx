@@ -10,7 +10,7 @@ export function LoginScreen() {
 
   return (
     <AuthLayout>
-      <AuthForm mode="login" />
+      <AuthForm />
     </AuthLayout>
   )
 }
