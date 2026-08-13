@@ -15,8 +15,9 @@ export function useInvitarUsuario() {
     setIsOpen(true)
   }
 
-  function cerrar() {
+function cerrar() {
     setIsOpen(false)
+    setEmail('')
     setError(null)
   }
 
