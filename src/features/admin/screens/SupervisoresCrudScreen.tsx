@@ -1,17 +1,21 @@
 import { useState } from 'react'
+import { UserPlus } from 'lucide-react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { Modal } from '../../../shared/components/Modal'
 import { AdminSidebar } from '../components/AdminSidebar'
+import { InvitarUsuarioForm } from '../components/InvitarUsuarioForm'
 import { SupervisorForm } from '../components/SupervisorForm'
 import { SupervisoresTable } from '../components/SupervisoresTable'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useFincas } from '../hooks/use-fincas'
+import { useInvitarUsuario } from '../hooks/use-invitar-usuario'
 import { useSupervisoresCrud } from '../hooks/use-supervisores-crud'
 
 export function SupervisoresCrudScreen() {
   const dashboard = useAdminDashboard()
   const supervisores = useSupervisoresCrud()
+  const invitacion = useInvitarUsuario()
   const { fincas } = useFincas()
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
@@ -31,21 +35,32 @@ export function SupervisoresCrudScreen() {
               <p className="mt-2 font-bold leading-7 text-slate-600">Usuarios registrados. Asigna su finca y rol.</p>
             </div>
 
-            <label className="flex flex-col gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
-              Finca
-              <select
-                value={fincaFiltroId}
-                onChange={(event) => setFincaFiltroId(event.target.value)}
-                className="neu-pressed min-h-11 rounded-2xl px-4 text-sm font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+            <div className="flex flex-wrap items-end gap-3">
+              <button
+                type="button"
+                onClick={invitacion.abrir}
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-2xl bg-green-700 px-4 text-sm font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
               >
-                <option value="">Todas</option>
-                {fincas.map((finca) => (
-                  <option key={finca.id} value={finca.id}>
-                    {finca.nombre}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <UserPlus className="h-4 w-4" aria-hidden="true" />
+                Invitar
+              </button>
+
+              <label className="flex flex-col gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-600">
+                Finca
+                <select
+                  value={fincaFiltroId}
+                  onChange={(event) => setFincaFiltroId(event.target.value)}
+                  className="neu-pressed min-h-11 rounded-2xl px-4 text-sm font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+                >
+                  <option value="">Todas</option>
+                  {fincas.map((finca) => (
+                    <option key={finca.id} value={finca.id}>
+                      {finca.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </header>
 
           <SupervisoresTable supervisores={visibles} isLoading={supervisores.isLoading} onEdit={supervisores.onOpenEdit} onToggleActive={supervisores.alternarEstado} />
@@ -56,6 +71,16 @@ export function SupervisoresCrudScreen() {
             state={{ values: supervisores.values, error: supervisores.error, isSubmitting: supervisores.isSubmitting }}
             actions={{ onFieldChange: supervisores.updateField, onSubmit: supervisores.handleSubmit }}
             fincas={fincas}
+          />
+        </Modal>
+
+        <Modal isOpen={invitacion.isOpen} title="Invitar usuario" onClose={invitacion.cerrar}>
+          <InvitarUsuarioForm
+            email={invitacion.email}
+            error={invitacion.error}
+            isSubmitting={invitacion.isSubmitting}
+            onEmailChange={invitacion.setEmail}
+            onSubmit={invitacion.handleSubmit}
           />
         </Modal>
       </div>

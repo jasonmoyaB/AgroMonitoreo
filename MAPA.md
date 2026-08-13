@@ -5,7 +5,8 @@
 | Necesito... | Ruta |
 |---|---|
 | Rutas de la app | `src/app/router.tsx` |
-| Login / registro / guard de auth | `src/features/auth/` |
+| Login / guard de auth | `src/features/auth/` — **no hay pantalla de registro**: el alta es solo por invitación (ver fila de abajo) |
+| Invitar usuarios por correo | `supabase/functions/invitar-usuario/index.ts` (edge function, tiene el `service_role` y exige rol `admin_oficina`) → `admin/services/supervisores-service.ts::invitarUsuario` + `hooks/use-invitar-usuario.ts` + `components/InvitarUsuarioForm.tsx`, botón "Invitar" en `admin/screens/SupervisoresCrudScreen.tsx`. El invitado define su contraseña en `/reset-password?invitacion=1` (misma pantalla que la recuperación). Plantilla del correo: `supabase/templates/invitacion.html` (versionada; se pega a mano en Auth → Email Templates) |
 | Rate limit de login/registro | `src/features/auth/hooks/use-login-cooldown.ts` + `utils/calcular-cooldown-ms.ts` (cooldown UX cliente) — `[auth.rate_limit].sign_in_sign_ups` en `supabase/config.toml` (límite real por IP, server-side vía GoTrue). Bloqueo de cuenta por Auth Hook se intentó y se revirtió: requiere plan Teams/Enterprise, ver `supabase/migrations/20260715160413_revertir_hook_password_verification_no_disponible_free.sql` |
 | Flujo de captura (foreman) | `src/features/captura/` (screens → components → hooks → services → utils → types → constants) |
 | Dashboard supervisor / KPIs | `src/features/supervisor/` |
@@ -29,6 +30,7 @@
 | Zustand store de sesión de captura | `src/shared/stores/captura-session-store.ts` |
 | Las 11 labores (constante frontend) | `src/shared/constants/tipos-labor.constants.ts` |
 | Migraciones Supabase | `supabase/migrations/` |
+| Edge functions | `supabase/functions/` — hoy solo `invitar-usuario`. Deploy con `supabase functions deploy invitar-usuario`; secret `APP_URL` con `supabase secrets set` |
 | Schema `private` (helpers `SECURITY DEFINER`, fuera de la API de PostgREST) | creado en `supabase/migrations/20260803232810_mover_es_admin_oficina_a_schema_private.sql` — hoy solo `private.es_admin_oficina()`, usada por las policies de `usuario` y `fincas` |
 | Contexto del proyecto (arquitectura, convenciones, decisiones, glosario, flujo, gotchas) | `docs/contexto/` — referenciado desde `CLAUDE.md` y `AGENTS.md` |
 | Docs sueltos (seguridad, cambios puntuales) | `docs/` |

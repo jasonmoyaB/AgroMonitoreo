@@ -21,6 +21,10 @@
       {
         "files": [".agents/**"],
         "rules": ["react-doctor/command-execution-input-risk"]
+      },
+      {
+        "files": ["supabase/functions/**"],
+        "rules": ["deslop/unused-file"]
       }
     ]
   }

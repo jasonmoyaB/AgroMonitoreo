@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { AuthLayout } from '../components/AuthLayout'
 import { PasswordChecklist } from '../components/PasswordChecklist'
@@ -36,14 +36,19 @@ function EnlaceInvalido() {
 function FormularioNuevaPassword() {
   const form = useResetPasswordForm()
   const [mostrarPassword, setMostrarPassword] = useState(false)
+  // La invitacion aterriza en esta misma pantalla; solo cambia el texto.
+  const [searchParams] = useSearchParams()
+  const esInvitacion = searchParams.get('invitacion') === '1'
 
   return (
     <AuthLayout>
       <div className="neu-raised w-full rounded-[2rem] p-6 sm:p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Crea una nueva contraseña</h1>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900">
+            {esInvitacion ? 'Bienvenido a AgroMonitoreo' : 'Crea una nueva contraseña'}
+          </h1>
           <p className="mt-3 text-base font-semibold leading-7 text-slate-600">
-            Elige una contraseña segura para volver a entrar.
+            {esInvitacion ? 'Elige una contraseña segura para entrar por primera vez.' : 'Elige una contraseña segura para volver a entrar.'}
           </p>
         </div>
 

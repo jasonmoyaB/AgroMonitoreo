@@ -1,0 +1,70 @@
+<!-- Plantilla del correo de invitacion (Auth -> Email Templates -> Invite user).
+     Fuente de verdad versionada: si se edita en el Dashboard, actualizar tambien este archivo.
+     Todo el CSS va inline y sin imagenes externas: Gmail y Outlook descartan hojas de estilo
+     y bloquean imagenes remotas por defecto. Paleta de src/index.css. -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#e7ebf1;margin:0;padding:24px 12px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#ffffff;border-radius:24px;border:1px solid #d4dbe5;">
+        <tr>
+          <td style="padding:32px 32px 0 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="background-color:#15803d;border-radius:14px;width:44px;height:44px;text-align:center;font-size:24px;line-height:44px;">🌱</td>
+                <td style="padding-left:12px;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;">
+                  <div style="font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#166534;">AgroMonitoreo</div>
+                  <div style="font-size:15px;font-weight:bold;color:#475569;">Fincas</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:28px 32px 0 32px;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;">
+            <h1 style="margin:0;font-size:26px;line-height:34px;font-weight:bold;color:#0f172a;">Te dieron acceso a AgroMonitoreo</h1>
+            <p style="margin:14px 0 0 0;font-size:16px;line-height:26px;color:#475569;">
+              La oficina te creó una cuenta para registrar las labores de la finca. Tocá el botón y elegí tu contraseña para entrar.
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:28px 32px 0 32px;">
+            <a href="{{ .ConfirmationURL }}"
+               style="display:block;background-color:#15803d;color:#ffffff;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:18px;font-weight:bold;text-align:center;text-decoration:none;padding:18px 24px;border-radius:16px;">
+              Crear mi contraseña
+            </a>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:20px 32px 0 32px;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;">
+            <p style="margin:0;font-size:13px;line-height:22px;color:#64748b;">
+              Si el botón no funciona, copiá y pegá esta dirección en el navegador:
+            </p>
+            <p style="margin:6px 0 0 0;font-size:13px;line-height:20px;word-break:break-all;">
+              <a href="{{ .ConfirmationURL }}" style="color:#166534;">{{ .ConfirmationURL }}</a>
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:24px 32px 32px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#dcfce7;border-radius:16px;">
+              <tr>
+                <td style="padding:16px 18px;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:21px;color:#166534;">
+                  El enlace vence en 24 horas y sirve una sola vez. Si no esperabas esta invitación, ignorá este correo: sin abrirlo no se crea ninguna cuenta.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:20px 0 0 0;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:20px;color:#64748b;">
+        AgroMonitoreo · Control de labores de finca
+      </p>
+    </td>
+  </tr>
+</table>

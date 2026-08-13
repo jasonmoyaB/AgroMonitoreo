@@ -1,6 +1,5 @@
 export { RouteGuard } from './components/RouteGuard'
 export { LoginScreen } from './screens/LoginScreen'
-export { RegisterScreen } from './screens/RegisterScreen'
 export { ForgotPasswordScreen } from './screens/ForgotPasswordScreen'
 export { ResetPasswordScreen } from './screens/ResetPasswordScreen'
 export { useUsuarioActual } from './hooks/use-usuario-actual'
