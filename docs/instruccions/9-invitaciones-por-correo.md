@@ -89,4 +89,4 @@ Dato tranquilizador comprobado: cuando el envío falla, GoTrue **revierte** la c
 
 - `functions.invoke()` no lee el cuerpo cuando el status no es 2xx; el mensaje real viaja en `error.context`. Por eso `supervisores-service.ts` tiene `leerMensajeFuncion`.
 - `VITE_APP_URL` (front, para la recuperación de contraseña) y el secret `APP_URL` (edge function, para la invitación) son **dos lugares distintos**. Los dos hacen falta, y en Vercel hay que setear la primera para production y preview.
-- La lista de supervisores no cambia al invitar: la fila de `usuario` recién aparece cuando la persona acepta.
+- La fila de `usuario` se crea **al invitar**, no cuando la persona acepta: `inviteUserByEmail` inserta en `auth.users` y ahí dispara `crear_usuario_desde_auth()`. Por eso `use-invitar-usuario.ts` invalida `SUPERVISORES_QUERY_KEY` — sin eso el admin no ve al invitado, reinvita y come "Ese correo ya tiene cuenta".

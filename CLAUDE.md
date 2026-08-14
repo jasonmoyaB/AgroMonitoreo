@@ -26,7 +26,7 @@ One-way flow: supervisor logs field data → admin/oficina reads it. No reverse 
 - **supervisor** ("capataz") — capture, workers, asistencia, traslados, own profile, KPIs.
 - **admin/oficina** — `/admin/*` behind `AdminGuard`: rollup + per-finca dashboards, fincas CRUD, supervisores CRUD, trabajadores/asistencia por finca, salarios, traslados, configuración. Reads across every `finca_id` (`20260714165119`).
 
-Signup always creates `supervisor` + `birrisito`, server-side — an `admin_oficina` is promoted from the admin's supervisores screen (`20260714171722`), never via `/registro`.
+No public signup (`enable_signup = false`). The only way in is an admin invite from `/admin/supervisores` (edge function `supabase/functions/invitar-usuario`); the invitee is born `supervisor` + `birrisito` server-side, and an `admin_oficina` is promoted from that same screen (`20260714171722`).
 
 ## Backend (Supabase — live)
 
@@ -85,8 +85,8 @@ Hard limits: ~150 lines/file, ~30 lines/function, ≤3 function params (object b
 
 ### Features
 
-- `app/router.tsx` — routes only. Public: `/login`, `/registro`, `/olvide-password`, `/reset-password`. `AuthGuard`: `/supervisor/*`, `/captura/*`. `AdminGuard`: `/admin/*`.
-- `features/auth` — login/registro/recuperación, `AuthGuard`, session hook, login cooldown.
+- `app/router.tsx` — routes only. Public: `/login`, `/olvide-password`, `/reset-password` (this last one also receives the invite, with `?invitacion=1`). `AuthGuard`: `/supervisor/*`, `/captura/*`. `AdminGuard`: `/admin/*`.
+- `features/auth` — login/recuperación, `AuthGuard`, session hook, login cooldown.
 - `features/captura` — the foreman flow. `/supervisor` (labor list) → `/captura/labor/:tipoLaborId/trabajadores` (grid, green check if already logged today) → `.../:trabajadorId` (hours + quantity steppers → confirm).
 - `features/trabajadores` — headless: worker CRUD + photo upload (`validar-foto-trabajador.ts` checks MIME **and** magic bytes), per-worker metrics modal.
 - `features/asistencia` — headless: daily absence, weekly table, monthly calendar, PDF export.

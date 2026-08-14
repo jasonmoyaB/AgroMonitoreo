@@ -12,10 +12,22 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const APP_URL = Deno.env.get('APP_URL')
+const MAX_EMAIL = 254 // RFC 5321
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS })
 
+  // Sin este catch una excepcion inesperada sale como 500 crudo, sin headers CORS:
+  // el navegador la reporta como error de CORS y el admin nunca ve la causa real.
+  try {
+    return await invitar(req)
+  } catch (unknownError) {
+    console.error('invitar-usuario:', unknownError)
+    return responder({ error: 'Error inesperado al invitar. Revisá los logs de la función.' }, 500)
+  }
+})
+
+async function invitar(req: Request): Promise<Response> {
   // Sin APP_URL el link caeria al Site URL y el invitado entraria sin definir contrasena.
   if (!APP_URL) return responder({ error: 'Falta configurar APP_URL en la funcion.' }, 500)
 
@@ -30,14 +42,14 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
   const { error } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${APP_URL}/reset-password?invitacion=1`,
+    redirectTo: `${APP_URL.replace(/\/$/, '')}/reset-password?invitacion=1`,
   })
 
   // 502 y no 400 cuando falla el SMTP: el correo pedido era valido, lo que falló es el envio.
   // Con 400 el log del edge no distingue "dato malo" de "SMTP caido" y el diagnostico se pierde.
   if (error) return responder({ error: traducirErrorInvitacion(error.message) }, esFallaDeEnvio(error.message) ? 502 : 400)
   return responder({ ok: true }, 200)
-})
+}
 
 async function verificarAdminOficina(authorization: string): Promise<boolean> {
   const client = createClient(SUPABASE_URL, ANON_KEY, {
@@ -49,8 +61,9 @@ async function verificarAdminOficina(authorization: string): Promise<boolean> {
   } = await client.auth.getUser()
   if (!user) return false
 
-  // RLS aplica con el JWT del llamador: solo alcanza su propia fila.
-const { data, error } = await client
+  // Lo que acota a una fila es el .eq() de abajo, no la RLS: a un admin_oficina
+  // `usuario_select_admin_oficina` le alcanza la tabla entera.
+  const { data, error } = await client
     .from('usuario')
     .select('activo, rol:roles(nombre)')
     .eq('auth_user_id', user.id)
@@ -63,8 +76,11 @@ const { data, error } = await client
 async function leerEmail(req: Request): Promise<string | null> {
   const body = await req.json().catch(() => null)
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
+  if (email.length > MAX_EMAIL) return null
 
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null
+  // Charset estricto: las plantillas interpolan {{ .Email }} en HTML, y `<>"` no tienen
+  // por que llegar hasta ahi aunque GoTrue tambien valide el formato.
+  return /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email) ? email : null
 }
 
 function esFallaDeEnvio(mensaje: string): boolean {
