@@ -42,7 +42,7 @@ async function invitar(req: Request): Promise<Response> {
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
   const { error } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${APP_URL.replace(/\/$/, '')}/reset-password?invitacion=1`,
+    redirectTo: `${APP_URL!.replace(/\/$/, '')}/reset-password?invitacion=1`,
   })
 
   // 502 y no 400 cuando falla el SMTP: el correo pedido era valido, lo que falló es el envio.
