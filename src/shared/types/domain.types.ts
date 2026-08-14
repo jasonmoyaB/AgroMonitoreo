@@ -37,6 +37,9 @@ export interface TrabajadorNombrable {
   nombreCompleto: string
 }
 
+// los 4 datos personales viven en datos_trabajadores, no aca (20260814173849): la
+// cedula es PII y trabajadores_select_activos_multi_finca abre la tabla a cualquier
+// finca. se leen por embed en el mismo select, pero se escriben aparte.
 export interface Trabajador {
   id: string
   fincaId: string
@@ -44,6 +47,9 @@ export interface Trabajador {
   fotoUrl: string | null
   activo: boolean
   asegurado: boolean
+  cedula: string | null
+  fechaIngreso: string | null
+  telefono: string | null
 }
 
 // vive en salarios_trabajadores, no en trabajadores: RLS es row-level, y las policies

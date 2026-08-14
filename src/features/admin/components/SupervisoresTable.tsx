@@ -1,3 +1,4 @@
+import { BOTON_ACTIVAR, BOTON_DESACTIVAR, BOTON_EDITAR, BOTON_TABLA } from '../../../shared/constants/botones-tabla.constants'
 import type { Supervisor } from '../types/supervisor.types'
 
 interface SupervisoresTableProps {
@@ -57,16 +58,14 @@ export function SupervisoresTable({ supervisores, isLoading, onEdit, onToggleAct
                     <button
                       type="button"
                       onClick={() => onEdit(supervisor)}
-                      className="neu-pressed min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-slate-800"
+                      className={`${BOTON_TABLA} ${BOTON_EDITAR}`}
                     >
                       Editar
                     </button>
                     <button
                       type="button"
                       onClick={() => onToggleActive(supervisor)}
-                      className={`min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-white shadow-lg ${
-                        supervisor.activo ? 'bg-red-700 shadow-red-900/20' : 'bg-green-700 shadow-green-900/20'
-                      }`}
+                      className={`${BOTON_TABLA} ${supervisor.activo ? BOTON_DESACTIVAR : BOTON_ACTIVAR}`}
                     >
                       {supervisor.activo ? 'Desactivar' : 'Activar'}
                     </button>

@@ -53,19 +53,28 @@ export function Modal({ isOpen, title, onClose, children, size = 'md' }: ModalPr
             onClick={() => dialogRef.current?.close()}
             className="absolute inset-0 h-full w-full cursor-default"
           />
-          <div className={`neu-raised relative mx-auto max-h-[calc(100vh-2rem)] overflow-y-auto scrollbar-none rounded-[2rem] p-5 sm:max-h-[calc(100vh-3rem)] sm:p-6 ${MAX_WIDTH_POR_TAMANO[size]}`}>
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <h2 className="text-2xl font-black text-slate-900">{title}</h2>
-              <button
-                type="button"
-                onClick={() => dialogRef.current?.close()}
-                aria-label="Cerrar"
-                className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-600 transition-colors duration-200 hover:bg-white/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </button>
+          {/* La tarjeta NO scrollea: lleva la sombra neu-raised y el radio, y ocupa casi
+              toda la pantalla. Cuando ella misma era el scroller, cada frame obligaba al
+              compositor a redibujar un render pass de pantalla completa con las dos
+              sombras de 16px y el clip redondeado — medido en 93% de VizCompositorThread
+              ocupado y 34fps. Scrollea el hijo, que no tiene sombra ni radio: 9%. */}
+          <div
+            className={`neu-raised relative mx-auto flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-[2rem] sm:max-h-[calc(100vh-3rem)] ${MAX_WIDTH_POR_TAMANO[size]}`}
+          >
+            <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none p-5 sm:p-6">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <h2 className="text-2xl font-black text-slate-900">{title}</h2>
+                <button
+                  type="button"
+                  onClick={() => dialogRef.current?.close()}
+                  aria-label="Cerrar"
+                  className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-600 transition-colors duration-200 hover:bg-white/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
+              {children}
             </div>
-            {children}
           </div>
         </>
       )}

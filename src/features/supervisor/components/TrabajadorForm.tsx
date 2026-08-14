@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Avatar } from '../../../shared/components/Avatar'
+import { CampoTexto, INPUT_NEU_CLASS } from '../../../shared/components/CampoTexto'
 import { crearClaseToggle } from '../../../shared/utils/crear-clase-toggle'
 import type { TrabajadoresCrudActions, TrabajadoresCrudState } from '../../trabajadores/types/trabajador-crud.types'
 
@@ -14,21 +15,17 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
   const { values, error, isSubmitting, fotoPreviewUrl } = state
   const nombreInputRef = useRef<HTMLInputElement>(null)
 
+  // por ref y no con autoFocus: el atributo nativo lo marca react-doctor/no-autofocus
   useEffect(() => {
     nombreInputRef.current?.focus()
   }, [])
 
   return (
     <form onSubmit={actions.onSubmit} className="flex flex-col gap-4">
+      {/* no usa CampoTexto: es el unico requerido y el unico con foco inicial */}
       <label className="flex flex-col gap-2 font-black text-slate-800">
         Nombre completo
-        <input
-          ref={nombreInputRef}
-          value={values.nombreCompleto}
-          onChange={(event) => actions.onFieldChange('nombreCompleto', event.target.value)}
-          className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
-          required
-        />
+        <input ref={nombreInputRef} value={values.nombreCompleto} onChange={(event) => actions.onFieldChange('nombreCompleto', event.target.value)} className={INPUT_NEU_CLASS} required />
       </label>
 
       <label className="flex flex-col gap-2 font-black text-slate-800">
@@ -45,21 +42,25 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
         <span className="text-xs font-bold text-slate-500">JPG, PNG o WEBP. Máximo 5 MB.</span>
       </label>
 
+      <CampoTexto etiqueta="Cédula" valor={values.cedula} onChange={(valor) => actions.onFieldChange('cedula', valor)} ayuda="Opcional. Se usa en el comprobante de pago." />
+
+      {/* input type=date nativo: el picker del sistema ya es tactil y localizado */}
+      <CampoTexto
+        etiqueta="Fecha de ingreso"
+        valor={values.fechaIngreso}
+        onChange={(valor) => actions.onFieldChange('fechaIngreso', valor)}
+        tipo="date"
+        ayuda="Opcional. Define la antigüedad para vacaciones y aguinaldo."
+      />
+
+      <CampoTexto etiqueta="Teléfono" valor={values.telefono} onChange={(valor) => actions.onFieldChange('telefono', valor)} tipo="tel" />
+
       <div className="grid grid-cols-2 gap-3" role="group" aria-label="Estado del trabajador">
         <button type="button" aria-pressed={values.activo} onClick={() => actions.onFieldChange('activo', true)} className={crearEstadoClass(values.activo)}>
           Activo
         </button>
         <button type="button" aria-pressed={!values.activo} onClick={() => actions.onFieldChange('activo', false)} className={crearEstadoClass(!values.activo)}>
           Inactivo
-        </button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3" role="group" aria-label="Seguro del trabajador">
-        <button type="button" aria-pressed={values.asegurado} onClick={() => actions.onFieldChange('asegurado', true)} className={crearEstadoClass(values.asegurado)}>
-          Asegurado
-        </button>
-        <button type="button" aria-pressed={!values.asegurado} onClick={() => actions.onFieldChange('asegurado', false)} className={crearEstadoClass(!values.asegurado)}>
-          No asegurado
         </button>
       </div>
 

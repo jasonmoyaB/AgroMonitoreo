@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -86,6 +81,58 @@ export type Database = {
             foreignKeyName: "asistencia_trabajador_id_fkey"
             columns: ["trabajador_id"]
             isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      datos_trabajadores: {
+        Row: {
+          actualizado_en: string
+          cedula: string | null
+          contacto_emergencia: string | null
+          fecha_ingreso: string | null
+          finca_id: string
+          telefono: string | null
+          trabajador_id: string
+        }
+        Insert: {
+          actualizado_en?: string
+          cedula?: string | null
+          contacto_emergencia?: string | null
+          fecha_ingreso?: string | null
+          finca_id: string
+          telefono?: string | null
+          trabajador_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          cedula?: string | null
+          contacto_emergencia?: string | null
+          fecha_ingreso?: string | null
+          finca_id?: string
+          telefono?: string | null
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "datos_trabajadores_finca_coincide"
+            columns: ["trabajador_id", "finca_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id", "finca_id"]
+          },
+          {
+            foreignKeyName: "datos_trabajadores_finca_id_fkey"
+            columns: ["finca_id"]
+            isOneToOne: false
+            referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "datos_trabajadores_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: true
             referencedRelation: "trabajadores"
             referencedColumns: ["id"]
           },
@@ -650,3 +697,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

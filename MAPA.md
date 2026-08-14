@@ -11,6 +11,7 @@
 | Flujo de captura (foreman) | `src/features/captura/` (screens → components → hooks → services → utils → types → constants) |
 | Dashboard supervisor / KPIs | `src/features/supervisor/` |
 | CRUD de trabajadores + fotos | `src/features/trabajadores/` |
+| Datos personales del trabajador (cédula, fecha de ingreso, teléfono, contacto de emergencia) | Tabla propia `datos_trabajadores` (`20260814173849`), **no** columnas de `trabajadores`: la cédula es PII y `trabajadores_select_activos_multi_finca` abre la tabla a cualquier finca (misma razón que `salarios_trabajadores`). Se leen por embed en `TRABAJADORES_COLUMNS` de `trabajadores/services/trabajadores-service.ts` y se escriben con `guardarDatosTrabajador` en el mismo submit del form (`supervisor/components/TrabajadorForm.tsx`). RLS: finca propia para el supervisor + `private.es_admin_oficina()` cross-finca. Índice único parcial `(finca_id, cedula) where cedula is not null` |
 | Modal de métricas por trabajador (KPIs, tabla por labor, export PDF) | `src/features/trabajadores/components/TrabajadorMetricasModal.tsx` + `hooks/use-trabajador-metricas-modal.ts` — usado por `supervisor/screens/TrabajadoresCrudScreen.tsx` y `admin/screens/TrabajadoresPorFincaScreen.tsx` |
 | App admin (dashboard, fincas, trabajadores/asistencia por finca, supervisores) | `src/features/admin/` (rutas bajo `AdminGuard`, `/admin/*`) |
 | Gestión de supervisores (rol, nombre, finca asignada) | `src/features/admin/services/supervisores-service.ts` + `hooks/use-supervisores-crud.ts` + `screens/SupervisoresCrudScreen.tsx` |

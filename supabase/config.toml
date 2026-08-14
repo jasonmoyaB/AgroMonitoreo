@@ -264,7 +264,7 @@ content_path = "./supabase/templates/recuperar-password.html"
 [auth.email.notification.password_changed]
 enabled = true
 subject = "Tu contraseña de AgroMonitoreo cambió"
-content_path = "./supabase/templates/password-cambiada.html"
+content_path = "./templates/password-cambiada.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
