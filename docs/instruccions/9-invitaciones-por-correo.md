@@ -9,9 +9,20 @@ Flujo completo: admin escribe el correo → edge function `invitar-usuario` (tie
 1. **Project Settings → Authentication → SMTP Settings** → *Enable Custom SMTP* (Resend): host `smtp.resend.com`, port `465`, user `resend`, pass = API key de Resend (`re_...`, permiso *Sending access*), sender name `AgroMonitoreo`.
    Sin esto el email service default de Supabase topa en **2/hora**, solo entrega a miembros del proyecto **y deja los templates de solo lectura** — el editor aparece gris con *"Set up custom SMTP to edit templates"*. Es antiphishing de Supabase, no un límite de plan: el plan Free permite todo esto. (Lo que sí exige Pro es `auth_leaked_password_protection`, ver `docs/contexto/decisiones.md` 12c.)
 
-   **Sender**: `no-responder@agromonitoreo.com` — sin `www`, los remitentes de correo nunca lo llevan (la web sí: `https://www.agromonitoreo.com`). Requiere el dominio verificado en **Resend → Domains**, pegando sus registros TXT (DKIM y SPF) y el MX del return-path en Vercel → Settings → Domains → DNS.
+   **Sender**: `no-responder@agromonitoreo.com` — sin `www`, los remitentes de correo nunca lo llevan (la web sí: `https://www.agromonitoreo.com`). Requiere el dominio verificado en **Resend → Domains**. Ya está hecho; los 4 registros viven en Vercel → Settings → Domains → DNS, con el *Name* **relativo** (`send`, no `send.agromonitoreo.com`):
+
+   | Name | Tipo | Valor |
+   |---|---|---|
+   | `resend._domainkey` | TXT | DKIM (`p=MIGf…IDAQAB`) |
+   | `send` | TXT | `v=spf1 include:amazonses.com ~all` |
+   | `send` | MX (prio 10) | `feedback-smtp.us-east-1.amazonses.com` |
+   | `_dmarc` | TXT | `v=DMARC1; p=none;` |
+
+   Resend **no** los inserta solo aunque detecte "Provider: Vercel" — hay que pegarlos a mano. Verificarlos sin depender de la UI: `nslookup -type=TXT resend._domainkey.agromonitoreo.com 8.8.8.8`.
 
    Mientras el dominio no esté **Verified**, el sender tiene que ser `onboarding@resend.dev`, y con ese Resend **solo entrega a la casilla dueña de la cuenta**: a cualquier otro destinatario lo rechaza con `550 "You can only send testing emails to your own email address"`. Ese rechazo llega como **502**, no como 400.
+
+   Ojo con el orden: verificar el dominio **no** cambia el sender. Si después de verificar el envío sigue fallando con ese mismo 550, es que el campo *Sender email* de Supabase quedó en `onboarding@resend.dev` — pasó exactamente eso acá. El síntoma es idéntico antes y después de verificar; lo único que lo distingue es mirar ese campo.
 
    Para reprobar contra tu propio correo: como ya tiene cuenta, la función responde `Ese correo ya tiene cuenta.` — borrá ese usuario en **Auth → Users** y reinvitá. Los alias `+algo` de Gmail no sirven de atajo: Resend compara contra el correo exacto de la cuenta.
 2. **Auth → Rate Limits** → `email_sent`: subir a ~30/h.
@@ -78,4 +89,4 @@ Dato tranquilizador comprobado: cuando el envío falla, GoTrue **revierte** la c
 
 - `functions.invoke()` no lee el cuerpo cuando el status no es 2xx; el mensaje real viaja en `error.context`. Por eso `supervisores-service.ts` tiene `leerMensajeFuncion`.
 - `VITE_APP_URL` (front, para la recuperación de contraseña) y el secret `APP_URL` (edge function, para la invitación) son **dos lugares distintos**. Los dos hacen falta, y en Vercel hay que setear la primera para production y preview.
-- La lista de supervisores no cambia al invitar: la fila de `usuario` recién aparece cuando la persona acepta.
+- La fila de `usuario` se crea **al invitar**, no cuando la persona acepta: `inviteUserByEmail` inserta en `auth.users` y ahí dispara `crear_usuario_desde_auth()`. Por eso `use-invitar-usuario.ts` invalida `SUPERVISORES_QUERY_KEY` — sin eso el admin no ve al invitado, reinvita y come "Ese correo ya tiene cuenta".

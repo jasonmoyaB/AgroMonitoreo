@@ -1,8 +1,11 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useToastStore } from '../../../shared/stores/toast-store'
+import { SUPERVISORES_QUERY_KEY } from '../constants/supervisores-query.constants'
 import { invitarUsuario } from '../services/supervisores-service'
 
 export function useInvitarUsuario() {
+  const queryClient = useQueryClient()
   const mostrarToast = useToastStore((state) => state.mostrarToast)
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
@@ -15,7 +18,7 @@ export function useInvitarUsuario() {
     setIsOpen(true)
   }
 
-function cerrar() {
+  function cerrar() {
     setIsOpen(false)
     setEmail('')
     setError(null)
@@ -31,6 +34,9 @@ function cerrar() {
     setIsSubmitting(true)
     try {
       await invitarUsuario(email)
+      // inviteUserByEmail inserta en auth.users al invitar, y el trigger crea la fila
+      // de `usuario` ahi mismo: el invitado ya aparece en la lista antes de aceptar.
+      await queryClient.invalidateQueries({ queryKey: [SUPERVISORES_QUERY_KEY] })
       cerrar()
       mostrarToast({ type: 'success', title: 'Invitación enviada', description: `${email.trim()} recibirá un correo para entrar.` })
     } catch (unknownError) {
@@ -40,7 +46,5 @@ function cerrar() {
     }
   }
 
-  // La lista solo cambia cuando el invitado acepta y se crea su fila en `usuario`,
-  // asi que no hay nada que invalidar todavia.
   return { isOpen, email, error, isSubmitting, setEmail, abrir, cerrar, handleSubmit }
 }

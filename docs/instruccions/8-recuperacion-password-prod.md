@@ -15,14 +15,21 @@ Flujo vive en `src/features/auth/` (`ForgotPasswordScreen`, `ResetPasswordScreen
    - `VITE_SUPABASE_PUBLISHABLE_KEY`
    - Vite las hornea en build time — si faltan, la app no explota al buildear, pega a Supabase vacío en runtime.
 
-## Pendiente (bloquea "100% prod" real, no bloquea que el flujo básico funcione)
+## Estado: cerrado (2026-08-13)
 
-- ~~**Dominio propio**~~ — hecho: `agromonitoreo.com` comprado en Vercel. Canónica **`https://www.agromonitoreo.com`** (la web lleva `www`); el apex redirige. El correo es al revés: el sender es `no-responder@agromonitoreo.com`, **sin** `www`.
+Todo lo que estaba pendiente quedó hecho. Se deja el detalle porque es la config que hay que rehacer si se cambia de dominio o de proveedor de correo.
+
+- **Dominio propio**: `agromonitoreo.com` comprado en Vercel. Canónica **`https://www.agromonitoreo.com`** (la web lleva `www`); el apex redirige. El correo es al revés: el sender es `no-responder@agromonitoreo.com`, **sin** `www`.
   La URL vive en 4 lugares que no se validan entre sí — `APP_URL` (secret de la edge function), `VITE_APP_URL` (Vercel), `Site URL` y `Redirect URLs`. Si uno queda viejo, Supabase no da error: el link cae fuera del allowlist y hace fallback silencioso al `Site URL`, y un invitado puede entrar sin haber definido contraseña.
-- **Resend SMTP** (Auth → SMTP Settings): sin esto el email service default de Supabase tiene tope 2/hora, solo entrega a miembros del proyecto y tiene deliverability floja a Gmail. Config: host `smtp.resend.com`, port `465`, user `resend`, pass = API key de Resend, sender del dominio verificado. **Ahora también bloquea las invitaciones**, no solo la recuperación: los dos flujos salen por el mismo SMTP.
-- **Rate limit** `email_sent` (Auth → Rate Limits): subir una vez Resend esté conectado. En `config.toml` ya está en 30 (eso es solo local).
-- **`redirectTo` en `auth-service.ts`**: usa `import.meta.env.VITE_APP_URL`. Ya está en `.env.local`; **falta setearla en Vercel** (`https://www.agromonitoreo.com`, production y preview) o el link vuelve a caer al fallback roto descrito arriba. Cambiarla **exige redeploy**: Vite la hornea en build time.
-  La edge function `invitar-usuario` usa lo mismo pero como secret suyo (`supabase secrets set APP_URL=...`, ya apuntando al dominio nuevo) — son dos lugares distintos, los dos hacen falta.
+- **Resend SMTP** (Auth → SMTP Settings): host `smtp.resend.com`, port `465`, user `resend`, pass = API key de Resend, sender `no-responder@agromonitoreo.com` sobre el dominio verificado en Resend → Domains. Sin esto el email service default de Supabase tiene tope 2/hora, solo entrega a miembros del proyecto, tiene deliverability floja a Gmail y deja los templates de solo lectura. Cubre los dos flujos: recuperación **e** invitaciones.
+- **Rate limit** `email_sent` (Auth → Rate Limits): en 30/h. En `config.toml` también, pero eso es solo local.
+- **`redirectTo` en `auth-service.ts`**: usa `import.meta.env.VITE_APP_URL`, seteada en Vercel (production y preview) a `https://www.agromonitoreo.com`. Cambiarla **exige redeploy**: Vite la hornea en build time. Verificable sin adivinar — bajar el bundle de prod y buscar la URL:
+  ```bash
+  curl -s https://www.agromonitoreo.com/assets/index-*.js | grep -o 'https://[a-z0-9.-]*agromonitoreo[a-z.]*' | sort -u
+  ```
+  La edge function `invitar-usuario` usa lo mismo pero como secret suyo (`supabase secrets set APP_URL=...`) — son dos lugares distintos, los dos hacen falta.
+
+Pendiente menor no bloqueante: confirmar que la privacidad de WHOIS del dominio quedó activa (la pantalla de Registrant Information de Vercel muestra nombre, dirección, correo y teléfono reales).
 
 ## Gotcha para la próxima vez que se toque
 
