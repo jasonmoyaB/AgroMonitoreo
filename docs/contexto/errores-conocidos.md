@@ -35,6 +35,9 @@ Segunda lección: esto **no lo ve `psql`**. La migración se verificó con SQL d
 
 **El generador de tipos marca un embed como array** cuando la unicidad es compuesta (ej. `asistencia` es única por `trabajador_id + fecha`, no por `trabajador_id`), aunque PostgREST devuelva un objeto único por ser FK muchos-a-uno. Ver `asistencia/services/asistencia-service.ts`.
 
+**Los `content_path` de `config.toml` no se resuelven todos igual.**
+`[auth.email.template.*]` (invite, recovery) van con `./supabase/templates/...`, relativos a la raíz. `[auth.email.notification.*]` (password_changed) va con `./templates/...`, relativo a `supabase/`. La inconsistencia parece un error de tipeo y no lo es: "normalizar" las tres al mismo prefijo hace que `supabase db reset` aborte antes de aplicar nada con `open supabase\supabase\templates\...: no se encuentra la ruta`.
+
 **Advisor abierto que ninguna migración puede cerrar**: protección de contraseñas filtradas — es un toggle del Dashboard.
 
 ## Fechas (Costa Rica, UTC−6)

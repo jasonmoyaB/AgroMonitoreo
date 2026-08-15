@@ -42,16 +42,13 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
         <span className="text-xs font-bold text-slate-500">JPG, PNG o WEBP. Máximo 5 MB.</span>
       </label>
 
-      <CampoTexto etiqueta="Cédula" valor={values.cedula} onChange={(valor) => actions.onFieldChange('cedula', valor)} ayuda="Opcional. Se usa en el comprobante de pago." />
+      {/* la ayuda dice solo "Opcional": hoy estos campos se guardan y se ven en el
+          detalle, nada mas. Prometer que la cedula sale en el comprobante o que la
+          fecha define la antiguedad es mentirle al capataz hasta que exista. */}
+      <CampoTexto etiqueta="Cédula" valor={values.cedula} onChange={(valor) => actions.onFieldChange('cedula', valor)} ayuda="Opcional." />
 
       {/* input type=date nativo: el picker del sistema ya es tactil y localizado */}
-      <CampoTexto
-        etiqueta="Fecha de ingreso"
-        valor={values.fechaIngreso}
-        onChange={(valor) => actions.onFieldChange('fechaIngreso', valor)}
-        tipo="date"
-        ayuda="Opcional. Define la antigüedad para vacaciones y aguinaldo."
-      />
+      <CampoTexto etiqueta="Fecha de ingreso" valor={values.fechaIngreso} onChange={(valor) => actions.onFieldChange('fechaIngreso', valor)} tipo="date" ayuda="Opcional." />
 
       <CampoTexto etiqueta="Teléfono" valor={values.telefono} onChange={(valor) => actions.onFieldChange('telefono', valor)} tipo="tel" />
 

@@ -261,6 +261,11 @@ content_path = "./supabase/templates/recuperar-password.html"
 
 # Aviso de seguridad, no es un flujo con token: se dispara solo al cambiar la contrasena.
 # En el proyecto remoto: Auth -> Email Templates -> Password Changed (hay que activarlo ahi tambien).
+#
+# OJO: la ruta NO lleva el prefijo ./supabase/ como las dos de arriba. El CLI resuelve
+# los content_path de [auth.email.notification.*] relativos a supabase/, y los de
+# [auth.email.template.*] relativos a la raiz. Con ./supabase/ acá, `supabase db reset`
+# aborta con "open supabase\supabase\templates\...: no se encuentra la ruta".
 [auth.email.notification.password_changed]
 enabled = true
 subject = "Tu contraseña de AgroMonitoreo cambió"

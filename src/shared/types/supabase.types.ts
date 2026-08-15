@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.15"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -90,7 +95,6 @@ export type Database = {
         Row: {
           actualizado_en: string
           cedula: string | null
-          contacto_emergencia: string | null
           fecha_ingreso: string | null
           finca_id: string
           telefono: string | null
@@ -99,7 +103,6 @@ export type Database = {
         Insert: {
           actualizado_en?: string
           cedula?: string | null
-          contacto_emergencia?: string | null
           fecha_ingreso?: string | null
           finca_id: string
           telefono?: string | null
@@ -108,7 +111,6 @@ export type Database = {
         Update: {
           actualizado_en?: string
           cedula?: string | null
-          contacto_emergencia?: string | null
           fecha_ingreso?: string | null
           finca_id?: string
           telefono?: string | null

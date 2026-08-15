@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it, vi } from 'vitest'
-import { crearTrabajador, listarTrabajadoresPorFinca } from '../../../../src/features/trabajadores/services/trabajadores-service'
+import { crearTrabajador, listarTodosTrabajadoresPorFinca, listarTrabajadoresPorFinca } from '../../../../src/features/trabajadores/services/trabajadores-service'
 import type { TrabajadorFormValues } from '../../../../src/features/trabajadores/types/trabajador-form.types'
 
 const VALUES_BASE: TrabajadorFormValues = {
@@ -19,13 +19,15 @@ function clienteDosTablas() {
   const insert = vi.fn(() => ({
     select: () => ({ single: () => Promise.resolve({ data: { id: 't-nuevo' }, error: null }) }),
   }))
+  const eq = vi.fn(() => Promise.resolve({ error: null }))
+  const borrar = vi.fn(() => ({ eq }))
   const tablas: string[] = []
   const from = vi.fn((tabla: string) => {
     tablas.push(tabla)
-    return { insert, upsert }
+    return { insert, upsert, delete: borrar }
   })
 
-  return { client: { from } as unknown as SupabaseClient, upsert, insert, tablas }
+  return { client: { from } as unknown as SupabaseClient, upsert, insert, borrar, eq, tablas }
 }
 
 async function crearCon(values: Partial<TrabajadorFormValues>) {
@@ -53,9 +55,19 @@ describe('el embed de datos_trabajadores', () => {
   it('nombra el FK explicito: sin el, PostgREST responde PGRST201 y no carga nada', async () => {
     const { client, cadena } = clienteLectura()
 
-    await listarTrabajadoresPorFinca('birrisito', client)
+    await listarTodosTrabajadoresPorFinca('birrisito', client)
 
     expect(cadena.select).toHaveBeenCalledWith(expect.stringContaining('datos:datos_trabajadores!datos_trabajadores_trabajador_id_fkey('))
+  })
+
+  // la grilla del capataz solo pinta nombre y foto: el embed ahi es un join por carga
+  // y PII (cedula, telefono) viajando a un dispositivo de campo que no la usa.
+  it('no viaja en la lectura de captura, que no muestra datos personales', async () => {
+    const { client, cadena } = clienteLectura()
+
+    await listarTrabajadoresPorFinca('birrisito', client)
+
+    expect(cadena.select).not.toHaveBeenCalledWith(expect.stringContaining('datos_trabajadores'))
   })
 
   // por finca_coincide el embed tambien resuelve, pero devuelve array en vez de
@@ -64,7 +76,7 @@ describe('el embed de datos_trabajadores', () => {
   it('no usa el FK compuesto, que devolveria un array', async () => {
     const { client, cadena } = clienteLectura()
 
-    await listarTrabajadoresPorFinca('birrisito', client)
+    await listarTodosTrabajadoresPorFinca('birrisito', client)
 
     expect(cadena.select).not.toHaveBeenCalledWith(expect.stringContaining('datos_trabajadores_finca_coincide'))
   })
@@ -124,5 +136,18 @@ describe('crearTrabajador', () => {
 
     await expect(crearTrabajador({ ...VALUES_BASE, fincaId: 'birrisito' }, doble.client)).rejects.toThrow('crearTrabajador: duplicate key')
     expect(doble.upsert).not.toHaveBeenCalled()
+  })
+
+  // el caso real: dos trabajadores de la misma finca con la misma cedula. El insert
+  // en trabajadores entra, el upsert choca con datos_trabajadores_finca_cedula_idx.
+  // Sin compensar, el trabajador queda vivo, el form sigue en modo crear y el
+  // reintento con la cedula corregida lo duplica.
+  it('borra el trabajador recien creado si falla el guardado de los datos personales', async () => {
+    const doble = clienteDosTablas()
+    doble.upsert.mockResolvedValueOnce({ error: { message: 'duplicate key value violates unique constraint' } })
+
+    await expect(crearTrabajador({ ...VALUES_BASE, cedula: '1-1111-1111', fincaId: 'birrisito' }, doble.client)).rejects.toThrow('guardarDatosTrabajador')
+    expect(doble.borrar).toHaveBeenCalled()
+    expect(doble.eq).toHaveBeenCalledWith('id', 't-nuevo')
   })
 })

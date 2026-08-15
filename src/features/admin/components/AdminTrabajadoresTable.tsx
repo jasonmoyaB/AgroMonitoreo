@@ -37,20 +37,13 @@ export function AdminTrabajadoresTable({ trabajadores, isLoading, onVer, onSelec
           </thead>
           <tbody>
             {trabajadores.map((trabajador) => (
-              <tr
-                key={trabajador.id}
-                onClick={() => onSelectTrabajador(trabajador)}
-                className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45"
-              >
+              <tr key={trabajador.id} className="border-b border-slate-900/5 last:border-b-0 hover:bg-white/45">
                 <td className="px-5 py-3">
-                  {/* el nombre es el control accesible de la fila: el tr no puede ser role=button
-                      con el boton de editar adentro, y asi las metricas se abren tambien por teclado */}
+                  {/* el nombre es el control accesible de la fila: un onClick en el <tr> no lo
+                      alcanza el teclado, y ademas obliga a stopPropagation en cada boton */}
                   <button
                     type="button"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      onSelectTrabajador(trabajador)
-                    }}
+                    onClick={() => onSelectTrabajador(trabajador)}
                     className="flex min-w-0 cursor-pointer items-center gap-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700"
                   >
                     <Avatar nombre={trabajador.nombreCompleto} fotoUrl={trabajador.fotoUrl} size={AVATAR_SIZE_PX} />
@@ -69,25 +62,11 @@ export function AdminTrabajadoresTable({ trabajadores, isLoading, onVer, onSelec
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex flex-wrap justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        onVer(trabajador)
-                      }}
-                      className={`${BOTON_TABLA} ${BOTON_VER}`}
-                    >
+                    <button type="button" onClick={() => onVer(trabajador)} className={`${BOTON_TABLA} ${BOTON_VER}`}>
                       <Eye className="h-4 w-4" aria-hidden="true" />
                       Ver
                     </button>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        onEditarSeguro(trabajador)
-                      }}
-                      className={`${BOTON_TABLA} ${BOTON_EDITAR}`}
-                    >
+                    <button type="button" onClick={() => onEditarSeguro(trabajador)} className={`${BOTON_TABLA} ${BOTON_EDITAR}`}>
                       Editar
                     </button>
                   </div>
