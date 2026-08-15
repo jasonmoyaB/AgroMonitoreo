@@ -5,6 +5,7 @@ import { AdminSidebar } from '../components/AdminSidebar'
 import { AdminTrabajadoresTable } from '../components/AdminTrabajadoresTable'
 import { EditarAseguradoModal } from '../components/EditarAseguradoModal'
 import { FincaSelector } from '../components/FincaSelector'
+import { TrabajadorDetalleModal } from '../../trabajadores/components/TrabajadorDetalleModal'
 import { TrabajadorMetricasModal } from '../../trabajadores/components/TrabajadorMetricasModal'
 import { TrabajadoresFilterBar } from '../../trabajadores/components/TrabajadoresFilterBar'
 import { useAdminDashboard } from '../hooks/use-admin-dashboard'
@@ -26,6 +27,7 @@ export function TrabajadoresPorFincaScreen() {
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
   const perfil = usePerfilSidebar()
   const [trabajadorEditando, setTrabajadorEditando] = useState<Trabajador | null>(null)
+  const [trabajadorVisto, setTrabajadorVisto] = useState<Trabajador | null>(null)
 
   function cambiarSeguro(asegurado: boolean) {
     if (!trabajadorEditando) return
@@ -52,10 +54,13 @@ export function TrabajadoresPorFincaScreen() {
           <AdminTrabajadoresTable
             trabajadores={filtro.trabajadoresFiltrados}
             isLoading={trabajadores.isLoading}
+            onVer={setTrabajadorVisto}
             onSelectTrabajador={metricasModal.abrir}
             onEditarSeguro={setTrabajadorEditando}
           />
         </section>
+
+        <TrabajadorDetalleModal trabajador={trabajadorVisto} onClose={() => setTrabajadorVisto(null)} />
 
         <TrabajadorMetricasModal
           state={metricasModal}

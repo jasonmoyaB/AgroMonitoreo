@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { UserPlus } from 'lucide-react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { useTrabajadoresCrud } from '../../trabajadores/hooks/use-trabajadores-crud'
@@ -6,6 +7,7 @@ import { useTrabajadoresTrasladadosHoy } from '../../traslados/hooks/use-trabaja
 import { Modal } from '../../../shared/components/Modal'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { TrabajadorForm } from '../components/TrabajadorForm'
+import { TrabajadorDetalleModal } from '../../trabajadores/components/TrabajadorDetalleModal'
 import { TrabajadorMetricasModal } from '../../trabajadores/components/TrabajadorMetricasModal'
 import { TrabajadoresFilterBar } from '../../trabajadores/components/TrabajadoresFilterBar'
 import { TrabajadoresTable } from '../components/TrabajadoresTable'
@@ -13,8 +15,10 @@ import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { useTrabajadorMetricasModal } from '../../trabajadores/hooks/use-trabajador-metricas-modal'
 import { fechaLocalIso } from '../../../shared/utils/fecha-local'
+import type { Trabajador } from '../../../shared/types/domain.types'
 
 export function TrabajadoresCrudScreen() {
+  const [trabajadorVisto, setTrabajadorVisto] = useState<Trabajador | null>(null)
   const dashboard = useSupervisorDashboard()
   const trabajadores = useTrabajadoresCrud()
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)
@@ -58,7 +62,12 @@ export function TrabajadoresCrudScreen() {
             trabajadores={filtro.trabajadoresFiltrados}
             isLoading={trabajadores.isLoading}
             fincaDestinoPorTrasladado={fincaDestinoPorTrasladado}
-            actions={{ onEdit: trabajadores.editarTrabajador, onToggleActive: trabajadores.alternarEstado, onSelectTrabajador: metricasModal.abrir }}
+            actions={{
+              onVer: setTrabajadorVisto,
+              onEdit: trabajadores.editarTrabajador,
+              onToggleActive: trabajadores.alternarEstado,
+              onSelectTrabajador: metricasModal.abrir,
+            }}
           />
         </section>
 
@@ -68,6 +77,8 @@ export function TrabajadoresCrudScreen() {
             actions={{ onFieldChange: trabajadores.updateField, onFotoChange: trabajadores.onFotoChange, onSubmit: trabajadores.handleSubmit }}
           />
         </Modal>
+
+        <TrabajadorDetalleModal trabajador={trabajadorVisto} onClose={() => setTrabajadorVisto(null)} />
 
         <TrabajadorMetricasModal
           state={metricasModal}

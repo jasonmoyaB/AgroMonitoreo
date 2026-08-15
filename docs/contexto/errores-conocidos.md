@@ -28,7 +28,15 @@ Traer la tabla entera de `registros_trabajo` cortaba apenas pasado el primer mes
 **`.or()` no acepta parámetros.**
 Recibe un string de filtro, así que `fincaId` terminaba interpolado sin escapar. Usar dos `.eq()` — ver `traslados/services/traslados-service.ts`.
 
+**Un FK compuesto crea un segundo camino de embed y rompe PostgREST con `PGRST201`.**
+`datos_trabajadores` tiene dos FK hacia `trabajadores`: `trabajador_id` y el compuesto `datos_trabajadores_finca_coincide` (que impide que `finca_id` se desincronice). Con dos caminos, `datos:datos_trabajadores(...)` deja de resolver y **la pantalla entera de trabajadores no carga**. Hay que nombrar el FK: `datos:datos_trabajadores!datos_trabajadores_trabajador_id_fkey(...)`.
+Y tiene que ser **ese** FK. El hint de PostgREST ofrece los dos, pero por `finca_coincide` el embed vuelve **array** en vez de objeto: no da error, y `row.datos?.cedula` sobre un array es `undefined`, así que todas las cédulas quedan en `null` en silencio. Peor que el 400.
+Segunda lección: esto **no lo ve `psql`**. La migración se verificó con SQL directo (constraints, RLS, índices, todo verde) y el bug igual llegó a la pantalla, porque `PGRST201` lo tira el resolutor de embeds de PostgREST. Si tocás un FK, probá con `curl` contra `/rest/v1/`.
+
 **El generador de tipos marca un embed como array** cuando la unicidad es compuesta (ej. `asistencia` es única por `trabajador_id + fecha`, no por `trabajador_id`), aunque PostgREST devuelva un objeto único por ser FK muchos-a-uno. Ver `asistencia/services/asistencia-service.ts`.
+
+**Los `content_path` de `config.toml` no se resuelven todos igual.**
+`[auth.email.template.*]` (invite, recovery) van con `./supabase/templates/...`, relativos a la raíz. `[auth.email.notification.*]` (password_changed) va con `./templates/...`, relativo a `supabase/`. La inconsistencia parece un error de tipeo y no lo es: "normalizar" las tres al mismo prefijo hace que `supabase db reset` aborte antes de aplicar nada con `open supabase\supabase\templates\...: no se encuentra la ruta`.
 
 **Advisor abierto que ninguna migración puede cerrar**: protección de contraseñas filtradas — es un toggle del Dashboard.
 
@@ -61,6 +69,13 @@ En la tabla de salarios cada control manda solo su campo: si el selector de mone
 
 **El `header` fuera de la `<section overflow-y-auto>` queda pineado en mobile.**
 Va adentro de la misma section que el contenido para que se suba con el scroll. Y `min-h-0` junto a `flex-1` es obligatorio o el scroll interno no funciona dentro del flex container. Ver `docs/RESPONSIVE.md`.
+
+**Un elemento con `neu-raised` no puede ser el que scrollea.**
+La tarjeta del `Modal` ocupa casi toda la pantalla y era ella misma el `overflow-y-auto`. Con eso, cada frame de scroll obligaba al compositor de display a redibujar un render pass de pantalla completa con las dos sombras de 16px de blur y el clip de `rounded-[2rem]`: **34fps y `VizCompositorThread` 62% ocupado** en un trace real de Chrome desktop. El arreglo es que la tarjeta conserve sombra y radio pero no scrollee, y que scrollee un hijo sin sombra ni radio (`min-h-0 flex-1 overflow-y-auto`) — mide ~45% menos trabajo de compositor. Aplica a cualquier superficie `neu-*` grande que se vuelva scroller.
+
+Dos trampas al diagnosticarlo, las dos me costaron una conclusión falsa:
+- **`CrRendererMain` al 1% no significa "no hay problema de performance".** El costo estaba entero en `VizCompositorThread`, que es GPU/compositing, no JS. Mirar el reparto por hilo antes de culpar a React.
+- **Headless no lo reproduce.** `chromium-headless-shell` rasteriza por CPU con SwiftShader y no ejecuta el render pass como Viz: medía "cero costo" para el mismo markup. Hay que medir con `channel: 'chrome'` y `headless: false`.
 
 **El autofill del navegador rompe el look neumórfico** de los inputs; el workaround es un `box-shadow` inset en `src/index.css`. No borrarlo por parecer redundante.
 

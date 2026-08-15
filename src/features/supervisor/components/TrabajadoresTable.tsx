@@ -1,10 +1,14 @@
+import type { ReactNode } from 'react'
+import { Eye } from 'lucide-react'
 import { Avatar } from '../../../shared/components/Avatar'
+import { BOTON_ACTIVAR, BOTON_DESACTIVAR, BOTON_EDITAR, BOTON_TABLA, BOTON_VER } from '../../../shared/constants/botones-tabla.constants'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 const AVATAR_SIZE_PX = 40
 const BADGE_CLASS = 'inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide'
 
 interface TrabajadoresTableActions {
+  onVer: (trabajador: Trabajador) => void
   onEdit: (trabajador: Trabajador) => void
   onToggleActive: (trabajador: Trabajador) => void
   onSelectTrabajador: (trabajador: Trabajador) => void
@@ -62,15 +66,13 @@ interface TrabajadoresTableRowProps {
 
 function TrabajadoresTableRow({ trabajador, fincaDestino, actions }: TrabajadoresTableRowProps) {
   return (
-    <tr
-      onClick={() => actions.onSelectTrabajador(trabajador)}
-      className="cursor-pointer border-b border-slate-900/5 last:border-b-0 hover:bg-white/45"
-    >
+    <tr className="border-b border-slate-900/5 last:border-b-0 hover:bg-white/45">
       <td className="px-5 py-3">
-        <div className="flex min-w-0 items-center gap-3">
+        {/* el nombre abre las metricas: un onClick en el <tr> no lo alcanza el teclado */}
+        <button type="button" onClick={() => actions.onSelectTrabajador(trabajador)} className="flex min-w-0 cursor-pointer items-center gap-3 text-left">
           <Avatar nombre={trabajador.nombreCompleto} fotoUrl={trabajador.fotoUrl} size={AVATAR_SIZE_PX} />
-          <span className="truncate text-base font-black text-slate-900">{trabajador.nombreCompleto}</span>
-        </div>
+          <span className="truncate text-base font-black text-slate-900 underline decoration-slate-900/20 underline-offset-4">{trabajador.nombreCompleto}</span>
+        </button>
       </td>
       <td className="px-5 py-3">
         <div className="flex flex-wrap gap-1.5">
@@ -84,31 +86,33 @@ function TrabajadoresTableRow({ trabajador, fincaDestino, actions }: Trabajadore
         </div>
       </td>
       <td className="px-5 py-3">
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation()
-              actions.onEdit(trabajador)
-            }}
-            className="neu-pressed min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-slate-800"
-          >
+        <div className="flex flex-wrap justify-end gap-2">
+          <BotonFila onClick={() => actions.onVer(trabajador)} className={BOTON_VER}>
+            <Eye className="h-4 w-4" aria-hidden="true" />
+            Ver
+          </BotonFila>
+          <BotonFila onClick={() => actions.onEdit(trabajador)} className={BOTON_EDITAR}>
             Editar
-          </button>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation()
-              actions.onToggleActive(trabajador)
-            }}
-            className={`min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-white shadow-lg ${
-              trabajador.activo ? 'bg-red-700 shadow-red-900/20' : 'bg-green-700 shadow-green-900/20'
-            }`}
-          >
+          </BotonFila>
+          <BotonFila onClick={() => actions.onToggleActive(trabajador)} className={trabajador.activo ? BOTON_DESACTIVAR : BOTON_ACTIVAR}>
             {trabajador.activo ? 'Desactivar' : 'Activar'}
-          </button>
+          </BotonFila>
         </div>
       </td>
     </tr>
+  )
+}
+
+interface BotonFilaProps {
+  onClick: () => void
+  className: string
+  children: ReactNode
+}
+
+function BotonFila({ onClick, className, children }: BotonFilaProps) {
+  return (
+    <button type="button" onClick={onClick} className={`${BOTON_TABLA} ${className}`}>
+      {children}
+    </button>
   )
 }

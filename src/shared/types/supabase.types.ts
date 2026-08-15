@@ -91,6 +91,55 @@ export type Database = {
           },
         ]
       }
+      datos_trabajadores: {
+        Row: {
+          actualizado_en: string
+          cedula: string | null
+          fecha_ingreso: string | null
+          finca_id: string
+          telefono: string | null
+          trabajador_id: string
+        }
+        Insert: {
+          actualizado_en?: string
+          cedula?: string | null
+          fecha_ingreso?: string | null
+          finca_id: string
+          telefono?: string | null
+          trabajador_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          cedula?: string | null
+          fecha_ingreso?: string | null
+          finca_id?: string
+          telefono?: string | null
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "datos_trabajadores_finca_coincide"
+            columns: ["trabajador_id", "finca_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id", "finca_id"]
+          },
+          {
+            foreignKeyName: "datos_trabajadores_finca_id_fkey"
+            columns: ["finca_id"]
+            isOneToOne: false
+            referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "datos_trabajadores_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: true
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fincas: {
         Row: {
           activa: boolean
@@ -650,3 +699,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

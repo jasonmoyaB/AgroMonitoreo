@@ -5,10 +5,11 @@ import { useToastStore } from '../../../shared/stores/toast-store'
 import type { Trabajador } from '../../../shared/types/domain.types'
 import { TRABAJADORES_QUERY_KEY } from '../constants/trabajadores-query.constants'
 import { actualizarTrabajador, cambiarEstadoTrabajador, crearTrabajador, listarTodosTrabajadoresPorFinca, subirFotoTrabajador } from '../services/trabajadores-service'
+import { construirValuesTrabajador } from '../utils/construir-values-trabajador'
 import { useFotoTrabajador } from './use-foto-trabajador'
 import type { TrabajadorFormValues } from '../types/trabajador-form.types'
 
-const TRABAJADOR_INICIAL: TrabajadorFormValues = { nombreCompleto: '', fotoUrl: '', activo: true, asegurado: false }
+const TRABAJADOR_INICIAL: TrabajadorFormValues = construirValuesTrabajador(null)
 
 interface EstadoFormularioTrabajador {
   values: TrabajadorFormValues
@@ -47,7 +48,7 @@ export function useTrabajadoresCrud() {
   function editarTrabajador(trabajador: Trabajador) {
     setForm({
       trabajadorEditando: trabajador,
-      values: { nombreCompleto: trabajador.nombreCompleto, fotoUrl: trabajador.fotoUrl ?? '', activo: trabajador.activo, asegurado: trabajador.asegurado },
+      values: construirValuesTrabajador(trabajador),
       error: null,
       isFormOpen: true,
     })

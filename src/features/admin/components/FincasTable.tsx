@@ -1,3 +1,4 @@
+import { BOTON_ACTIVAR, BOTON_DESACTIVAR, BOTON_EDITAR, BOTON_TABLA } from '../../../shared/constants/botones-tabla.constants'
 import type { Finca } from '../../../shared/types/domain.types'
 
 interface FincasTableProps {
@@ -49,17 +50,11 @@ export function FincasTable({ fincas, isLoading, onEdit, onToggleActive }: Finca
                     <button
                       type="button"
                       onClick={() => onEdit(finca)}
-                      className="neu-pressed min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-slate-800"
+                      className={`${BOTON_TABLA} ${BOTON_EDITAR}`}
                     >
                       Editar
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onToggleActive(finca)}
-                      className={`min-h-11 cursor-pointer rounded-xl px-4 text-sm font-black text-white shadow-lg ${
-                        finca.activa ? 'bg-red-700 shadow-red-900/20' : 'bg-green-700 shadow-green-900/20'
-                      }`}
-                    >
+                    <button type="button" onClick={() => onToggleActive(finca)} className={`${BOTON_TABLA} ${finca.activa ? BOTON_DESACTIVAR : BOTON_ACTIVAR}`}>
                       {finca.activa ? 'Desactivar' : 'Activar'}
                     </button>
                   </div>
