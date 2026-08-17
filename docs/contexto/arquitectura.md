@@ -78,7 +78,7 @@ Cliente único: `shared/lib/supabase-client.ts`. Envs: `VITE_SUPABASE_URL` y `VI
 - **No hay monorepo.** `pnpm-workspace.yaml` existe pero la app es una sola.
 - **No hay `tailwind.config.js`.** Tailwind v4 CSS-first: `@import 'tailwindcss'` en `src/index.css` + `@tailwindcss/vite`.
 - **No hay librería de toasts.** Sistema propio en `shared/` (ver `docs/instruccions/3-notificaciones-toast.md`).
-- **No hay signup público.** `enable_signup = false`: nadie se registra solo, ni por pantalla ni por `POST /auth/v1/signup`. El admin invita por correo desde `/admin/supervisores`; el invitado entra como `supervisor` + `birrisito` server-side y a admin se lo promueve después desde esa misma tabla (`docs/instruccions/7-crear-usuario-admin.md`).
+- **No hay signup público.** `enable_signup = false`: nadie se registra solo, ni por pantalla ni por `POST /auth/v1/signup`. El admin invita por correo desde `/admin/supervisores`; el invitado entra como `supervisor` **sin finca** (`finca_id` null) y el admin le asigna la finca desde esa misma tabla, donde también se lo promueve a admin (`docs/instruccions/7-crear-usuario-admin.md`).
 - **El frontend no lee la tabla `labores`.** Usa `shared/constants/tipos-labor.constants.ts`; las dos se sincronizan a mano.
 - **No hay tests de componentes.** Solo utils y services (ver `convenciones.md`).
 - **CI mínima**: `.github/workflows/react-doctor.yml` corre React Doctor en PRs y en push a `main`, en modo advisory (nunca falla el check). No hay job de `build`, `lint` ni `vitest` — esos se corren en local.

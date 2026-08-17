@@ -10,7 +10,7 @@ interface SupervisorRow {
   email: string
   nombre: string | null
   activo: boolean
-  finca_id: string
+  finca_id: string | null
   finca: { nombre: string } | null
   rol: { nombre: RolNombre } | null
 }

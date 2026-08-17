@@ -26,7 +26,7 @@ One-way flow: supervisor logs field data → admin/oficina reads it. No reverse 
 - **supervisor** ("capataz") — capture, workers, asistencia, traslados, own profile, KPIs.
 - **admin/oficina** — `/admin/*` behind `AdminGuard`: rollup + per-finca dashboards, fincas CRUD, supervisores CRUD, trabajadores/asistencia por finca, salarios, traslados, configuración. Reads across every `finca_id` (`20260714165119`).
 
-No public signup (`enable_signup = false`). The only way in is an admin invite from `/admin/supervisores` (edge function `supabase/functions/invitar-usuario`); the invitee is born `supervisor` + `birrisito` server-side, and an `admin_oficina` is promoted from that same screen (`20260714171722`).
+No public signup (`enable_signup = false`). The only way in is an admin invite from `/admin/supervisores` (edge function `supabase/functions/invitar-usuario`); the invitee is born `supervisor` with **`finca_id` null** server-side (`20260817164409`), and an `admin_oficina` is promoted from that same screen (`20260714171722`). Assigning the finca is a second, explicit admin step on that screen — until then `RouteGuard` shows `SinFincaAsignada` instead of letting them into `/supervisor/*` or `/captura/*`.
 
 ## Backend (Supabase — live)
 

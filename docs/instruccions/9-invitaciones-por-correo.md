@@ -2,7 +2,7 @@
 
 El signup público está cerrado. La única forma de que exista un usuario nuevo es que un `admin_oficina` lo invite desde `/admin/supervisores` → botón **Invitar**.
 
-Flujo completo: admin escribe el correo → edge function `invitar-usuario` (tiene el `service_role`) llama `auth.admin.inviteUserByEmail` → Supabase manda el correo por SMTP → el link cae en `/reset-password?invitacion=1` → la persona define su contraseña y entra como `supervisor` de `birrisito`. Para volverla oficina, se le cambia el rol en esa misma tabla.
+Flujo completo: admin escribe el correo → edge function `invitar-usuario` (tiene el `service_role`) llama `auth.admin.inviteUserByEmail` → Supabase manda el correo por SMTP → el link cae en `/reset-password?invitacion=1` → la persona define su contraseña y entra como `supervisor` **sin finca asignada** (ve la pantalla "Todavía no tienes finca", no la app). El admin le asigna la finca desde `/admin/supervisores` — la fila aparece con el badge ámbar "Sin finca". Para volverla oficina, se le cambia el rol en esa misma tabla.
 
 ## Config de una sola vez (Dashboard remoto, no va por git)
 

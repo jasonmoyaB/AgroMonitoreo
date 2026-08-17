@@ -514,7 +514,7 @@ export type Database = {
           auth_user_id: string
           creado_en: string
           email: string
-          finca_id: string
+          finca_id: string | null
           id: string
           nombre: string | null
           rol_id: string
@@ -525,7 +525,7 @@ export type Database = {
           auth_user_id: string
           creado_en?: string
           email: string
-          finca_id?: string
+          finca_id?: string | null
           id?: string
           nombre?: string | null
           rol_id: string
@@ -536,7 +536,7 @@ export type Database = {
           auth_user_id?: string
           creado_en?: string
           email?: string
-          finca_id?: string
+          finca_id?: string | null
           id?: string
           nombre?: string | null
           rol_id?: string

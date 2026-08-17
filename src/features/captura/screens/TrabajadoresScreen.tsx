@@ -39,10 +39,12 @@ export function TrabajadoresScreen() {
   const [dialogo, setDialogo] = useState<DialogoTrabajador | null>(null)
 
   const { usuario } = useUsuarioActual()
-  const { data: trabajadores = [] } = useTrabajadoresDisponibles(usuario?.fincaId, fecha)
+  // RouteGuard ya frena al supervisor sin finca, pero los hooks piden string | undefined
+  const fincaId = usuario?.fincaId ?? undefined
+  const { data: trabajadores = [] } = useTrabajadoresDisponibles(fincaId, fecha)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
-  const { data: ausencias = [] } = useAusentesDelDia(usuario?.fincaId, fecha)
-  const { data: trasladados = [] } = useTrabajadoresTrasladadosHoy(usuario?.fincaId, fecha)
+  const { data: ausencias = [] } = useAusentesDelDia(fincaId, fecha)
+  const { data: trasladados = [] } = useTrabajadoresTrasladadosHoy(fincaId, fecha)
   const tipoLabor = TIPOS_LABOR.find((labor) => labor.id === tipoLaborId)
 
   const trabajadoresOrdenados = ordenarTrabajadoresAlfabeticamente(trabajadores)

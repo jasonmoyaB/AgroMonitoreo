@@ -7,9 +7,9 @@ Términos del dominio, tal como aparecen en el código.
 | Término | Qué es | Dónde |
 |---|---|---|
 | **Finca** | Unidad de aislamiento de todo el sistema. La única real hoy es `birrisito`. Tiene `valor_hora` y `valor_hora_usd`, que fijan el costo del día ausente. | tabla `fincas`, `Finca` en `domain.types.ts` |
-| **Capataz / supervisor** | Quien carga los datos en campo. Rol `supervisor`. Todo signup crea uno. | rol `supervisor`, `features/supervisor` |
+| **Capataz / supervisor** | Quien carga los datos en campo. Rol `supervisor`. Toda alta crea uno, y **sin finca**: la asigna el admin después. | rol `supervisor`, `features/supervisor` |
 | **Admin de oficina** | Lee lo que cargó el campo y gestiona fincas, supervisores, salarios y planilla. Cruza todas las fincas. Se promueve por SQL. | rol `admin_oficina`, `features/admin` |
-| **Usuario** | Fila 1:1 con `auth.users` vía `auth_user_id`; guarda `rol_id`, `finca_id`, `nombre`. Es por donde todas las policies RLS hacen join. | tabla `usuario` |
+| **Usuario** | Fila 1:1 con `auth.users` vía `auth_user_id`; guarda `rol_id`, `finca_id`, `nombre`. Es por donde todas las policies RLS hacen join. `finca_id` es nullable: null = invitado a la espera de que el admin le asigne finca. | tabla `usuario` |
 
 El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inverso.
 

@@ -47,11 +47,15 @@ export function SupervisorForm({ state, actions, fincas }: SupervisorFormProps) 
 
       <label className="flex flex-col gap-2 font-black text-slate-800">
         Finca
+        {/* el DOM solo habla strings: '' es la finca nula. Sin esta opcion, un invitado
+            sin finca abriria el form con el select en blanco y sin nada que elegir que
+            represente su estado actual. */}
         <select
-          value={values.fincaId}
-          onChange={(event) => actions.onFieldChange('fincaId', event.target.value)}
+          value={values.fincaId ?? ''}
+          onChange={(event) => actions.onFieldChange('fincaId', event.target.value || null)}
           className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
         >
+          <option value="">Sin finca asignada</option>
           {fincas.map((finca) => (
             <option key={finca.id} value={finca.id}>
               {finca.nombre}

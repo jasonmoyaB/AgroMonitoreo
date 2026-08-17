@@ -92,8 +92,10 @@ export interface Usuario {
   id: string
   email: string
   nombre: string | null
-  fincaId: string
-  fincaNombre: string
+  // null mientras el admin no le asigne finca: el invitado ya tiene cuenta y
+  // contrasena, pero todavia no pertenece a ninguna finca (RouteGuard lo frena).
+  fincaId: string | null
+  fincaNombre: string | null
   activo: boolean
   rol: RolNombre
 }
