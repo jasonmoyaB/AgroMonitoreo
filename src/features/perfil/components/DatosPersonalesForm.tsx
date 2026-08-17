@@ -1,3 +1,4 @@
+import { CampoCedulaHacienda } from '../../../shared/components/CampoCedulaHacienda'
 import { CampoTexto } from '../../../shared/components/CampoTexto'
 import { SeccionColapsable } from '../../../shared/components/SeccionColapsable'
 import { useDatosPersonalesForm } from '../hooks/use-datos-personales-form'
@@ -29,7 +30,9 @@ export function DatosPersonalesForm({ usuarioId }: DatosPersonalesFormProps) {
             ayuda="No cambia el correo con el que iniciás sesión."
           />
 
-          <CampoTexto etiqueta="Cédula" valor={values.cedula} onChange={(valor) => form.onFieldChange('cedula', valor)} />
+          {/* sin onNombreEncontrado: aca el nombre se edita en EditarNombreForm, que es
+              otra tarjeta con su propio estado. Hacienda solo confirma de quien es la cedula. */}
+          <CampoCedulaHacienda valor={values.cedula} onChange={(valor) => form.onFieldChange('cedula', valor)} />
 
           {/* input type=date nativo: el picker del sistema ya es tactil y localizado */}
           <CampoTexto etiqueta="Fecha de nacimiento" valor={values.fechaNacimiento} onChange={(valor) => form.onFieldChange('fechaNacimiento', valor)} tipo="date" />

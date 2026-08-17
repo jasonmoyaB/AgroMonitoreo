@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Avatar } from '../../../shared/components/Avatar'
+import { CampoCedulaHacienda } from '../../../shared/components/CampoCedulaHacienda'
 import { CampoTexto, INPUT_NEU_CLASS } from '../../../shared/components/CampoTexto'
 import { crearClaseToggle } from '../../../shared/utils/crear-clase-toggle'
 import type { TrabajadoresCrudActions, TrabajadoresCrudState } from '../../trabajadores/types/trabajador-crud.types'
@@ -45,7 +46,16 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
       {/* la ayuda dice solo "Opcional": hoy estos campos se guardan y se ven en el
           detalle, nada mas. Prometer que la cedula sale en el comprobante o que la
           fecha define la antiguedad es mentirle al capataz hasta que exista. */}
-      <CampoTexto etiqueta="Cédula" valor={values.cedula} onChange={(valor) => actions.onFieldChange('cedula', valor)} ayuda="Opcional." />
+      {/* solo autocompleta si el nombre esta vacio: pisar lo que el capataz ya
+          escribio es peor que no ayudar. En edicion la ficha ya viene con nombre,
+          asi que abrir un trabajador existente nunca le reescribe el suyo. */}
+      <CampoCedulaHacienda
+        valor={values.cedula}
+        onChange={(valor) => actions.onFieldChange('cedula', valor)}
+        onNombreEncontrado={(nombre) => {
+          if (!values.nombreCompleto.trim()) actions.onFieldChange('nombreCompleto', nombre)
+        }}
+      />
 
       {/* input type=date nativo: el picker del sistema ya es tactil y localizado */}
       <CampoTexto etiqueta="Fecha de ingreso" valor={values.fechaIngreso} onChange={(valor) => actions.onFieldChange('fechaIngreso', valor)} tipo="date" ayuda="Opcional." />

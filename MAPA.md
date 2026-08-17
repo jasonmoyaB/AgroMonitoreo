@@ -27,6 +27,7 @@
 | Regla de horas extra (umbral 8h, acumulado por día) | `docs/horas-extra.md` — umbral en `src/features/supervisor/constants/trabajador-metricas.constants.ts` |
 | Componentes compartidos (IconTile, Avatar, Stepper...) | `src/shared/components/` |
 | Cliente Supabase | `src/shared/lib/supabase-client.ts` |
+| Consulta de cédula a la API de Hacienda (autocompleta nombre) | `src/shared/services/hacienda-service.ts` + `hooks/use-contribuyente-hacienda.ts` + `components/CampoCedulaHacienda.tsx` + `features/trabajadores/components/DatosHaciendaTrabajador.tsx` (ficha) |
 | Tipos generados de Supabase (regenerar tras migración) | `src/shared/types/supabase.types.ts` |
 | Draft local (IndexedDB, autosave) | `src/features/captura/hooks/use-registro-draft.ts` |
 | Zustand store de sesión de captura | `src/shared/stores/captura-session-store.ts` |
