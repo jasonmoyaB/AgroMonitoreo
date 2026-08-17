@@ -1,6 +1,6 @@
 import { MapPinOff, RefreshCw } from 'lucide-react'
 import { useCerrarSesion } from '../hooks/use-cerrar-sesion'
-import { useRecargarUsuario } from '../hooks/use-recargar-usuario'
+import { useUsuarioActual } from '../hooks/use-usuario-actual'
 
 // Pantalla de espera del invitado recien dado de alta: ya tiene cuenta y contrasena, pero
 // todavia no pertenece a ninguna finca. Sin esto entraria al shell de supervisor vacio
@@ -9,7 +9,8 @@ import { useRecargarUsuario } from '../hooks/use-recargar-usuario'
 // Mismo criterio de UX que features/captura: iconos primero, texto corto, targets grandes.
 export function SinFincaAsignada() {
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()
-  const { recargar, isRecargando } = useRecargarUsuario()
+  // misma query key que el guard: comparte cache, no dispara una segunda carga
+  const { refetch, isFetching } = useUsuarioActual()
 
   return (
     <main className="grid min-h-screen place-items-center p-6">
@@ -20,12 +21,12 @@ export function SinFincaAsignada() {
 
         <button
           type="button"
-          onClick={recargar}
-          disabled={isRecargando}
+          onClick={() => refetch()}
+          disabled={isFetching}
           className="flex min-h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <RefreshCw className={`h-6 w-6 ${isRecargando ? 'animate-spin' : ''}`} aria-hidden="true" />
-          {isRecargando ? 'Revisando' : 'Revisar de nuevo'}
+          <RefreshCw className={`h-6 w-6 ${isFetching ? 'animate-spin' : ''}`} aria-hidden="true" />
+          {isFetching ? 'Revisando' : 'Revisar de nuevo'}
         </button>
 
         <button

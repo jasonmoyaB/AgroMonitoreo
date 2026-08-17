@@ -87,7 +87,9 @@ describe('actualizarSupervisor', () => {
   })
 
   // el invitado nace sin finca: guardar el resto de sus datos no puede inventarle una.
-  // Si esto mandara '' en vez de null, el FK contra fincas reventaria el guardado.
+  // El '' -> null lo hace el select en SupervisorForm.tsx, no el service; esto solo
+  // clava que el service pase el null tal cual y nadie le meta un `?? ''` despues,
+  // que es lo que reventaria el FK contra fincas.
   it('manda finca_id null cuando el admin todavia no le asigna finca', async () => {
     const { client, update } = clienteActualizar(filaSupervisor(null, null))
 

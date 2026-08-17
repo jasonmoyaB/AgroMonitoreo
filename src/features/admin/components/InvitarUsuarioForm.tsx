@@ -32,7 +32,7 @@ export function InvitarUsuarioForm({ email, error, isSubmitting, onEmailChange, 
       </label>
 
       <p className="font-bold leading-6 text-slate-600">
-        Entra como supervisor sin finca. Cuando acepte, asígnale la finca desde esta misma tabla — hasta entonces no ve nada.
+        Entra como supervisor sin finca. Cuando acepte, asígnale la finca desde esta misma tabla — hasta entonces no puede cargar ni editar datos de ninguna finca.
       </p>
 
       {error && <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">{error}</p>}

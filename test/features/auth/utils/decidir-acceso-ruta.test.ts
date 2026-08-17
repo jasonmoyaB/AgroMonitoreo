@@ -43,8 +43,9 @@ describe('decidirAccesoRuta', () => {
     expect(decidirAccesoRuta({ ...RUTA_SUPERVISOR, usuario: recienAsignado })).toBe('permitido')
   })
 
-  // sin perfil cargado no hay finca que valga: con `usuario && !usuario.fincaId` esto
-  // caia en 'permitido' y pintaba el shell de supervisor vacio.
+  // Defensa en profundidad, no un bug vivo: con throwOnError en App.tsx un perfil que no
+  // carga lanza y lo atiende RouteErrorScreen, asi que este estado no llega desde la app.
+  // El test fija que el default de la funcion pura sea frenar y no dejar pasar.
   it('frena tambien cuando el perfil no cargo', () => {
     expect(decidirAccesoRuta({ ...RUTA_SUPERVISOR, usuario: undefined })).toBe('sin-finca')
   })
@@ -57,10 +58,23 @@ describe('decidirAccesoRuta', () => {
     expect(decidirAccesoRuta({ ...RUTA_SUPERVISOR, usuario: usuario({ rol: 'admin_oficina' }) })).toBe('a-admin')
   })
 
+  // el camino que probaria alguien de afuera: invitado sin finca apuntando a /admin/*.
+  // Sale a /supervisor, donde la misma funcion lo manda a 'sin-finca'. No hay loop:
+  // 'a-supervisor' solo se devuelve en rutas soloAdmin, y /supervisor no lo es.
+  it('saca de las rutas de admin al supervisor sin finca', () => {
+    const sinFinca = usuario({ fincaId: null, fincaNombre: null })
+
+    expect(decidirAccesoRuta({ ...RUTA_ADMIN, usuario: sinFinca })).toBe('a-supervisor')
+    expect(decidirAccesoRuta({ ...RUTA_SUPERVISOR, usuario: sinFinca })).toBe('sin-finca')
+  })
+
   // el admin cruza fincas a mano en cada pantalla: no necesita finca propia para entrar.
-  it('deja pasar al admin sin finca propia', () => {
+  // Las dos rutas importan: `/` redirige a /supervisor, asi que un admin sin finca
+  // propia entra por ahi y tiene que rebotar a /admin, no quedarse en 'sin-finca'.
+  it('deja pasar al admin sin finca propia y lo rebota desde las rutas de supervisor', () => {
     const admin = usuario({ rol: 'admin_oficina', fincaId: null, fincaNombre: null })
 
     expect(decidirAccesoRuta({ ...RUTA_ADMIN, usuario: admin })).toBe('permitido')
+    expect(decidirAccesoRuta({ ...RUTA_SUPERVISOR, usuario: admin })).toBe('a-admin')
   })
 })

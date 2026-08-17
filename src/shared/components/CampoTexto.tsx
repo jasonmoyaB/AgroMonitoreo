@@ -5,7 +5,7 @@ interface CampoTextoProps {
   etiqueta: string
   valor: string
   onChange: (valor: string) => void
-  tipo?: 'text' | 'date' | 'tel'
+  tipo?: 'text' | 'date' | 'tel' | 'email'
   ayuda?: string
 }
 

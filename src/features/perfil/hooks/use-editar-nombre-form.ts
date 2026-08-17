@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useToastStore } from '../../../shared/stores/toast-store'
-import { USUARIO_ACTUAL_QUERY_KEY } from '../../auth/hooks/use-usuario-actual'
+import { USUARIO_ACTUAL_QUERY_KEY } from '../../auth/constants/usuario-query.constants'
 import { actualizarNombreUsuario } from '../../auth/services/usuario-service'
 import type { Usuario } from '../../../shared/types/domain.types'
 
