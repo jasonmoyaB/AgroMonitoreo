@@ -1,4 +1,5 @@
 import { ChevronDown } from 'lucide-react'
+import { FOCO_ANILLO } from '../constants/botones.constants'
 import type { ReactNode } from 'react'
 
 interface SeccionColapsableProps {
@@ -20,7 +21,7 @@ interface SeccionColapsableProps {
 export function SeccionColapsable({ titulo, descripcion, children }: SeccionColapsableProps) {
   return (
     <details className="neu-raised group rounded-[2rem] p-5">
-      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 [&::-webkit-details-marker]:hidden">
+      <summary className={`flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl ${FOCO_ANILLO} [&::-webkit-details-marker]:hidden`}>
         <span className="min-w-0">
           <span className="block text-lg font-black text-slate-900">{titulo}</span>
           {descripcion && <span className="mt-1 block font-bold text-slate-600">{descripcion}</span>}

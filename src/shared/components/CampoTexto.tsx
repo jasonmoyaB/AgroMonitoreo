@@ -1,5 +1,4 @@
-export const INPUT_NEU_CLASS =
-  'neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900'
+import { INPUT_NEU_CLASS } from '../constants/campos.constants'
 
 interface CampoTextoProps {
   etiqueta: string

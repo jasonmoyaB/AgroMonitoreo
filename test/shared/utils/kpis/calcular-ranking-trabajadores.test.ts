@@ -3,7 +3,7 @@ import type { RegistroTrabajo, Trabajador } from '../../../../src/shared/types/d
 import { calcularRankingTrabajadores } from '../../../../src/shared/utils/kpis/calcular-ranking-trabajadores'
 
 function trabajador(id: string): Trabajador {
-  return { id, fincaId: 'birrisito', nombreCompleto: `Trabajador ${id}`, fotoUrl: null, activo: true }
+  return { id, fincaId: 'birrisito', nombreCompleto: `Trabajador ${id}`, fotoUrl: null, activo: true, asegurado: false, cedula: null, fechaIngreso: null, telefono: null }
 }
 
 function registro(trabajadorId: string, cantidad: number | null): RegistroTrabajo {

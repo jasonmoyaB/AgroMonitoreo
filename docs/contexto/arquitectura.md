@@ -67,7 +67,7 @@ Ejemplo real de punta a punta: `admin/screens/PlanillaScreen.tsx` → `planilla/
 
 Supabase real (Postgres + Auth + RLS + Storage). Migraciones en `supabase/migrations/`. El eje de aislamiento es **`finca_id`**, no un `organizacion_id` multi-tenant: un dueño con varias fincas.
 
-Tablas: `roles`, `fincas`, `trabajadores`, `salarios_trabajadores`, `labores`, `usuario`, `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`. Storage: bucket `trabajador-fotos`.
+Tablas: `roles`, `fincas`, `trabajadores`, `datos_trabajadores`, `salarios_trabajadores`, `labores`, `usuario`, `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`. Storage: bucket `trabajador-fotos`.
 
 Cliente único: `shared/lib/supabase-client.ts`. Envs: `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (`.env.local`, no versionado).
 

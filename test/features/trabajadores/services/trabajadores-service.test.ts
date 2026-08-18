@@ -12,29 +12,44 @@ const VALUES_BASE: TrabajadorFormValues = {
   telefono: '',
 }
 
+// Las respuestas se tipan a mano en vez de dejar que vi.fn las infiera del happy path.
+// Sin esto TS deduce `error: null` a secas y `mockResolvedValueOnce({ error: {...} })`
+// deja de compilar, y los espias quedan sin parametros declarados, asi que
+// `mock.calls[0][0]` es un acceso fuera de una tupla vacia.
+interface ErrorFalso {
+  code?: string
+  message: string
+}
+
+type RespuestaEscritura = { error: ErrorFalso | null }
+type RespuestaInsert = { data: { id: string } | null; error: ErrorFalso | null }
+
+type FilaEscrita = Record<string, unknown>
+
 // dos tablas en el mismo flujo: trabajadores devuelve el id, datos_trabajadores
 // captura el upsert. `tablas` guarda a que tabla fue cada llamada.
 function clienteDosTablas() {
-  const upsert = vi.fn(() => Promise.resolve({ error: null }))
-  const insert = vi.fn(() => ({
-    select: () => ({ single: () => Promise.resolve({ data: { id: 't-nuevo' }, error: null }) }),
+  const upsert = vi.fn((_fila: FilaEscrita): Promise<RespuestaEscritura> => Promise.resolve({ error: null }))
+  const insert = vi.fn((_fila: FilaEscrita) => ({
+    select: () => ({ single: (): Promise<RespuestaInsert> => Promise.resolve({ data: { id: 't-nuevo' }, error: null }) }),
   }))
-  const eq = vi.fn(() => Promise.resolve({ error: null }))
+  const eq = vi.fn((_columna: string, _valor: string): Promise<RespuestaEscritura> => Promise.resolve({ error: null }))
+  const update = vi.fn((_cambios: FilaEscrita) => ({ eq }))
   const borrar = vi.fn(() => ({ eq }))
   const tablas: string[] = []
   const from = vi.fn((tabla: string) => {
     tablas.push(tabla)
-    return { insert, upsert, delete: borrar }
+    return { insert, upsert, update, delete: borrar }
   })
 
-  return { client: { from } as unknown as SupabaseClient, upsert, insert, borrar, eq, tablas }
+  return { client: { from } as unknown as SupabaseClient, upsert, insert, update, borrar, eq, tablas }
 }
 
 async function crearCon(values: Partial<TrabajadorFormValues>) {
   const doble = clienteDosTablas()
   await crearTrabajador({ ...VALUES_BASE, ...values, fincaId: 'birrisito' }, doble.client)
 
-  return { ...doble, fila: doble.upsert.mock.calls[0][0] as Record<string, unknown> }
+  return { ...doble, fila: doble.upsert.mock.calls[0][0] }
 }
 
 function clienteLectura() {
@@ -71,7 +86,7 @@ describe('el embed de datos_trabajadores', () => {
   })
 
   // por finca_coincide el embed tambien resuelve, pero devuelve array en vez de
-  // objeto: mapTrabajador lee row.datos?.cedula y todas las cedulas irian en null
+  // objeto: mapearTrabajador lee row.datos?.cedula y todas las cedulas irian en null
   // sin ningun error visible. Es peor que el PGRST201, que al menos se ve.
   it('no usa el FK compuesto, que devolveria un array', async () => {
     const { client, cadena } = clienteLectura()
@@ -132,7 +147,7 @@ describe('crearTrabajador', () => {
     const doble = clienteDosTablas()
     doble.insert.mockReturnValueOnce({
       select: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'duplicate key' } }) }),
-    } as ReturnType<typeof doble.insert>)
+    })
 
     await expect(crearTrabajador({ ...VALUES_BASE, fincaId: 'birrisito' }, doble.client)).rejects.toThrow('crearTrabajador: duplicate key')
     expect(doble.upsert).not.toHaveBeenCalled()
@@ -142,12 +157,44 @@ describe('crearTrabajador', () => {
   // en trabajadores entra, el upsert choca con datos_trabajadores_finca_cedula_idx.
   // Sin compensar, el trabajador queda vivo, el form sigue en modo crear y el
   // reintento con la cedula corregida lo duplica.
-  it('borra el trabajador recien creado si falla el guardado de los datos personales', async () => {
+  it('desactiva el trabajador recien creado si falla el guardado de los datos personales', async () => {
     const doble = clienteDosTablas()
     doble.upsert.mockResolvedValueOnce({ error: { message: 'duplicate key value violates unique constraint' } })
 
     await expect(crearTrabajador({ ...VALUES_BASE, cedula: '1-1111-1111', fincaId: 'birrisito' }, doble.client)).rejects.toThrow('guardarDatosTrabajador')
-    expect(doble.borrar).toHaveBeenCalled()
+    expect(doble.update).toHaveBeenCalledWith({ activo: false })
     expect(doble.eq).toHaveBeenCalledWith('id', 't-nuevo')
+  })
+
+  // Este es el corazon del bug, y el seam de mocks no lo ve: `.delete()` compilaba,
+  // corria y devolvia error null, pero sobre public.trabajadores no hay ninguna policy
+  // de DELETE, asi que RLS no matcheaba filas y PostgREST respondia 204. La
+  // compensacion no compensaba nada. El test ancla la unica escritura que la RLS del
+  // supervisor si permite (trabajadores_update_own_finca); si alguien vuelve al delete,
+  // falla aca en vez de fallar en la finca.
+  it('no intenta borrar: no existe policy de DELETE sobre trabajadores', async () => {
+    const doble = clienteDosTablas()
+    doble.upsert.mockResolvedValueOnce({ error: { message: 'duplicate key' } })
+
+    await expect(crearTrabajador({ ...VALUES_BASE, fincaId: 'birrisito' }, doble.client)).rejects.toThrow()
+    expect(doble.borrar).not.toHaveBeenCalled()
+  })
+
+  // si tampoco se puede revertir, la fila queda activa y el proximo intento duplica al
+  // trabajador: eso pesa mas que la cedula repetida, asi que ese es el error que sale.
+  it('avisa del trabajador a medias cuando la reversion tambien falla', async () => {
+    const doble = clienteDosTablas()
+    doble.upsert.mockResolvedValueOnce({ error: { message: 'duplicate key' } })
+    doble.eq.mockResolvedValueOnce({ error: { message: 'network error' } })
+
+    await expect(crearTrabajador({ ...VALUES_BASE, fincaId: 'birrisito' }, doble.client)).rejects.toThrow('no se pudo revertir')
+  })
+
+  // el capataz no puede hacer nada con el texto crudo de Postgres
+  it('traduce la cedula duplicada a un mensaje que el capataz entiende', async () => {
+    const doble = clienteDosTablas()
+    doble.upsert.mockResolvedValueOnce({ error: { code: '23505', message: 'duplicate key value violates unique constraint "datos_trabajadores_finca_cedula_idx"' } })
+
+    await expect(crearTrabajador({ ...VALUES_BASE, cedula: '1-1111-1111', fincaId: 'birrisito' }, doble.client)).rejects.toThrow('Esa cédula ya está registrada en otro trabajador de la finca.')
   })
 })

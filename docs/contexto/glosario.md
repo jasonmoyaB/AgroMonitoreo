@@ -18,7 +18,7 @@ El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inv
 | Término | Qué es | Dónde |
 |---|---|---|
 | **Trabajador** | Persona de la finca. Tiene foto (bucket `trabajador-fotos`) y baja lógica (`activo`). | tabla `trabajadores` |
-| **Asegurado** | Si el trabajador está inscrito ante la CCSS. Lo marca el supervisor al editar el trabajador. Default `false`. | `trabajadores.asegurado`, `decisiones.md` 3b |
+| **Asegurado** | Si el trabajador está inscrito ante la CCSS. Lo marca la oficina desde `/admin/trabajadores`; el supervisor ya no lo edita. Default `false`. | `trabajadores.asegurado`, `decisiones.md` 3b |
 | **Labor** | Una de las 11 tareas agrícolas: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Cada una lleva icono, color y unidad (`cajas`, `tramos`, …) que manejan el stepper de cantidad. | `shared/constants/tipos-labor.constants.ts` (duplica la tabla `labores`) |
 | **Registro de trabajo** | La unidad que carga el capataz: trabajador + labor + fecha + horas + cantidad. | tabla `registros_trabajo` |
 | **Captura** | El flujo del capataz: elegir labor → elegir trabajador → horas y cantidad con steppers → confirmar. | `features/captura` |

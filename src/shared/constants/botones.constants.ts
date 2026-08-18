@@ -27,10 +27,11 @@ const SECUNDARIO_BASE = `neu-pressed inline-flex min-h-14 cursor-pointer items-c
 export const BOTON_SECUNDARIO = `${SECUNDARIO_BASE} text-green-900`
 export const BOTON_NEUTRO = `${SECUNDARIO_BASE} text-slate-700`
 
-// Cuadrado de solo icono (flechas de mes y de semana). 44px es el minimo tactil:
-// antes unas flechas eran neu-raised de 44 y otras neu-pressed de 56, y ninguna
-// tenia foco visible.
-export const BOTON_ICONO = `neu-raised inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl text-slate-700 ${FOCO_ANILLO} disabled:cursor-not-allowed disabled:opacity-40`
+// Cuadrado de solo icono (flechas de mes y de semana). 56px, no los 44 del minimo
+// tactil: las tres consumidoras son navegacion de fecha en pantallas que se usan en el
+// campo, con el telefono en una mano. Unificar hacia abajo le sacaba 12px al selector de
+// semana, que ya era de 56.
+export const BOTON_ICONO = `neu-raised inline-flex min-h-14 min-w-14 cursor-pointer items-center justify-center rounded-2xl text-slate-700 ${FOCO_ANILLO} disabled:cursor-not-allowed disabled:opacity-40`
 
 // Icono sin relieve, el que va dentro de un campo (mostrar/ocultar contrasena). No lleva
 // superficie propia porque el relieve ya lo pone el campo que lo contiene.

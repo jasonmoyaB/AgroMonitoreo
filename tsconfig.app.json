@@ -22,5 +22,12 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  // test/ va aca y no en un proyecto aparte: sin esto `tsc -b` (o sea `pnpm build`)
+  // solo miraba src, y toda la carpeta de tests quedaba sin typecheck. Se notaba cuando
+  // un cambio de tipo en el dominio dejaba fixtures viejos rotos: vitest pasaba igual
+  // porque no typechequea, el build pasaba igual porque no los veia, y el error solo
+  // aparecia en el IDE del que abriera el archivo.
+  // No choca con la separacion de vitest.config.ts: eso es por `vitest/config`, que
+  // arrastra los tipos de vite 7. Los tests importan de `vitest` a secas.
+  "include": ["src", "test"]
 }

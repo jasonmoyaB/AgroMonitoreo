@@ -7,9 +7,12 @@ import { esCedulaConsultable, normalizarCedula } from '../utils/normalizar-cedul
 /**
  * Consulta Hacienda a medida que se escribe la cedula y avisa el nombre encontrado.
  *
- * No hace falta debounce: `enabled` solo se prende cuando la cedula llega al largo
- * valido, asi que tipear 9 digitos dispara una sola request, no nueve. El cache de
- * TanStack cubre el resto (volver al campo, corregir un digito y deshacer).
+ * `enabled` recorta el grueso de las requests: mientras la cedula no llega al largo
+ * minimo no se pregunta nada, asi que una cedula fisica de 9 digitos dispara una sola.
+ * No es una sola siempre: el rango valido va de 9 a 12 (fisica 9, juridica 10, DIMEX
+ * 11-12), asi que un DIMEX completo pasa por 9, 10, 11 y 12 y dispara cuatro. Se acepta
+ * porque el cache de TanStack las retiene con staleTime Infinity y son GET a una API
+ * publica; si algun dia molesta, la salida es un debounce sobre `identificacion`.
  */
 export function useContribuyenteHacienda(cedula: string, onNombreEncontrado?: (nombre: string) => void) {
   const identificacion = normalizarCedula(cedula)
@@ -17,7 +20,9 @@ export function useContribuyenteHacienda(cedula: string, onNombreEncontrado?: (n
 
   const { data, isFetching, isError } = useQuery({
     queryKey: [...HACIENDA_QUERY_KEY, identificacion],
-    queryFn: () => consultarContribuyente(identificacion),
+    // el signal es el que corta la consulta al desmontar el campo; sin consumirlo,
+    // TanStack marca la query como no cancelable y cerrar el modal no aborta nada
+    queryFn: ({ signal }) => consultarContribuyente(identificacion, { signal }),
     enabled: habilitada,
     // el QueryClient de App.tsx tiene throwOnError: true. Sin este override, que
     // Hacienda este caida o que no haya internet tumba la pantalla entera contra el
