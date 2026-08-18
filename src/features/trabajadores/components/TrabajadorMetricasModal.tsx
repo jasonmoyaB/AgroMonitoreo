@@ -17,7 +17,7 @@ interface TrabajadorMetricasModalProps {
 export function TrabajadorMetricasModal({ state, actions, fincaNombre }: TrabajadorMetricasModalProps) {
   const { trabajador, isOpen, filtros, aniosDisponibles, metricasPorLabor, totales, isLoading } = state
   const trabajadorNombre = trabajador?.nombreCompleto ?? 'Metricas del trabajador'
-  const descargarPdf = useDescargarMetricasTrabajadorPdf({ trabajadorNombre, fincaNombre, metricasPorLabor, totales })
+  const descargarPdf = useDescargarMetricasTrabajadorPdf({ trabajadorNombre, fincaNombre, filtros, metricasPorLabor, totales })
   const cantidadesPorUnidad = agruparCantidadPorUnidad(metricasPorLabor)
 
   return (

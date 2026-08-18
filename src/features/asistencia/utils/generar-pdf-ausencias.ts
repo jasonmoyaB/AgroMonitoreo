@@ -6,10 +6,14 @@ import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import { MESES } from '../../captura/constants/meses.constants'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 import { textoPdf as texto, crearBlobPdf } from '../../../shared/lib/pdf-doc'
+import { acortarTextoPdf } from '../../../shared/lib/pdf-texto'
+import { PDF_COLORES, PDF_ESPACIO, PDF_LAYOUT, PDF_PAGINA, PDF_TIPO, pintarEncabezadoPdf, pintarFondoPdf, pintarPiePdf, pintarTarjetaResumenPdf, rectanguloPdf } from '../../../shared/utils/pdf/estilos-pdf'
 
-const PAGE = { width: 595, height: 842, margin: 40 }
-const GRID = { x: 40, y: 102, width: 515, rowHeight: 92 }
-const CELL_WIDTH = GRID.width / 7
+const RESUMEN_BOTTOM = PDF_LAYOUT.contenidoTop - PDF_LAYOUT.tarjetaAlto
+const SEMANA = { top: RESUMEN_BOTTOM - PDF_ESPACIO.md, alto: 24 }
+const GRID = { top: SEMANA.top - SEMANA.alto, filas: 6, columnas: 7, altoFila: 90 }
+const CELDA = { ancho: PDF_PAGINA.contenido / GRID.columnas - 5, alto: GRID.altoFila - 6, padding: 8 }
+const NOMBRES = { visibles: 3, primeraY: 52, interlineado: 12, tamano: 7 }
 
 interface GenerarPdfAusenciasInput {
   registros: readonly AsistenciaConTrabajador[]
@@ -19,25 +23,30 @@ interface GenerarPdfAusenciasInput {
 }
 
 export function generarPdfAusencias(input: GenerarPdfAusenciasInput): Blob {
-  return crearBlobPdf(crearStream(input), PAGE.width, PAGE.height)
+  return crearBlobPdf(crearStream(input), PDF_PAGINA.ancho, PDF_PAGINA.alto)
 }
 
 function crearStream(input: GenerarPdfAusenciasInput): string {
-  return [pintarEncabezado(input), pintarResumen(input.registros), pintarCalendario(input), pintarPie()].join('\n')
+  return [pintarFondoPdf(), pintarEncabezado(input), pintarResumen(input.registros), pintarCalendario(input), pintarPiePdf(formatearFechaIsoDdMmAaaa(fechaLocalIso()))].join('\n')
 }
 
 function pintarEncabezado({ fincaNombre, anio, mes }: GenerarPdfAusenciasInput): string {
   const mesNombre = MESES.find((item) => item.valor === mes)?.nombre ?? 'Mes'
-  return [texto('Registro mensual de ausentes', 48, 778, 22, '0 0 0'), texto(fincaNombre, 48, 750, 13, '0.20 0.20 0.20'), texto(`${mesNombre} ${anio}`, 420, 778, 16, '0 0 0')].join('\n')
+  return pintarEncabezadoPdf({ titulo: 'Registro mensual de ausencias', subtitulo: `${fincaNombre} | ${mesNombre} ${anio}`, meta: 'CONTROL DE ASISTENCIA' })
 }
 
 function pintarResumen(registros: readonly AsistenciaConTrabajador[]): string {
-  const trabajadores = new Set(registros.map((registro) => registro.trabajadorId)).size
-  return [cajaResumen(48, 'Ausencias', registros.length), cajaResumen(202, 'Trabajadores', trabajadores), cajaResumen(356, 'Dias con ausentes', contarDias(registros))].join('\n')
-}
-
-function cajaResumen(x: number, titulo: string, valor: number): string {
-  return ['0.78 0.78 0.78 RG', `${x} 682 132 46 re S`, texto(titulo, x + 12, 710, 9, '0.25 0.25 0.25'), texto(String(valor), x + 12, 690, 18, '0 0 0')].join('\n')
+  const ancho = (PDF_PAGINA.contenido - 2 * PDF_ESPACIO.sm) / 3
+  const items = [
+    { titulo: 'Ausencias', valor: registros.length },
+    { titulo: 'Trabajadores', valor: new Set(registros.map((registro) => registro.trabajadorId)).size },
+    { titulo: 'Dias con ausentes', valor: new Set(registros.map((registro) => registro.fecha)).size },
+  ]
+  return items
+    .map((item, index) =>
+      pintarTarjetaResumenPdf({ x: PDF_PAGINA.margen + index * (ancho + PDF_ESPACIO.sm), y: RESUMEN_BOTTOM, ancho, alto: PDF_LAYOUT.tarjetaAlto, titulo: item.titulo, valor: String(item.valor) }),
+    )
+    .join('\n')
 }
 
 function pintarCalendario(input: GenerarPdfAusenciasInput): string {
@@ -46,58 +55,58 @@ function pintarCalendario(input: GenerarPdfAusenciasInput): string {
 }
 
 function pintarDiasSemana(): string {
-  return DIAS_SEMANA.map((dia, index) => texto(dia, GRID.x + index * CELL_WIDTH + 28, 650, 10, '0.25 0.25 0.25')).join('\n')
+  const fondo = rectanguloPdf({ x: PDF_PAGINA.margen, y: GRID.top, ancho: PDF_PAGINA.contenido, alto: SEMANA.alto, relleno: PDF_COLORES.verdeOscuro })
+  const dias = DIAS_SEMANA.map((dia, index) =>
+    texto({ valor: dia, x: columnaX(index) + CELDA.ancho / 2, y: GRID.top + 9, size: PDF_TIPO.tabla, color: PDF_COLORES.blanco, peso: 'negrita', alinear: 'centro' }),
+  )
+  return [fondo, ...dias].join('\n')
 }
 
 function crearCeldas(input: GenerarPdfAusenciasInput, grupos: Map<string, AsistenciaConTrabajador[]>): string[] {
   const espacios = obtenerEspaciosCalendario(input.anio, input.mes)
   const dias = obtenerDiasEnMes(input.anio, input.mes)
-  return Array.from({ length: 42 }, (_item, index) => pintarCelda(index, index - espacios + 1, dias, input, grupos))
+  return Array.from({ length: GRID.filas * GRID.columnas }, (_item, index) => pintarCelda(index, index - espacios + 1, dias, input, grupos))
 }
 
 function pintarCelda(index: number, dia: number, dias: number, input: GenerarPdfAusenciasInput, grupos: Map<string, AsistenciaConTrabajador[]>): string {
-  const x = GRID.x + (index % 7) * CELL_WIDTH
-  const y = 548 - Math.floor(index / 7) * GRID.rowHeight
-  if (dia < 1 || dia > dias) return pintarCajaDia(x, y)
-  const fecha = construirFechaIso({ anio: input.anio, mes: input.mes, dia })
-  const registros = grupos.get(fecha) ?? []
-  return [pintarCajaDia(x, y), pintarDia(x, y, dia, registros.length), pintarAusentes(x, y, registros)].join('\n')
-}
-
-function pintarCajaDia(x: number, y: number): string {
-  return ['0.78 0.78 0.78 RG', `${x} ${y} ${CELL_WIDTH - 4} ${GRID.rowHeight - 6} re S`].join('\n')
+  const x = columnaX(index % GRID.columnas)
+  const y = GRID.top - (Math.floor(index / GRID.columnas) + 1) * GRID.altoFila
+  const caja = rectanguloPdf({ x, y, ancho: CELDA.ancho, alto: CELDA.alto, relleno: PDF_COLORES.superficie, borde: PDF_COLORES.borde })
+  if (dia < 1 || dia > dias) return caja
+  const registros = grupos.get(construirFechaIso({ anio: input.anio, mes: input.mes, dia })) ?? []
+  return [caja, pintarDia(x, y, dia, registros.length), pintarAusentes(x, y, registros)].join('\n')
 }
 
 function pintarDia(x: number, y: number, dia: number, totalAusentes: number): string {
-  const contador = totalAusentes > 0 ? texto(String(totalAusentes), x + 55, y + 70, 8, '0 0 0') : ''
-  return [texto(String(dia), x + 8, y + 72, 12, '0 0 0'), contador].join('\n')
+  const y0 = y + CELDA.alto - 16
+  const contador = totalAusentes > 0 ? texto({ valor: `${totalAusentes} aus.`, x: x + CELDA.ancho - CELDA.padding, y: y0, size: NOMBRES.tamano, color: PDF_COLORES.rojo, peso: 'negrita', alinear: 'derecha' }) : ''
+  return [texto({ valor: String(dia), x: x + CELDA.padding, y: y0, size: 11, color: PDF_COLORES.texto, peso: 'negrita' }), contador].join('\n')
 }
 
 function pintarAusentes(x: number, y: number, registros: readonly AsistenciaConTrabajador[]): string {
-  if (registros.length === 0) return texto('Sin ausentes', x + 8, y + 48, 8, '0.55 0.55 0.55')
-  const nombres = registros.slice(0, 3).map((registro, index) => pintarNombreAusente(x + 7, y + 48 - index * 15, registro.trabajadorNombre))
-  if (registros.length > 3) nombres.push(texto(`+${registros.length - 3} mas ausentes`, x + 9, y + 7, 8, '0.20 0.20 0.20'))
+  if (registros.length === 0) return texto({ valor: 'Sin ausencias', x: x + CELDA.padding, y: y + NOMBRES.primeraY, size: NOMBRES.tamano, color: PDF_COLORES.secundario })
+  const anchoMaximo = CELDA.ancho - CELDA.padding * 2
+  const nombres = registros.slice(0, NOMBRES.visibles).map((registro, index) =>
+    texto({
+      valor: acortarTextoPdf({ valor: registro.trabajadorNombre, anchoMaximo, size: NOMBRES.tamano }),
+      x: x + CELDA.padding,
+      y: y + NOMBRES.primeraY - index * NOMBRES.interlineado,
+      size: NOMBRES.tamano,
+      color: PDF_COLORES.texto,
+    }),
+  )
+  if (registros.length > NOMBRES.visibles) {
+    nombres.push(texto({ valor: `+${registros.length - NOMBRES.visibles} mas`, x: x + CELDA.padding, y: y + 10, size: NOMBRES.tamano, color: PDF_COLORES.rojo, peso: 'negrita' }))
+  }
   return nombres.join('\n')
 }
 
-function pintarNombreAusente(x: number, y: number, nombre: string): string {
-  return texto(acortar(nombre), x + 3, y, 7, '0 0 0')
-}
-
-function pintarPie(): string {
-  return texto(`Generado: ${formatearFechaIsoDdMmAaaa(fechaLocalIso())}`, PAGE.margin, 42, 9, '0.35 0.35 0.35')
+function columnaX(columna: number): number {
+  return PDF_PAGINA.margen + (columna * PDF_PAGINA.contenido) / GRID.columnas
 }
 
 function agruparPorFecha(registros: readonly AsistenciaConTrabajador[]): Map<string, AsistenciaConTrabajador[]> {
   const grupos = new Map<string, AsistenciaConTrabajador[]>()
   registros.forEach((registro) => grupos.set(registro.fecha, [...(grupos.get(registro.fecha) ?? []), registro]))
   return grupos
-}
-
-function contarDias(registros: readonly AsistenciaConTrabajador[]): number {
-  return new Set(registros.map((registro) => registro.fecha)).size
-}
-
-function acortar(textoCompleto: string): string {
-  return textoCompleto.length > 16 ? `${textoCompleto.slice(0, 14)}...` : textoCompleto
 }
