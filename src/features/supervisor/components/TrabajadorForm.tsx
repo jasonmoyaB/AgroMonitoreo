@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { Avatar } from '../../../shared/components/Avatar'
-import { CampoTexto, INPUT_NEU_CLASS } from '../../../shared/components/CampoTexto'
+import { CampoCedulaHacienda } from '../../../shared/components/CampoCedulaHacienda'
+import { CampoTexto } from '../../../shared/components/CampoTexto'
+import { INPUT_NEU_CLASS } from '../../../shared/constants/campos.constants'
+import { BOTON_PRIMARIO } from '../../../shared/constants/botones.constants'
 import { crearClaseToggle } from '../../../shared/utils/crear-clase-toggle'
 import type { TrabajadoresCrudActions, TrabajadoresCrudState } from '../../trabajadores/types/trabajador-crud.types'
 
@@ -45,7 +48,16 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
       {/* la ayuda dice solo "Opcional": hoy estos campos se guardan y se ven en el
           detalle, nada mas. Prometer que la cedula sale en el comprobante o que la
           fecha define la antiguedad es mentirle al capataz hasta que exista. */}
-      <CampoTexto etiqueta="Cédula" valor={values.cedula} onChange={(valor) => actions.onFieldChange('cedula', valor)} ayuda="Opcional." />
+      {/* solo autocompleta si el nombre esta vacio: pisar lo que el capataz ya
+          escribio es peor que no ayudar. En edicion la ficha ya viene con nombre,
+          asi que abrir un trabajador existente nunca le reescribe el suyo. */}
+      <CampoCedulaHacienda
+        valor={values.cedula}
+        onChange={(valor) => actions.onFieldChange('cedula', valor)}
+        onNombreEncontrado={(nombre) => {
+          if (!values.nombreCompleto.trim()) actions.onFieldChange('nombreCompleto', nombre)
+        }}
+      />
 
       {/* input type=date nativo: el picker del sistema ya es tactil y localizado */}
       <CampoTexto etiqueta="Fecha de ingreso" valor={values.fechaIngreso} onChange={(valor) => actions.onFieldChange('fechaIngreso', valor)} tipo="date" ayuda="Opcional." />
@@ -63,7 +75,7 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
 
       {error && <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">{error}</p>}
 
-      <button type="submit" disabled={isSubmitting} className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60">
+      <button type="submit" disabled={isSubmitting} className={BOTON_PRIMARIO}>
         {isSubmitting ? 'Guardando' : 'Guardar'}
       </button>
     </form>

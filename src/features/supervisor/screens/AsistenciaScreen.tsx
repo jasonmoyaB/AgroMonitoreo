@@ -26,7 +26,7 @@ export function AsistenciaScreen() {
   const dashboard = useSupervisorDashboard()
   const perfil = usePerfilSidebar()
   const { usuario } = useUsuarioActual()
-  const fincaId = usuario?.fincaId
+  const fincaId = usuario?.fincaId ?? undefined
   const asistencia = useAsistenciaSemana(fincaId)
   const trabajadores = useTrabajadoresListado()
   const filtro = useTrabajadoresFiltro(trabajadores.trabajadores)

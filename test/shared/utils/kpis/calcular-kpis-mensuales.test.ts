@@ -22,7 +22,7 @@ function registro(tipoLaborId: string, horas: number, cantidad: number | null): 
 }
 
 function trabajador(id: string): Trabajador {
-  return { id, fincaId: 'birrisito', nombreCompleto: id, fotoUrl: null, activo: true }
+  return { id, fincaId: 'birrisito', nombreCompleto: id, fotoUrl: null, activo: true, asegurado: false, cedula: null, fechaIngreso: null, telefono: null }
 }
 
 describe('calcularKpisMensuales', () => {

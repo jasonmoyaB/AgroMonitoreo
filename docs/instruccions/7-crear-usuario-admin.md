@@ -1,6 +1,6 @@
 # 7. Crear un usuario admin_oficina
 
-No se puede crear un usuario `admin_oficina` de cero — toda alta queda hardcodeada a `supervisor` + `birrisito` (ver `20260708183000_no_confiar_rol_metadata_signup.sql`), a propósito, para evitar escalación de privilegios vía metadata del cliente. A admin se **promueve**, siempre.
+No se puede crear un usuario `admin_oficina` de cero — toda alta queda hardcodeada a `supervisor`, y desde `20260817164409` **sin finca** (`finca_id` null); ver `20260708183000_no_confiar_rol_metadata_signup.sql`. Es a propósito, para evitar escalación de privilegios vía metadata del cliente. A admin se **promueve**, siempre, y la finca se **asigna**, siempre.
 
 Para promover un usuario existente a admin:
 

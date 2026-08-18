@@ -8,7 +8,7 @@ interface UsuarioRow {
   id: string
   email: string
   nombre: string | null
-  finca_id: string
+  finca_id: string | null
   activo: boolean
   rol: { nombre: RolNombre } | null
   finca: { nombre: string } | null
@@ -34,6 +34,7 @@ export async function obtenerUsuarioActual(client: SupabaseClient = supabase): P
     id: data.id,
     email: data.email,
     nombre: data.nombre,
+    // ambos quedan null si todavia no tiene finca: sin FK el embed a fincas no resuelve
     fincaId: data.finca_id,
     fincaNombre: data.finca?.nombre ?? data.finca_id,
     activo: data.activo,

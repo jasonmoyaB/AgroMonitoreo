@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRegistrosDelMes } from '../../captura/hooks/use-registros-del-mes'
-import { listarTodosTrabajadoresPorFinca } from '../../trabajadores/services/trabajadores-service'
+import { listarTodosTrabajadoresSinDatosPorFinca } from '../../trabajadores/services/trabajadores-service'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { calcularKpisMensuales } from '../../../shared/utils/kpis/calcular-kpis-mensuales'
 import { calcularRankingLabores } from '../../../shared/utils/kpis/calcular-ranking-labores'
@@ -14,7 +14,7 @@ export function useAdminRollupKpis(periodo: string) {
   const registrosQuery = useRegistrosDelMes(periodo)
   const trabajadoresQuery = useQuery({
     queryKey: ['trabajadores-admin', 'todas-fincas', fincas.map((finca) => finca.id)],
-    queryFn: () => Promise.all(fincas.map((finca) => listarTodosTrabajadoresPorFinca(finca.id))).then((listas) => listas.flat()),
+    queryFn: () => Promise.all(fincas.map((finca) => listarTodosTrabajadoresSinDatosPorFinca(finca.id))).then((listas) => listas.flat()),
     enabled: fincas.length > 0,
   })
 

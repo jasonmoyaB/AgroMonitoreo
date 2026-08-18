@@ -7,9 +7,9 @@ Términos del dominio, tal como aparecen en el código.
 | Término | Qué es | Dónde |
 |---|---|---|
 | **Finca** | Unidad de aislamiento de todo el sistema. La única real hoy es `birrisito`. Tiene `valor_hora` y `valor_hora_usd`, que fijan el costo del día ausente. | tabla `fincas`, `Finca` en `domain.types.ts` |
-| **Capataz / supervisor** | Quien carga los datos en campo. Rol `supervisor`. Todo signup crea uno. | rol `supervisor`, `features/supervisor` |
+| **Capataz / supervisor** | Quien carga los datos en campo. Rol `supervisor`. Toda alta crea uno, y **sin finca**: la asigna el admin después. | rol `supervisor`, `features/supervisor` |
 | **Admin de oficina** | Lee lo que cargó el campo y gestiona fincas, supervisores, salarios y planilla. Cruza todas las fincas. Se promueve por SQL. | rol `admin_oficina`, `features/admin` |
-| **Usuario** | Fila 1:1 con `auth.users` vía `auth_user_id`; guarda `rol_id`, `finca_id`, `nombre`. Es por donde todas las policies RLS hacen join. | tabla `usuario` |
+| **Usuario** | Fila 1:1 con `auth.users` vía `auth_user_id`; guarda `rol_id`, `finca_id`, `nombre`. Es por donde todas las policies RLS hacen join. `finca_id` es nullable: null = invitado a la espera de que el admin le asigne finca. | tabla `usuario` |
 
 El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inverso.
 
@@ -18,7 +18,7 @@ El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inv
 | Término | Qué es | Dónde |
 |---|---|---|
 | **Trabajador** | Persona de la finca. Tiene foto (bucket `trabajador-fotos`) y baja lógica (`activo`). | tabla `trabajadores` |
-| **Asegurado** | Si el trabajador está inscrito ante la CCSS. Lo marca el supervisor al editar el trabajador. Default `false`. | `trabajadores.asegurado`, `decisiones.md` 3b |
+| **Asegurado** | Si el trabajador está inscrito ante la CCSS. Lo marca la oficina desde `/admin/trabajadores`; el supervisor ya no lo edita. Default `false`. | `trabajadores.asegurado`, `decisiones.md` 3b |
 | **Labor** | Una de las 11 tareas agrícolas: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Cada una lleva icono, color y unidad (`cajas`, `tramos`, …) que manejan el stepper de cantidad. | `shared/constants/tipos-labor.constants.ts` (duplica la tabla `labores`) |
 | **Registro de trabajo** | La unidad que carga el capataz: trabajador + labor + fecha + horas + cantidad. | tabla `registros_trabajo` |
 | **Captura** | El flujo del capataz: elegir labor → elegir trabajador → horas y cantidad con steppers → confirmar. | `features/captura` |

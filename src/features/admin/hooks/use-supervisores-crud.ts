@@ -12,7 +12,7 @@ export function useSupervisoresCrud() {
   const queryClient = useQueryClient()
   const mostrarToast = useToastStore((state) => state.mostrarToast)
   const [editando, setEditando] = useState<Supervisor | null>(null)
-  const [values, setValues] = useState<SupervisorFormValues>({ nombre: '', rol: 'supervisor', fincaId: '' })
+  const [values, setValues] = useState<SupervisorFormValues>({ nombre: '', rol: 'supervisor', fincaId: null })
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { data: supervisores = [], isLoading } = useQuery({ queryKey: QUERY_KEY, queryFn: () => listarSupervisores() })

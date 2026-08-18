@@ -26,7 +26,9 @@ export function CapturaRegistroScreen() {
   const draftPrecargado = useRef(false)
 
   const { usuario } = useUsuarioActual()
-  const { data: trabajadores = [] } = useTrabajadoresDisponibles(usuario?.fincaId, fecha)
+  // RouteGuard ya frena al supervisor sin finca, pero los hooks piden string | undefined
+  const fincaId = usuario?.fincaId ?? undefined
+  const { data: trabajadores = [] } = useTrabajadoresDisponibles(fincaId, fecha)
   const { data: registros = [] } = useRegistrosDelDia(fecha)
   const crearRegistro = useCrearRegistro()
   const { draft, setDraft, limpiarDraft, cargado } = useRegistroDraft(trabajadorId, tipoLaborId, fecha)
@@ -46,7 +48,7 @@ export function CapturaRegistroScreen() {
     }
   }, [cargado, registroExistente, draft, setDraft])
 
-  if (!tipoLabor || !trabajador || !usuario) return null
+  if (!tipoLabor || !trabajador || !fincaId) return null
 
   function manejarExito() {
     vibrarConfirmacion()
@@ -59,9 +61,9 @@ export function CapturaRegistroScreen() {
   }
 
   function confirmarRegistro() {
-    if (!tipoLabor || !usuario) return
+    if (!tipoLabor || !fincaId) return
     const registro = construirRegistro({
-      fincaId: usuario.fincaId,
+      fincaId,
       trabajadorId,
       tipoLabor,
       fecha,

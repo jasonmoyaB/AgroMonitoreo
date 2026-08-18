@@ -1,10 +1,11 @@
 import { Avatar } from '../../../shared/components/Avatar'
 import { Modal } from '../../../shared/components/Modal'
 import { formatearFechaIsoDdMmAaaa } from '../../../shared/utils/fecha-iso'
+import { DatoTrabajador } from './DatoTrabajador'
+import { DatosHaciendaTrabajador } from './DatosHaciendaTrabajador'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 const AVATAR_SIZE_PX = 64
-const SIN_DATO = 'Sin registrar'
 
 interface TrabajadorDetalleModalProps {
   trabajador: Trabajador | null
@@ -31,22 +32,13 @@ export function TrabajadorDetalleModal({ trabajador, onClose }: TrabajadorDetall
             <DatoTrabajador etiqueta="Fecha de ingreso" valor={trabajador.fechaIngreso ? formatearFechaIsoDdMmAaaa(trabajador.fechaIngreso) : null} />
             <DatoTrabajador etiqueta="Teléfono" valor={trabajador.telefono} />
           </dl>
+
+          {/* la consulta se dispara sola desde la cedula ya guardada; comparte cache
+              con el campo de cedula del form, asi que abrir la ficha de un trabajador
+              recien creado no vuelve a pegarle a Hacienda */}
+          <DatosHaciendaTrabajador cedula={trabajador.cedula} />
         </div>
       )}
     </Modal>
-  )
-}
-
-interface DatoTrabajadorProps {
-  etiqueta: string
-  valor: string | null
-}
-
-function DatoTrabajador({ etiqueta, valor }: DatoTrabajadorProps) {
-  return (
-    <div className="neu-well flex flex-wrap items-baseline justify-between gap-2 rounded-2xl px-4 py-3">
-      <dt className="text-xs font-black uppercase tracking-[0.18em] text-slate-600">{etiqueta}</dt>
-      <dd className={`text-base font-black ${valor ? 'text-slate-900' : 'text-slate-400'}`}>{valor || SIN_DATO}</dd>
-    </div>
   )
 }

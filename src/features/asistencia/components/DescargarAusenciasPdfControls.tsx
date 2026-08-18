@@ -1,4 +1,5 @@
 import { Download } from 'lucide-react'
+import { BOTON_SECUNDARIO } from '../../../shared/constants/botones.constants'
 import { MESES } from '../../captura/constants/meses.constants'
 
 interface DescargarAusenciasPdfActions {
@@ -24,7 +25,7 @@ export function DescargarAusenciasPdfControls(props: DescargarAusenciasPdfContro
         type="button"
         onClick={props.actions.onDescargar}
         disabled={props.isDownloading}
-        className="neu-pressed flex min-h-14 cursor-pointer items-center gap-2 rounded-2xl px-5 font-black text-green-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-wait disabled:opacity-60"
+        className={BOTON_SECUNDARIO}
       >
         <Download className="h-5 w-5" aria-hidden="true" />
         {props.isDownloading ? 'Descargando...' : 'Descargar PDF'}

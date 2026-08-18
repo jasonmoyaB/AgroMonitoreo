@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sprout } from 'lucide-react'
+import { BOTON_ICONO_PLANO, BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import { useAuthForm } from '../hooks/use-auth-form'
 import { AUTH_FORM_CONTENT as content } from '../constants/auth-form-content.constants'
 
@@ -66,7 +67,7 @@ export function AuthForm() {
             <button
               type="button"
               onClick={() => setMostrarPassword((valor) => !valor)}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-colors duration-200 hover:text-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900"
+              className={BOTON_ICONO_PLANO}
               aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
               aria-pressed={mostrarPassword}
             >
@@ -83,7 +84,7 @@ export function AuthForm() {
         <button
           type="submit"
           disabled={form.isSubmitting || form.segundosRestantes > 0}
-          className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className={`${BOTON_PRIMARIO_COMPACTO} w-full`}
         >
           {form.isSubmitting
             ? 'Procesando...'

@@ -4,8 +4,9 @@ export interface Supervisor {
   id: string
   email: string
   nombre: string | null
-  fincaId: string
-  fincaNombre: string
+  // null = invitado que todavia no tiene finca asignada
+  fincaId: string | null
+  fincaNombre: string | null
   activo: boolean
   rol: RolNombre
 }
@@ -14,5 +15,5 @@ export interface ActualizarSupervisorInput {
   id: string
   nombre: string
   rol: RolNombre
-  fincaId: string
+  fincaId: string | null
 }

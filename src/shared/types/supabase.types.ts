@@ -512,34 +512,52 @@ export type Database = {
           activo: boolean
           actualizado_en: string
           auth_user_id: string
+          cedula: string | null
+          contacto_emergencia: string | null
           creado_en: string
+          direccion: string | null
           email: string
-          finca_id: string
+          email_contacto: string | null
+          fecha_nacimiento: string | null
+          finca_id: string | null
           id: string
           nombre: string | null
           rol_id: string
+          telefono: string | null
         }
         Insert: {
           activo?: boolean
           actualizado_en?: string
           auth_user_id: string
+          cedula?: string | null
+          contacto_emergencia?: string | null
           creado_en?: string
+          direccion?: string | null
           email: string
-          finca_id?: string
+          email_contacto?: string | null
+          fecha_nacimiento?: string | null
+          finca_id?: string | null
           id?: string
           nombre?: string | null
           rol_id: string
+          telefono?: string | null
         }
         Update: {
           activo?: boolean
           actualizado_en?: string
           auth_user_id?: string
+          cedula?: string | null
+          contacto_emergencia?: string | null
           creado_en?: string
+          direccion?: string | null
           email?: string
-          finca_id?: string
+          email_contacto?: string | null
+          fecha_nacimiento?: string | null
+          finca_id?: string | null
           id?: string
           nombre?: string | null
           rol_id?: string
+          telefono?: string | null
         }
         Relationships: [
           {

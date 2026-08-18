@@ -19,7 +19,7 @@ export function TrasladosScreen() {
   const dashboard = useSupervisorDashboard()
   const perfil = usePerfilSidebar()
   const { usuario } = useUsuarioActual()
-  const fincaId = usuario?.fincaId
+  const fincaId = usuario?.fincaId ?? undefined
   const traslado = useSolicitarTraslado(fincaId)
   const filtros = useFiltrosTraslados(traslado.misTraslados, fincaId ?? '')
   const { isSigningOut, handleCerrarSesion } = useCerrarSesion()

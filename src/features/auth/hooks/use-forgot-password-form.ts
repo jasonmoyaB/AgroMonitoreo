@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { solicitarRecuperacionPassword } from '../services/auth-service'
 
-const MENSAJE_EXITO = 'Si el correo existe, te llegó un mensaje con instrucciones para recuperar tu contraseña.'
+const MENSAJE_EXITO = 'Si el correo existe en el sistema, te llegó un mensaje con instrucciones para recuperar tu contraseña.'
 const MENSAJE_ERROR_DEFAULT = 'No se pudo enviar el correo. Intenta nuevamente.'
 
 export function useForgotPasswordForm() {

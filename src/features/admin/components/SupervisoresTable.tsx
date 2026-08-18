@@ -40,8 +40,14 @@ export function SupervisoresTable({ supervisores, isLoading, onEdit, onToggleAct
                   <span className="block text-xs font-bold text-slate-500">{supervisor.email}</span>
                 </td>
                 <td className="px-5 py-3">
-                  <span className="inline-flex min-h-8 items-center rounded-full bg-slate-200 px-3 text-xs font-black uppercase tracking-wide text-slate-700">
-                    {supervisor.fincaNombre}
+                  {/* ambar, no gris: un invitado sin finca no ve nada de la app hasta
+                      que se le asigne una, asi que la fila es una tarea pendiente */}
+                  <span
+                    className={`inline-flex min-h-8 items-center rounded-full px-3 text-xs font-black uppercase tracking-wide ${
+                      supervisor.fincaNombre ? 'bg-slate-200 text-slate-700' : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {supervisor.fincaNombre ?? 'Sin finca'}
                   </span>
                 </td>
                 <td className="px-5 py-3">

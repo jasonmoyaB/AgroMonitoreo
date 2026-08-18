@@ -4,6 +4,7 @@ import { DIAS_SEMANA, DIAS_SEMANA_CLAVES } from '../constants/calendario.constan
 import { obtenerEspaciosCalendario } from '../utils/obtener-espacios-calendario'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
 import { MESES } from '../../captura/constants/meses.constants'
+import { BOTON_ICONO, BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import type { Trabajador, TipoAusencia } from '../../../shared/types/domain.types'
 import { TipoAusenciaSelector } from './TipoAusenciaSelector'
 
@@ -33,11 +34,11 @@ export function AusenciaCalendarioForm(props: AusenciaCalendarioFormProps) {
 
       <div className="neu-pressed rounded-3xl p-4">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <button type="button" onClick={() => props.onCambiarMes(-1)} aria-label="Mes anterior" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
+          <button type="button" onClick={() => props.onCambiarMes(-1)} aria-label="Mes anterior" className={BOTON_ICONO}>
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
           <strong className="text-center text-lg font-black capitalize text-slate-900">{mesNombre} {props.anio}</strong>
-          <button type="button" onClick={() => props.onCambiarMes(1)} aria-label="Mes siguiente" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
+          <button type="button" onClick={() => props.onCambiarMes(1)} aria-label="Mes siguiente" className={BOTON_ICONO}>
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
@@ -59,7 +60,7 @@ export function AusenciaCalendarioForm(props: AusenciaCalendarioFormProps) {
       <TipoAusenciaSelector tipo={props.tipo} onSeleccionar={props.onSeleccionarTipo} />
 
       {errorMessage(props.error)}
-      <button type="submit" disabled={props.isSubmitting} className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-wait disabled:opacity-60">
+      <button type="submit" disabled={props.isSubmitting} className={`${BOTON_PRIMARIO_COMPACTO} w-full`}>
         {props.isSubmitting ? 'Guardando ausencia...' : 'Guardar dias seleccionados'}
       </button>
     </form>

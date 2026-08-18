@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { BOTON_PRIMARIO } from "../../../shared/constants/botones.constants";
 import type { CrearFincaInput } from "../types/finca-form.types";
 
 interface FincaFormProps {
@@ -63,7 +64,7 @@ export function FincaForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60"
+        className={BOTON_PRIMARIO}
       >
         {isSubmitting ? "Guardando" : "Guardar"}
       </button>

@@ -1,5 +1,6 @@
 import { CalendarPlus, Eye } from 'lucide-react'
 import { Avatar } from '../../../shared/components/Avatar'
+import { BOTON_ACTIVAR, BOTON_TABLA, BOTON_VER } from '../../../shared/constants/botones-tabla.constants'
 import type { Trabajador } from '../../../shared/types/domain.types'
 
 const AVATAR_SIZE_PX = 40
@@ -65,11 +66,11 @@ function AsistenciaTrabajadorRow({ trabajador, onVer, onAgregar }: AsistenciaTra
       </td>
       <td className="px-5 py-3">
         <div className="flex justify-end gap-2">
-        <button type="button" onClick={() => onVer(trabajador)} className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-black text-white shadow-lg shadow-slate-900/15">
+        <button type="button" onClick={() => onVer(trabajador)} className={`${BOTON_TABLA} ${BOTON_VER}`}>
           <Eye className="h-4 w-4" aria-hidden="true" />
           Ver
         </button>
-        <button type="button" onClick={() => onAgregar(trabajador)} className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-green-700 px-4 text-sm font-black text-white shadow-lg shadow-green-900/20">
+        <button type="button" onClick={() => onAgregar(trabajador)} className={`${BOTON_TABLA} ${BOTON_ACTIVAR}`}>
           <CalendarPlus className="h-4 w-4" aria-hidden="true" />
           Agregar
         </button>

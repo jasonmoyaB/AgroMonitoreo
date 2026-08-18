@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { AuthLayout } from '../components/AuthLayout'
+import { BOTON_ICONO_PLANO, BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import { PasswordChecklist } from '../components/PasswordChecklist'
 import { usePasswordRecoverySession } from '../hooks/use-password-recovery-session'
 import { useResetPasswordForm } from '../hooks/use-reset-password-form'
@@ -23,7 +24,7 @@ function EnlaceInvalido() {
           Este enlace de recuperación ya no es válido. Solicita uno nuevo para continuar.
         </p>
         <Link
-          className="mt-8 flex min-h-14 w-full items-center justify-center rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800"
+          className={`${BOTON_PRIMARIO_COMPACTO} mt-8 w-full`}
           to="/olvide-password"
         >
           Solicitar nuevo enlace
@@ -72,7 +73,7 @@ function FormularioNuevaPassword() {
               <button
                 type="button"
                 onClick={() => setMostrarPassword((valor) => !valor)}
-                className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-colors duration-200 hover:text-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900"
+                className={BOTON_ICONO_PLANO}
                 aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 aria-pressed={mostrarPassword}
               >
@@ -104,7 +105,7 @@ function FormularioNuevaPassword() {
           <button
             type="submit"
             disabled={form.isSubmitting}
-            className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className={`${BOTON_PRIMARIO_COMPACTO} w-full`}
           >
             {form.isSubmitting ? 'Guardando...' : 'Guardar contraseña'}
           </button>

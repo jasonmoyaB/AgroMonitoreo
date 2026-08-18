@@ -5,6 +5,7 @@ import { useTrabajadoresCrud } from '../../trabajadores/hooks/use-trabajadores-c
 import { useTrabajadoresFiltro } from '../../trabajadores/hooks/use-trabajadores-filtro'
 import { useTrabajadoresTrasladadosHoy } from '../../traslados/hooks/use-trabajadores-trasladados-hoy'
 import { Modal } from '../../../shared/components/Modal'
+import { BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { TrabajadorForm } from '../components/TrabajadorForm'
 import { TrabajadorDetalleModal } from '../../trabajadores/components/TrabajadorDetalleModal'
@@ -49,7 +50,7 @@ export function TrabajadoresCrudScreen() {
             <button
               type="button"
               onClick={trabajadores.onOpenCreate}
-              className="flex min-h-14 shrink-0 cursor-pointer items-center gap-2 rounded-2xl bg-green-700 px-5 font-black text-white shadow-lg shadow-green-900/20"
+              className={`${BOTON_PRIMARIO_COMPACTO} shrink-0`}
             >
               <UserPlus className="h-5 w-5" aria-hidden="true" />
               Agregar trabajador

@@ -1,3 +1,4 @@
+import { BOTON_ACTIVAR, BOTON_DESACTIVAR, BOTON_TABLA } from '../../../shared/constants/botones-tabla.constants'
 import type { Traslado } from '../types/traslado.types'
 
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })
@@ -6,7 +7,8 @@ const CLASE_TH = 'px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-
 // en mobile cada fila se apila (block) y no hace falta scroll horizontal; desde sm vuelve a ser tabla
 const CLASE_FILA = 'block border-b border-slate-900/5 px-5 py-4 last:border-b-0 sm:table-row sm:px-0 sm:py-0'
 const CLASE_CELDA = 'block sm:table-cell sm:px-5 sm:py-3'
-const CLASE_BOTON = 'min-h-11 flex-1 cursor-pointer rounded-xl px-4 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none'
+// en mobile los dos botones se reparten el ancho; desde sm vuelven a medir su contenido
+const CLASE_BOTON = `${BOTON_TABLA} flex-1 sm:flex-none`
 
 interface TrasladosPendientesTableProps {
   pendientes: readonly Traslado[]
@@ -51,10 +53,10 @@ export function TrasladosPendientesTable({ pendientes, isLoading, resolviendoId,
                 </td>
                 <td className={CLASE_CELDA}>
                   <div className="mt-3 flex gap-2 sm:mt-0 sm:justify-end">
-                    <button type="button" disabled={resolviendo} onClick={() => onAprobar(traslado.id)} className={`${CLASE_BOTON} bg-green-700 shadow-lg shadow-green-900/20`}>
+                    <button type="button" disabled={resolviendo} onClick={() => onAprobar(traslado.id)} className={`${CLASE_BOTON} ${BOTON_ACTIVAR}`}>
                       Aprobar
                     </button>
-                    <button type="button" disabled={resolviendo} onClick={() => onRechazar(traslado.id)} className={`${CLASE_BOTON} bg-red-700 shadow-lg shadow-red-900/20`}>
+                    <button type="button" disabled={resolviendo} onClick={() => onRechazar(traslado.id)} className={`${CLASE_BOTON} ${BOTON_DESACTIVAR}`}>
                       Rechazar
                     </button>
                   </div>

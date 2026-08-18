@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
 import type { Trabajador } from '../../../shared/types/domain.types'
-import { BUCKET_FOTOS_TRABAJADORES, EXTENSION_POR_MIME, type TipoMimePermitido } from '../constants/foto-trabajador.constants'
-import type { ActualizarTrabajadorInput, CrearTrabajadorInput, TrabajadorFormValues } from '../types/trabajador-form.types'
+import type { ActualizarTrabajadorInput, CrearTrabajadorInput } from '../types/trabajador-form.types'
+import { mapearTrabajador, type TrabajadorRow } from '../utils/mapear-trabajador'
+import { guardarDatosTrabajador } from './datos-trabajadores-service'
 
 // sin el embed: lo usa la grilla del capataz en campo, que solo pinta nombre y foto.
 // traer cedula y telefono ahi seria un join por carga y PII en memoria para nada.
@@ -13,45 +14,10 @@ const TRABAJADORES_COLUMNS = 'id, finca_id, nombre_completo, foto_url, activo, a
 // asi que sin el `!nombre` PostgREST no desambigua y responde PGRST201.
 //
 // Y tiene que ser este FK, no el otro. Por trabajador_id_fkey el embed es 1:1 (es la
-// PK) y vuelve objeto, que es lo que espera mapTrabajador. Por finca_coincide vuelve
+// PK) y vuelve objeto, que es lo que espera mapearTrabajador. Por finca_coincide vuelve
 // ARRAY: no da error, pero row.datos?.cedula sobre un array es undefined y todas las
 // cedulas quedarian en null en silencio.
 const TRABAJADORES_COLUMNS_CON_DATOS = `${TRABAJADORES_COLUMNS}, datos:datos_trabajadores!datos_trabajadores_trabajador_id_fkey(cedula, fecha_ingreso, telefono)`
-
-interface DatosRow {
-  cedula: string | null
-  fecha_ingreso: string | null
-  telefono: string | null
-}
-
-interface TrabajadorRow {
-  id: string
-  finca_id: string
-  nombre_completo: string
-  foto_url: string | null
-  activo: boolean
-  asegurado: boolean
-  datos?: DatosRow | null
-}
-
-// un input vacio es '', no null: sin esto la cedula guardaria '' y el indice unico
-// parcial la tomaria como valor real, chocando entre dos trabajadores sin cedula.
-function aNullSiVacio(valor: string): string | null {
-  return valor.trim() || null
-}
-
-export async function subirFotoTrabajador(input: { fincaId: string; archivo: File }, client: SupabaseClient = supabase): Promise<string> {
-  const extension = EXTENSION_POR_MIME[input.archivo.type as TipoMimePermitido]
-  const ruta = `${input.fincaId}/${crypto.randomUUID()}.${extension}`
-
-  const { error } = await client.storage.from(BUCKET_FOTOS_TRABAJADORES).upload(ruta, input.archivo, {
-    contentType: input.archivo.type,
-    cacheControl: '3600',
-  })
-  if (error) throw new Error(`subirFotoTrabajador: ${error.message}`)
-
-  return client.storage.from(BUCKET_FOTOS_TRABAJADORES).getPublicUrl(ruta).data.publicUrl
-}
 
 export async function listarTrabajadoresPorFinca(fincaId: string, client: SupabaseClient = supabase): Promise<Trabajador[]> {
   const { data, error } = await client
@@ -63,14 +29,25 @@ export async function listarTrabajadoresPorFinca(fincaId: string, client: Supaba
     .returns<TrabajadorRow[]>()
 
   if (error) throw new Error(`listarTrabajadoresPorFinca: ${error.message}`)
-  return data.map(mapTrabajador)
+  return data.map(mapearTrabajador)
 }
 
 export async function listarTodosTrabajadoresPorFinca(fincaId: string, client: SupabaseClient = supabase): Promise<Trabajador[]> {
   const { data, error } = await client.from('trabajadores').select(TRABAJADORES_COLUMNS_CON_DATOS).eq('finca_id', fincaId).order('nombre_completo', { ascending: true }).returns<TrabajadorRow[]>()
 
   if (error) throw new Error(`listarTodosTrabajadoresPorFinca: ${error.message}`)
-  return data.map(mapTrabajador)
+  return data.map(mapearTrabajador)
+}
+
+// Sin el embed a proposito. El rollup de oficina llama esto una vez POR FINCA solo para
+// contar cabezas y armar el ranking por nombre: con TRABAJADORES_COLUMNS_CON_DATOS eso
+// bajaba al navegador la cedula y el telefono de todas las fincas para calcular un
+// promedio. Mismo criterio que TRABAJADORES_COLUMNS arriba.
+export async function listarTodosTrabajadoresSinDatosPorFinca(fincaId: string, client: SupabaseClient = supabase): Promise<Trabajador[]> {
+  const { data, error } = await client.from('trabajadores').select(TRABAJADORES_COLUMNS).eq('finca_id', fincaId).order('nombre_completo', { ascending: true }).returns<TrabajadorRow[]>()
+
+  if (error) throw new Error(`listarTodosTrabajadoresSinDatosPorFinca: ${error.message}`)
+  return data.map(mapearTrabajador)
 }
 
 export async function crearTrabajador(input: CrearTrabajadorInput, client: SupabaseClient = supabase): Promise<void> {
@@ -91,11 +68,7 @@ export async function crearTrabajador(input: CrearTrabajadorInput, client: Supab
   try {
     await guardarDatosTrabajador({ values: input, trabajadorId: data.id, fincaId: input.fincaId }, client)
   } catch (errorDatos) {
-    // sin esta compensacion el alta duplica trabajadores: el indice unico de cedula
-    // hace fallar el segundo write, el form queda abierto en modo crear, y el capataz
-    // corrige la cedula y guarda de nuevo sobre un trabajador que ya existe.
-    // No es soft delete a proposito: la fila nunca llego a existir para el negocio.
-    await client.from('trabajadores').delete().eq('id', data.id)
+    await revertirTrabajadorSinDatos(data.id, client)
     throw errorDatos
   }
 }
@@ -113,28 +86,32 @@ export async function actualizarTrabajador(input: ActualizarTrabajadorInput, cli
   await guardarDatosTrabajador({ values: input, trabajadorId: input.id, fincaId: data.finca_id }, client)
 }
 
-// segundo round trip. En el alta lo compensa crearTrabajador borrando el trabajador;
-// en el editar no hace falta, la fila ya existia y reintentar es idempotente.
-// ponytail: 2 escrituras + compensacion, pasar a un rpc transaccional si el delete
-// compensatorio tambien empieza a fallar (red caida en el peor momento).
-async function guardarDatosTrabajador(input: { values: TrabajadorFormValues; trabajadorId: string; fincaId: string }, client: SupabaseClient): Promise<void> {
-  const { values } = input
-  const { error } = await client.from('datos_trabajadores').upsert({
-    trabajador_id: input.trabajadorId,
-    finca_id: input.fincaId,
-    cedula: aNullSiVacio(values.cedula),
-    fecha_ingreso: aNullSiVacio(values.fechaIngreso),
-    telefono: aNullSiVacio(values.telefono),
-  })
+// Compensa el alta a medias: el trabajador ya se inserto pero sus datos personales no.
+// Desactiva en vez de borrar, y no es una preferencia de estilo — sobre
+// public.trabajadores NO existe ninguna policy de DELETE (las dos del repo son la del
+// bucket de fotos y la de asistencia). Como el grant si incluye delete, Postgres no
+// rechaza nada: RLS no matchea ninguna fila, PostgREST responde 204 y `error` viene
+// null. El .delete() que habia aca era una compensacion que no compensaba nada — la
+// fila quedaba viva y activa, el capataz corregia la cedula, volvia a guardar, y
+// terminaban dos trabajadores de la misma persona con los registros partidos entre los
+// dos y dos liquidaciones en la planilla.
+// El update si lo cubre trabajadores_update_own_finca, y activo=false saca la fila de
+// todas las listas.
+// ponytail: 2 escrituras + compensacion. Pasar a un rpc transaccional si esto tambien
+// empieza a fallar (red caida justo en el peor momento).
+async function revertirTrabajadorSinDatos(trabajadorId: string, client: SupabaseClient): Promise<void> {
+  const { error } = await client.from('trabajadores').update({ activo: false }).eq('id', trabajadorId)
 
-  if (error) throw new Error(`guardarDatosTrabajador: ${error.message}`)
+  // se pisa el error original a proposito: si la reversion falla, la fila queda activa y
+  // el proximo intento duplica al trabajador. Eso importa mas que la cedula repetida.
+  if (error) throw new Error(`crearTrabajador: se creó el trabajador ${trabajadorId} pero no sus datos, y no se pudo revertir: ${error.message}`)
 }
 
 export async function cambiarEstadoTrabajador(trabajador: Trabajador, client: SupabaseClient = supabase): Promise<Trabajador> {
   const { data, error } = await client.from('trabajadores').update({ activo: !trabajador.activo }).eq('id', trabajador.id).select(TRABAJADORES_COLUMNS_CON_DATOS).single<TrabajadorRow>()
 
   if (error) throw new Error(`cambiarEstadoTrabajador: ${error.message}`)
-  return mapTrabajador(data)
+  return mapearTrabajador(data)
 }
 
 // patch parcial a proposito: manda solo asegurado para no pisar el resto de la fila
@@ -142,19 +119,5 @@ export async function cambiarAseguradoTrabajador(input: { id: string; asegurado:
   const { data, error } = await client.from('trabajadores').update({ asegurado: input.asegurado }).eq('id', input.id).select(TRABAJADORES_COLUMNS_CON_DATOS).single<TrabajadorRow>()
 
   if (error) throw new Error(`cambiarAseguradoTrabajador: ${error.message}`)
-  return mapTrabajador(data)
-}
-
-function mapTrabajador(row: TrabajadorRow): Trabajador {
-  return {
-    id: row.id,
-    fincaId: row.finca_id,
-    nombreCompleto: row.nombre_completo,
-    fotoUrl: row.foto_url,
-    activo: row.activo,
-    asegurado: row.asegurado,
-    cedula: row.datos?.cedula ?? null,
-    fechaIngreso: row.datos?.fecha_ingreso ?? null,
-    telefono: row.datos?.telefono ?? null,
-  }
+  return mapearTrabajador(data)
 }

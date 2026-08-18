@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { BOTON_PRIMARIO } from '../../../shared/constants/botones.constants'
 import type { Finca } from '../../../shared/types/domain.types'
 import { ROLES_DISPONIBLES, ROL_LABELS } from '../constants/rol.constants'
 import type { SupervisoresCrudActions, SupervisoresCrudState } from '../types/supervisor-crud.types'
@@ -47,11 +48,15 @@ export function SupervisorForm({ state, actions, fincas }: SupervisorFormProps) 
 
       <label className="flex flex-col gap-2 font-black text-slate-800">
         Finca
+        {/* el DOM solo habla strings: '' es la finca nula. Sin esta opcion, un invitado
+            sin finca abriria el form con el select en blanco y sin nada que elegir que
+            represente su estado actual. */}
         <select
-          value={values.fincaId}
-          onChange={(event) => actions.onFieldChange('fincaId', event.target.value)}
+          value={values.fincaId ?? ''}
+          onChange={(event) => actions.onFieldChange('fincaId', event.target.value || null)}
           className="neu-pressed min-h-16 rounded-2xl px-4 text-xl font-black text-slate-900 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
         >
+          <option value="">Sin finca asignada</option>
           {fincas.map((finca) => (
             <option key={finca.id} value={finca.id}>
               {finca.nombre}
@@ -62,7 +67,7 @@ export function SupervisorForm({ state, actions, fincas }: SupervisorFormProps) 
 
       {error && <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">{error}</p>}
 
-      <button type="submit" disabled={isSubmitting} className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60">
+      <button type="submit" disabled={isSubmitting} className={BOTON_PRIMARIO}>
         {isSubmitting ? 'Guardando' : 'Guardar'}
       </button>
     </form>

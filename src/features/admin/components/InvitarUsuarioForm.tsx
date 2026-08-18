@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { BOTON_PRIMARIO } from '../../../shared/constants/botones.constants'
 
 interface InvitarUsuarioFormProps {
   email: string
@@ -32,7 +33,7 @@ export function InvitarUsuarioForm({ email, error, isSubmitting, onEmailChange, 
       </label>
 
       <p className="font-bold leading-6 text-slate-600">
-        Entra como supervisor de Birrisito. Para volverlo oficina, edítalo desde esta misma tabla cuando acepte.
+        Entra como supervisor sin finca. Cuando acepte, asígnale la finca desde esta misma tabla — hasta entonces no puede cargar ni editar datos de ninguna finca.
       </p>
 
       {error && <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">{error}</p>}
@@ -40,7 +41,7 @@ export function InvitarUsuarioForm({ email, error, isSubmitting, onEmailChange, 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60"
+        className={BOTON_PRIMARIO}
       >
         {isSubmitting ? 'Enviando' : 'Enviar invitación'}
       </button>
