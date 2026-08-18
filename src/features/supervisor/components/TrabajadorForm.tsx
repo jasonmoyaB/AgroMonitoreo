@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Avatar } from '../../../shared/components/Avatar'
 import { CampoCedulaHacienda } from '../../../shared/components/CampoCedulaHacienda'
 import { CampoTexto, INPUT_NEU_CLASS } from '../../../shared/components/CampoTexto'
+import { BOTON_PRIMARIO } from '../../../shared/constants/botones.constants'
 import { crearClaseToggle } from '../../../shared/utils/crear-clase-toggle'
 import type { TrabajadoresCrudActions, TrabajadoresCrudState } from '../../trabajadores/types/trabajador-crud.types'
 
@@ -73,7 +74,7 @@ export function TrabajadorForm({ state, actions }: TrabajadorFormProps) {
 
       {error && <p className="rounded-2xl bg-red-100 p-4 font-black text-red-700">{error}</p>}
 
-      <button type="submit" disabled={isSubmitting} className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60">
+      <button type="submit" disabled={isSubmitting} className={BOTON_PRIMARIO}>
         {isSubmitting ? 'Guardando' : 'Guardar'}
       </button>
     </form>

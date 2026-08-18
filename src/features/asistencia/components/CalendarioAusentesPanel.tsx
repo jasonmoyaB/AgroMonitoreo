@@ -5,6 +5,7 @@ import { TIPOS_AUSENCIA } from '../constants/tipos-ausencia.constants'
 import type { AsistenciaConTrabajador } from '../types/asistencia.types'
 import { obtenerEspaciosCalendario } from '../utils/obtener-espacios-calendario'
 import { formatearTipoAusencia } from '../utils/formatear-tipo-ausencia'
+import { BOTON_ICONO } from '../../../shared/constants/botones.constants'
 import { construirFechaIso } from '../../../shared/utils/fecha-iso'
 import { MESES } from '../../captura/constants/meses.constants'
 import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
@@ -29,14 +30,14 @@ export function CalendarioAusentesPanel({ anio, mes, registros, isLoading, onCam
   return (
     <div className="mt-2 mb-2 space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <button type="button" onClick={() => onCambiarMes(-1)} aria-label="Mes anterior" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
+        <button type="button" onClick={() => onCambiarMes(-1)} aria-label="Mes anterior" className={BOTON_ICONO}>
           <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="text-center">
           <strong className="text-xl font-black capitalize text-slate-900">{mesNombre} {anio}</strong>
           <p className="text-sm font-bold text-slate-600">Trabajadores ausentes por dia</p>
         </div>
-        <button type="button" onClick={() => onCambiarMes(1)} aria-label="Mes siguiente" className="neu-raised flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-2xl">
+        <button type="button" onClick={() => onCambiarMes(1)} aria-label="Mes siguiente" className={BOTON_ICONO}>
           <ChevronRight className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>

@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react'
+import { BOTON_NEUTRO } from '../../../shared/constants/botones.constants'
 import { ESTADOS_TRASLADO, ETIQUETAS_ESTADO_TRASLADO } from '../constants/estado-traslado.constants'
 import type { SentidoFiltroTraslado, Traslado, TrasladosFiltros } from '../types/traslado.types'
 
@@ -85,7 +86,7 @@ export function TrasladosFilterBar({ filtros, traslados, fincaPropiaId = '', onF
         />
       </label>
 
-      <button type="button" onClick={onResetFiltros} className={`${CLASE_CAMPO} flex shrink-0 cursor-pointer items-center gap-2 font-black text-slate-700`}>
+      <button type="button" onClick={onResetFiltros} className={`${BOTON_NEUTRO} shrink-0`}>
         <X className="h-5 w-5" aria-hidden="true" />
         Borrar filtros
       </button>

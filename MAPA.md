@@ -32,6 +32,7 @@
 | Draft local (IndexedDB, autosave) | `src/features/captura/hooks/use-registro-draft.ts` |
 | Zustand store de sesión de captura | `src/shared/stores/captura-session-store.ts` |
 | Las 11 labores (constante frontend) | `src/shared/constants/tipos-labor.constants.ts` |
+| Estilos de botones (primario, secundario, neutro, icono) | `src/shared/constants/botones.constants.ts` — los de tabla en `botones-tabla.constants.ts`, los toggle en `src/shared/utils/crear-clase-toggle.ts` |
 | Migraciones Supabase | `supabase/migrations/` |
 | Edge functions | `supabase/functions/` — hoy solo `invitar-usuario`. Deploy con `supabase functions deploy invitar-usuario`; secret `APP_URL` con `supabase secrets set` |
 | Schema `private` (helpers `SECURITY DEFINER`, fuera de la API de PostgREST) | creado en `supabase/migrations/20260803232810_mover_es_admin_oficina_a_schema_private.sql` — hoy solo `private.es_admin_oficina()`, usada por las policies de `usuario` y `fincas` |

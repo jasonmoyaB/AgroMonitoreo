@@ -1,4 +1,5 @@
 import { User } from 'lucide-react'
+import { BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import { useEditarNombreForm } from '../hooks/use-editar-nombre-form'
 import type { Usuario } from '../../../shared/types/domain.types'
 
@@ -33,7 +34,7 @@ export function EditarNombreForm({ usuario }: EditarNombreFormProps) {
         <button
           type="submit"
           disabled={form.isSubmitting}
-          className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className={`${BOTON_PRIMARIO_COMPACTO} w-full`}
         >
           {form.isSubmitting ? 'Guardando...' : 'Guardar nombre'}
         </button>

@@ -1,3 +1,4 @@
+import { BOTON_NEUTRO } from '../../../shared/constants/botones.constants'
 import type { TrabajadorMetricasFiltros as Filtros } from '../types/trabajador-metricas.types'
 
 interface TrabajadorMetricasFiltrosProps {
@@ -49,7 +50,7 @@ export function TrabajadorMetricasFiltros({ filtros, aniosDisponibles, onFiltroC
       <button
         type="button"
         onClick={onResetFiltros}
-        className="neu-pressed min-h-14 shrink-0 cursor-pointer rounded-2xl px-5 text-base font-black text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+        className={`${BOTON_NEUTRO} shrink-0`}
       >
         Limpiar
       </button>

@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { BOTON_ICONO } from '../constants/botones.constants'
 
 interface SelectorSemanaProps {
   etiqueta: string
@@ -14,7 +15,7 @@ export function SelectorSemana({ etiqueta, deshabilitarSiguiente, onAnterior, on
         type="button"
         onClick={onAnterior}
         aria-label="Semana anterior"
-        className="neu-pressed flex min-h-14 min-w-14 cursor-pointer items-center justify-center rounded-2xl text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+        className={BOTON_ICONO}
       >
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
       </button>
@@ -26,7 +27,7 @@ export function SelectorSemana({ etiqueta, deshabilitarSiguiente, onAnterior, on
         onClick={onSiguiente}
         disabled={deshabilitarSiguiente}
         aria-label="Semana siguiente"
-        className="neu-pressed flex min-h-14 min-w-14 cursor-pointer items-center justify-center rounded-2xl text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:opacity-40"
+        className={BOTON_ICONO}
       >
         <ChevronRight className="h-5 w-5" aria-hidden="true" />
       </button>

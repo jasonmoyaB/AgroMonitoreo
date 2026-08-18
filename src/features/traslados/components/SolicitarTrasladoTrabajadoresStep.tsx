@@ -1,3 +1,4 @@
+import { BOTON_PRIMARIO } from '../../../shared/constants/botones.constants'
 import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import type { TrabajadorOtraFinca } from '../types/traslado.types'
 
@@ -62,7 +63,7 @@ export function SolicitarTrasladoTrabajadoresStep({ state, actions }: SolicitarT
         type="button"
         disabled={isSubmitting || seleccionados.size === 0}
         onClick={actions.onSubmit}
-        className="min-h-16 cursor-pointer rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60"
+        className={BOTON_PRIMARIO}
       >
         {isSubmitting ? 'Enviando' : `Mandar permiso (${seleccionados.size})`}
       </button>

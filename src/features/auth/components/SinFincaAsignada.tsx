@@ -1,4 +1,5 @@
 import { MapPinOff, RefreshCw } from 'lucide-react'
+import { BOTON_NEUTRO, BOTON_PRIMARIO } from '../../../shared/constants/botones.constants'
 import { useCerrarSesion } from '../hooks/use-cerrar-sesion'
 import { useUsuarioActual } from '../hooks/use-usuario-actual'
 
@@ -23,7 +24,7 @@ export function SinFincaAsignada() {
           type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex min-h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-green-700 px-5 text-xl font-black text-white shadow-lg shadow-green-900/20 disabled:cursor-not-allowed disabled:opacity-60"
+          className={`${BOTON_PRIMARIO} w-full`}
         >
           <RefreshCw className={`h-6 w-6 ${isFetching ? 'animate-spin' : ''}`} aria-hidden="true" />
           {isFetching ? 'Revisando' : 'Revisar de nuevo'}
@@ -33,7 +34,7 @@ export function SinFincaAsignada() {
           type="button"
           onClick={handleCerrarSesion}
           disabled={isSigningOut}
-          className="neu-raised min-h-16 w-full cursor-pointer rounded-2xl px-5 text-xl font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className={`${BOTON_NEUTRO} w-full`}
         >
           {isSigningOut ? 'Saliendo' : 'Salir'}
         </button>

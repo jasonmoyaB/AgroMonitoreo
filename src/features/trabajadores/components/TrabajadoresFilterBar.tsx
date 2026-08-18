@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react'
+import { BOTON_NEUTRO } from '../../../shared/constants/botones.constants'
 import { crearClaseToggle } from '../../../shared/utils/crear-clase-toggle'
 import type { EstadoFiltro, TrabajadoresFiltros } from '../types/trabajador-filtro.types'
 
@@ -55,7 +56,7 @@ export function TrabajadoresFilterBar({ filtros, onFiltroChange, onResetFiltros,
       <button
         type="button"
         onClick={onResetFiltros}
-        className="neu-pressed flex min-h-14 shrink-0 cursor-pointer items-center gap-2 rounded-2xl px-4 font-black text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+        className={`${BOTON_NEUTRO} shrink-0`}
       >
         <X className="h-5 w-5" aria-hidden="true" />
         Borrar filtros

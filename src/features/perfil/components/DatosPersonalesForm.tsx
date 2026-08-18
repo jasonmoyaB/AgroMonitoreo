@@ -1,6 +1,7 @@
 import { CampoCedulaHacienda } from '../../../shared/components/CampoCedulaHacienda'
 import { CampoTexto } from '../../../shared/components/CampoTexto'
 import { SeccionColapsable } from '../../../shared/components/SeccionColapsable'
+import { BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import { useDatosPersonalesForm } from '../hooks/use-datos-personales-form'
 
 interface DatosPersonalesFormProps {
@@ -53,7 +54,7 @@ export function DatosPersonalesForm({ usuarioId }: DatosPersonalesFormProps) {
           <button
             type="submit"
             disabled={form.isSubmitting}
-            className="min-h-14 w-full sm:col-span-2 cursor-pointer rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className={`${BOTON_PRIMARIO_COMPACTO} w-full sm:col-span-2`}
           >
             {form.isSubmitting ? 'Guardando...' : 'Guardar datos'}
           </button>

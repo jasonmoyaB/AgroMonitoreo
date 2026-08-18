@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { PasswordChecklist } from '../../auth/components/PasswordChecklist'
+import { BOTON_ICONO_PLANO, BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import { useCambiarPasswordForm } from '../hooks/use-cambiar-password-form'
 
 export function CambiarPasswordForm() {
@@ -32,7 +33,7 @@ export function CambiarPasswordForm() {
             <button
               type="button"
               onClick={() => setMostrarPassword((valor) => !valor)}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-colors duration-200 hover:text-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900"
+              className={BOTON_ICONO_PLANO}
               aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
               aria-pressed={mostrarPassword}
             >
@@ -64,7 +65,7 @@ export function CambiarPasswordForm() {
         <button
           type="submit"
           disabled={form.isSubmitting}
-          className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className={`${BOTON_PRIMARIO_COMPACTO} w-full`}
         >
           {form.isSubmitting ? 'Guardando...' : 'Guardar contraseña'}
         </button>

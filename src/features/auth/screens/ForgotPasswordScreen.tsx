@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom'
 import { Mail } from 'lucide-react'
 import { AuthLayout } from '../components/AuthLayout'
+import { BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import { useAuthSession } from '../hooks/use-auth-session'
 import { useForgotPasswordForm } from '../hooks/use-forgot-password-form'
 
@@ -44,7 +45,7 @@ export function ForgotPasswordScreen() {
           <button
             type="submit"
             disabled={form.isSubmitting}
-            className="min-h-14 w-full cursor-pointer rounded-2xl bg-green-700 px-5 text-lg font-black text-white shadow-lg shadow-green-900/20 transition-colors duration-200 hover:bg-green-800 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-green-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className={`${BOTON_PRIMARIO_COMPACTO} w-full`}
           >
             {form.isSubmitting ? 'Enviando...' : 'Enviar enlace'}
           </button>

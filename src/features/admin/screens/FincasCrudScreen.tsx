@@ -2,6 +2,7 @@ import { Warehouse } from 'lucide-react'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { Modal } from '../../../shared/components/Modal'
+import { BOTON_PRIMARIO_COMPACTO } from '../../../shared/constants/botones.constants'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { FincaForm } from '../components/FincaForm'
 import { FincasTable } from '../components/FincasTable'
@@ -29,7 +30,7 @@ export function FincasCrudScreen() {
             <button
               type="button"
               onClick={fincas.onOpenCreate}
-              className="flex min-h-14 shrink-0 cursor-pointer items-center gap-2 rounded-2xl bg-green-700 px-5 font-black text-white shadow-lg shadow-green-900/20"
+              className={`${BOTON_PRIMARIO_COMPACTO} shrink-0`}
             >
               <Warehouse className="h-5 w-5" aria-hidden="true" />
               Agregar finca
