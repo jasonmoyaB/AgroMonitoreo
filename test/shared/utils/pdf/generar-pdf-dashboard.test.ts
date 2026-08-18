@@ -32,8 +32,8 @@ describe('generarPdfDashboard', () => {
 
   it('incluye la productividad de cada unidad, no solo la primera', async () => {
     const texto = await generarTextoPdf()
-    expect(texto).toContain('Productividad \\(tramos/hora\\)')
-    expect(texto).toContain('Productividad \\(cajas/hora\\)')
+    expect(texto).toContain('Prod. \\(tramos/hora\\)')
+    expect(texto).toContain('Prod. \\(cajas/hora\\)')
   })
 
   it('incluye horas del mes y trabajadores activos', async () => {

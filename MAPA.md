@@ -22,7 +22,7 @@
 | Perfil propio (editar nombre, cambiar password, datos personales) | `src/features/perfil/` (hosteado por las pantallas `ConfiguracionScreen` de supervisor y admin) |
 | Datos personales del usuario (teléfono, correo de contacto, cédula, fecha de nacimiento, dirección, contacto de emergencia) | columnas de `public.usuario` · `perfil/services/perfil-service.ts` |
 | Toasts globales | `src/shared/stores/toast-store.ts` + `components/Toast.tsx` / `ToastViewport.tsx` |
-| Generación de PDF (dashboard, ausencias, métricas) | `src/shared/lib/pdf-doc.ts` + `src/shared/utils/pdf/` + `hooks/use-descargar-dashboard-pdf.ts` |
+| Generación de PDF (dashboard, ausencias, métricas, liquidación) | Motor: `src/shared/lib/pdf-doc.ts` (`textoPdf` con peso y alineación, Helvetica + Helvetica-Bold) y `src/shared/lib/pdf-texto.ts` (normalización a ASCII, medición con la tabla oficial de Helvetica, recorte por ancho real). Sistema visual: `src/shared/utils/pdf/tokens-pdf.ts` (paleta, escala tipográfica, ritmo vertical), `estilos-pdf.ts` (fondo, encabezado, tarjeta, sección, pie) y `tabla-pdf.ts` (encabezado, fila, estado vacío). Generadores: `src/shared/utils/pdf/generar-pdf-dashboard.ts` y `features/*/utils/generar-pdf-*.ts`. Reglas obligatorias: `docs/PATRONES-DISENO-PDF.md`; guardia de layout: `test/shared/utils/pdf/area-segura-pdf.test.ts` |
 | Estado de red / banner offline | `src/shared/hooks/use-network-status.ts` + `components/OfflineBanner.tsx` |
 | Regla de horas extra (umbral 8h, acumulado por día) | `docs/horas-extra.md` — umbral en `src/features/supervisor/constants/trabajador-metricas.constants.ts` |
 | Componentes compartidos (IconTile, Avatar, Stepper...) | `src/shared/components/` |
