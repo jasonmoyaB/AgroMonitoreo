@@ -38,7 +38,7 @@ export interface TrabajadorNombrable {
 }
 
 // los 4 datos personales viven en datos_trabajadores, no aca (20260814173849): la
-// cedula es PII y trabajadores_select_activos_multi_finca abre la tabla a cualquier
+// cedula es PII y trabajadores_select_activos_finca_o_admin abre la tabla a cualquier
 // finca. se leen por embed en el mismo select, pero se escriben aparte.
 export interface Trabajador {
   id: string

@@ -26,7 +26,7 @@ export function decidirAccesoRuta({ isLoading, sesionActiva, usuario, soloAdmin 
   //
   // En la app ese caso no llega hasta aca — App.tsx pone throwOnError: true, asi que si
   // obtenerUsuarioActual falla (red caida, o usuario desactivado, que pierde su propia
-  // fila por el `activo = true` de usuario_select_own) la query lanza y lo atiende el
+  // fila por el `activo = true` de usuario_select_own_o_admin) la query lanza y lo atiende el
   // errorElement RouteErrorScreen, que ademas distingue el caso offline. Es defensa en
   // profundidad, no el arreglo de un bug vivo: si alguien saca throwOnError, el default
   // sigue siendo frenar en vez de pintar el shell de supervisor vacio.

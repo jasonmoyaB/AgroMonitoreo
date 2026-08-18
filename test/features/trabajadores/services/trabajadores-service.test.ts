@@ -170,7 +170,7 @@ describe('crearTrabajador', () => {
   // corria y devolvia error null, pero sobre public.trabajadores no hay ninguna policy
   // de DELETE, asi que RLS no matcheaba filas y PostgREST respondia 204. La
   // compensacion no compensaba nada. El test ancla la unica escritura que la RLS del
-  // supervisor si permite (trabajadores_update_own_finca); si alguien vuelve al delete,
+  // supervisor si permite (trabajadores_update_finca_o_admin); si alguien vuelve al delete,
   // falla aca en vez de fallar en la finca.
   it('no intenta borrar: no existe policy de DELETE sobre trabajadores', async () => {
     const doble = clienteDosTablas()

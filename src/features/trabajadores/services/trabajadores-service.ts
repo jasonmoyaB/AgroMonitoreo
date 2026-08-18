@@ -95,7 +95,7 @@ export async function actualizarTrabajador(input: ActualizarTrabajadorInput, cli
 // fila quedaba viva y activa, el capataz corregia la cedula, volvia a guardar, y
 // terminaban dos trabajadores de la misma persona con los registros partidos entre los
 // dos y dos liquidaciones en la planilla.
-// El update si lo cubre trabajadores_update_own_finca, y activo=false saca la fila de
+// El update si lo cubre trabajadores_update_finca_o_admin, y activo=false saca la fila de
 // todas las listas.
 // ponytail: 2 escrituras + compensacion. Pasar a un rpc transaccional si esto tambien
 // empieza a fallar (red caida justo en el peor momento).

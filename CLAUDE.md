@@ -43,8 +43,9 @@ Postgres + Auth + RLS + Storage, migrations in `supabase/migrations/`. Isolation
 
 ### Three rules learned the hard way
 
-1. **RLS joins through `usuario`**, never a bare column check:
-   `usuario.auth_user_id = auth.uid() and usuario.finca_id = <tabla>.finca_id and usuario.activo = true`. Follow this shape for every farm-scoped table.
+1. **Farm scoping goes through `usuario`**, never a bare column check. Since `20260818184228` that lives in one helper instead of a copy-pasted `EXISTS`:
+   `<tabla>.finca_id = (select private.finca_del_usuario())`, with `private.es_admin_oficina()` OR-ed in where oficina reads across fincas. Both helpers are `stable security definer`, and the `(select ...)` wrapper is mandatory — a bare call is re-evaluated per row and the advisor flags it (`0003_auth_rls_initplan`). Same rule for `auth.uid()`: always `(select auth.uid())`.
+   One permissive policy per table+action, too: two policies for the same role and action both run on every row (`0006_multiple_permissive_policies`). Merge with `or`, don't add a second policy.
 2. **Every migration creating a table must also `grant select, insert, update, delete on table public.x to authenticated;`** — the hosted project grants this by invisible platform default, but `supabase db reset` revokes it locally, so a missing grant 403s in local dev while `tsc` and the schema look fine. Grant to `authenticated` only; no policy here gives `anon` anything.
 3. **A `SECURITY DEFINER` helper goes in schema `private`, never `public`** (`20260803232810`) — `public` is exposed by PostgREST, so anything there is reachable at `/rest/v1/rpc/<fn>` and the advisor flags it. `private` is not in `api.schemas`, so `grant usage on schema private to authenticated` keeps RLS working without exposing an endpoint. `private.es_admin_oficina()` is the reference case. Every function also carries `set search_path = ''` with a fully qualified body.
 
@@ -105,7 +106,7 @@ Admin types a fixed **monthly** salary per worker; the quincena's **gross** is s
 
 Paying is a separate step: `/admin/planilla` writes a row to `pagos_quincenales` whose `monto`/`moneda` are frozen at that moment. So the table shows what was actually paid when a payment exists, and only falls back to today's computed half when it doesn't — raising a salary never rewrites a past quincena (`planilla/utils/construir-filas-planilla.ts`). Cut is calendar 1–15 / 16–end of month, 24 payments a year.
 
-Salary lives in its own table `salarios_trabajadores`, **not** as columns on `trabajadores`, and this is load-bearing: RLS is row-level, so any policy on `trabajadores` exposes every column of the rows it reaches. `trabajadores_select_activos_multi_finca` deliberately opens the whole table (traslados needs to list other fincas' workers) and `trabajadores_update_own_finca` lets a supervisor write his own finca's rows. While salary sat on `trabajadores`, both applied to it. Never move it back, and never add another sensitive column there.
+Salary lives in its own table `salarios_trabajadores`, **not** as columns on `trabajadores`, and this is load-bearing: RLS is row-level, so any policy on `trabajadores` exposes every column of the rows it reaches. `trabajadores_select_activos_finca_o_admin` deliberately opens the whole table (traslados needs to list other fincas' workers) and `trabajadores_update_finca_o_admin` lets a supervisor write his own finca's rows. While salary sat on `trabajadores`, both applied to it. Never move it back, and never add another sensitive column there.
 
 ### Persistence
 
