@@ -18,6 +18,12 @@ interface NumericStepperProps {
 
 const RANGO_POR_DEFECTO: RangoNumerico = { min: 0, max: Number.POSITIVE_INFINITY }
 
+// El input es de ancho fijo para que el layout no salte al escribir: cuatro digitos en
+// text-5xl no entran en el ancho estandar y el numero se salia de la caja.
+const DIGITOS_ANCHO_AMPLIO = 4
+const ANCHO_ESTANDAR = 'w-28'
+const ANCHO_AMPLIO = 'w-40'
+
 function redondear(valor: number): number {
   return Math.round(valor * 100) / 100
 }
@@ -42,6 +48,7 @@ export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR
   const decrementar = () => onChange(limitarARango(redondear(value - step), rango))
   const incrementar = () => onChange(limitarARango(redondear(value + step), rango))
   const longitudMaxima = Number.isFinite(rango.max) ? String(Math.trunc(rango.max)).length : undefined
+  const anchoInput = (longitudMaxima ?? 0) >= DIGITOS_ANCHO_AMPLIO ? ANCHO_AMPLIO : ANCHO_ESTANDAR
 
   function manejarEscritura(evento: ChangeEvent<HTMLInputElement>) {
     const textoEscrito =
@@ -74,7 +81,7 @@ export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR
           onFocus={(evento) => evento.target.select()}
           onBlur={manejarSalida}
           aria-label={label}
-          className="neu-well w-28 rounded-2xl py-3 text-center text-5xl font-black tabular-nums text-slate-800 [appearance:textfield] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-slate-700 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className={`neu-well ${anchoInput} rounded-2xl py-3 text-center text-5xl font-black tabular-nums text-slate-800 [appearance:textfield] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-slate-700 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
         />
         <StepperButton icon={<Plus size={32} />} onClick={incrementar} disabled={value >= rango.max} />
       </div>

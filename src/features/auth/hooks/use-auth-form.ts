@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useToastStore } from '../../../shared/stores/toast-store'
 import { iniciarSesion } from '../services/auth-service'
 import { obtenerUsuarioActual } from '../services/usuario-service'
 import { useLoginCooldown } from './use-login-cooldown'
@@ -7,6 +8,7 @@ import { useLoginCooldown } from './use-login-cooldown'
 export function useAuthForm() {
   const navigate = useNavigate()
   const cooldown = useLoginCooldown()
+  const mostrarToast = useToastStore((state) => state.mostrarToast)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -23,6 +25,7 @@ export function useAuthForm() {
     try {
       await iniciarSesion({ email, password })
       cooldown.resetear()
+      mostrarToast({ type: 'success', title: 'Has iniciado sesión' })
       navigate(await obtenerRutaSegunRol(), { replace: true })
     } catch (unknownError) {
       cooldown.registrarIntentoFallido()

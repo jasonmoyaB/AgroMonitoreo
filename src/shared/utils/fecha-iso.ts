@@ -1,7 +1,7 @@
 const LONGITUD_MIN = 2
 const DICIEMBRE = 12
 
-interface FechaDescompuesta {
+export interface FechaDescompuesta {
   anio: number
   mes: number
   dia: number
