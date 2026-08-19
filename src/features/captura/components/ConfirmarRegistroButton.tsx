@@ -2,11 +2,11 @@ import { CircleCheckBig } from 'lucide-react'
 
 interface ConfirmarRegistroButtonProps {
   onClick: () => void
-  disabled: boolean
+  disabled?: boolean
   texto?: string
 }
 
-export function ConfirmarRegistroButton({ onClick, disabled, texto = 'Confirmar' }: ConfirmarRegistroButtonProps) {
+export function ConfirmarRegistroButton({ onClick, disabled = false, texto = 'Confirmar' }: ConfirmarRegistroButtonProps) {
   return (
     <button
       type="button"

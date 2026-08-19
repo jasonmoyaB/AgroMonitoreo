@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
-import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
+import { useCapturaSessionStore, useFechaCaptura } from '../../../shared/stores/captura-session-store'
 import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import { formatearFechaIsoCorta } from '../../../shared/utils/formatear-fecha'
 import type { TipoLabor } from '../../../shared/types/domain.types'
@@ -12,7 +12,7 @@ const LABORES_PENDIENTES = crearTareasLabor(TIPOS_LABOR)
 export function useSupervisorDashboard() {
   const navigate = useNavigate()
   const seleccionarLabor = useCapturaSessionStore((state) => state.seleccionarLabor)
-  const fechaCaptura = useCapturaSessionStore((state) => state.fecha)
+  const fechaCaptura = useFechaCaptura()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   function toggleSidebar() {

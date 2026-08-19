@@ -10,7 +10,7 @@ import { useCrearRegistro } from '../hooks/use-crear-registro'
 import { useTrabajadoresDisponibles } from '../hooks/use-trabajadores-disponibles'
 import { useRegistrosDelDia } from '../hooks/use-registros-del-dia'
 import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
-import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
+import { useFechaCaptura } from '../../../shared/stores/captura-session-store'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { PASO_HORAS, TIEMPO_CONFIRMACION_MS, HORAS_MAXIMAS_POR_DIA, CANTIDAD_MAXIMA_POR_REGISTRO } from '../constants/captura.constants'
 import { vibrarConfirmacion } from '../../../shared/lib/vibrate'
@@ -21,7 +21,7 @@ const TOTAL_PASOS_CAPTURA = 2
 export function CapturaRegistroScreen() {
   const { tipoLaborId = '', trabajadorId = '' } = useParams<{ tipoLaborId: string; trabajadorId: string }>()
   const navigate = useNavigate()
-  const fecha = useCapturaSessionStore((state) => state.fecha)
+  const fecha = useFechaCaptura()
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
   const draftPrecargado = useRef(false)
 

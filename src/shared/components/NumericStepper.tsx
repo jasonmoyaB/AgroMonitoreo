@@ -48,7 +48,7 @@ export function NumericStepper({ value, step, label, onChange, rango = RANGO_POR
   const decrementar = () => onChange(limitarARango(redondear(value - step), rango))
   const incrementar = () => onChange(limitarARango(redondear(value + step), rango))
   const longitudMaxima = Number.isFinite(rango.max) ? String(Math.trunc(rango.max)).length : undefined
-  const anchoInput = (longitudMaxima ?? 0) >= DIGITOS_ANCHO_AMPLIO ? ANCHO_AMPLIO : ANCHO_ESTANDAR
+  const anchoInput = (longitudMaxima ?? DIGITOS_ANCHO_AMPLIO) >= DIGITOS_ANCHO_AMPLIO ? ANCHO_AMPLIO : ANCHO_ESTANDAR
 
   function manejarEscritura(evento: ChangeEvent<HTMLInputElement>) {
     const textoEscrito =

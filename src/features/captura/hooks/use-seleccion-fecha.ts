@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
+import { useCapturaSessionStore, useFechaCaptura } from '../../../shared/stores/captura-session-store'
 import { construirFechaIso, descomponerFechaIso } from '../../../shared/utils/fecha-iso'
 import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 import { ajustarFechaALimites } from '../utils/ajustar-fecha-a-limites'
@@ -8,7 +8,7 @@ import { obtenerLimitesFecha } from '../utils/obtener-limites-fecha'
 
 export function useSeleccionFecha() {
   const navigate = useNavigate()
-  const fechaGuardada = useCapturaSessionStore((state) => state.fecha)
+  const fechaGuardada = useFechaCaptura()
   const establecerFecha = useCapturaSessionStore((state) => state.establecerFecha)
   const [fecha, setFecha] = useState(() => descomponerFechaIso(fechaGuardada))
 
@@ -21,8 +21,10 @@ export function useSeleccionFecha() {
     setFecha((actual) => ajustarFechaALimites({ ...actual, ...cambio }, hoyIso))
   }
 
+  // Se revalida contra la fecha del momento del click y no contra el `hoyIso` del render:
+  // si la pantalla quedo abierta cruzando la medianoche, ese ya es de ayer.
   function aceptar() {
-    establecerFecha(construirFechaIso(fecha))
+    establecerFecha(construirFechaIso(ajustarFechaALimites(fecha, fechaLocalIso())))
     navigate(-1)
   }
 

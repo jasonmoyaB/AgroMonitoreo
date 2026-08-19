@@ -14,7 +14,7 @@ import { useBusquedaTrabajadores } from '../hooks/use-busqueda-trabajadores'
 import { useAusentesDelDia } from '../../asistencia/hooks/use-ausentes-del-dia'
 import { useTrabajadoresTrasladadosHoy } from '../../traslados/hooks/use-trabajadores-trasladados-hoy'
 import { useUsuarioActual } from '../../auth/hooks/use-usuario-actual'
-import { useCapturaSessionStore } from '../../../shared/stores/captura-session-store'
+import { useFechaCaptura } from '../../../shared/stores/captura-session-store'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { UMBRAL_INDICE_ALFABETO } from '../constants/captura.constants'
 import { ordenarTrabajadoresAlfabeticamente } from '../utils/ordenar-trabajadores-alfabeticamente'
@@ -35,7 +35,7 @@ interface DialogoTrabajador {
 export function TrabajadoresScreen() {
   const { tipoLaborId = '' } = useParams<{ tipoLaborId: string }>()
   const navigate = useNavigate()
-  const fecha = useCapturaSessionStore((state) => state.fecha)
+  const fecha = useFechaCaptura()
   const [dialogo, setDialogo] = useState<DialogoTrabajador | null>(null)
 
   const { usuario } = useUsuarioActual()

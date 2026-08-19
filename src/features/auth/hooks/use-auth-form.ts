@@ -25,8 +25,8 @@ export function useAuthForm() {
     try {
       await iniciarSesion({ email, password })
       cooldown.resetear()
-      mostrarToast({ type: 'success', title: 'Has iniciado sesión' })
       navigate(await obtenerRutaSegunRol(), { replace: true })
+      mostrarToast({ type: 'success', title: 'Has iniciado sesión' })
     } catch (unknownError) {
       cooldown.registrarIntentoFallido()
       setError(unknownError instanceof Error ? unknownError.message : 'No se pudo completar la acción.')

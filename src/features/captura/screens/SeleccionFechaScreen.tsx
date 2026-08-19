@@ -43,7 +43,7 @@ export function SeleccionFechaScreen() {
             Hoy
           </button>
           <div className="flex-1">
-            <ConfirmarRegistroButton onClick={seleccion.aceptar} disabled={false} texto="Aceptar" />
+            <ConfirmarRegistroButton onClick={seleccion.aceptar} texto="Aceptar" />
           </div>
         </div>
       </div>
