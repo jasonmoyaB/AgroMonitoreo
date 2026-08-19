@@ -52,6 +52,20 @@ Conclusión: no hay evidencia de que el paquete en sí tenga código malicioso e
 3. **Bypass** (`--config.minimum-release-age=0` ya usado, más forzar trust) — no recomendado sin auditar el código fuente del paquete primero.
 4. **Instalar vitest por fuera del árbol raíz** (ej. workspace aislado) — evita el problema hoy pero no lo resuelve, dependencia sigue en `pnpm-lock.yaml` para cualquier install futuro.
 
-## Siguiente paso
+## Resolución (cerrado)
 
-Pendiente decisión del usuario sobre opción 1 vs 2 antes de tocar `vite-plugin-pwa`/`pnpm-lock.yaml`. Setup de vitest (tema original de esta sesión) queda bloqueado hasta resolver esto, ya que `pnpm add` re-resuelve todo el lockfile.
+Se tomó la **opción 2**. El override está aplicado en `package.json`:
+
+```json
+"pnpm": {
+  "overrides": {
+    "@trickfilm400/rollup-plugin-off-main-thread": "npm:@surma/rollup-plugin-off-main-thread@2.2.3"
+  }
+}
+```
+
+Se mantiene `vite-plugin-pwa@1.3.0` / `workbox-build@7.4.1` y el paquete sospechoso nunca se materializa: resuelve al original de `@surma`. El riesgo que quedaba anotado — que `workbox-build@7.4.1` usara API de la v3 que la `2.2.3` no tiene — no se materializó: el build de producción pasa.
+
+Vitest quedó desbloqueado y está instalado (`vitest@^3.2.4`, config aparte en `vitest.config.ts` — ver `decisiones.md` 14).
+
+Si algún día se sube `vite-plugin-pwa`, revisar que el override siga haciendo falta y que la `2.2.3` siga alcanzando.

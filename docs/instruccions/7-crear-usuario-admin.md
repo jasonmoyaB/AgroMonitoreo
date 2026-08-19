@@ -13,6 +13,6 @@ set rol_id = (select id from public.roles where nombre = 'admin_oficina')
 where email = 'correo@delusuario.com';
 ```
 
-3. La próxima vez que ese usuario inicie sesión, `AdminGuard` (`src/features/auth/components/AdminGuard.tsx`) lo deja entrar a `/admin/*`.
+3. La próxima vez que ese usuario inicie sesión, `RouteGuard` con `soloAdmin` (`src/features/auth/components/RouteGuard.tsx`, decide vía `utils/decidir-acceso-ruta.ts`) lo deja entrar a `/admin/*`. No hay un `AdminGuard.tsx`: es el mismo componente con una prop.
 
 Este runbook manual sigue siendo intencional para el primer admin: la app es de un solo dueño y no hay signup self-serve. Del segundo en adelante, todo pasa por la UI.

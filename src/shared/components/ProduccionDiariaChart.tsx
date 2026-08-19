@@ -1,4 +1,5 @@
-import { formatearFechaIsoDdMmAaaa } from '../utils/fecha-iso'
+import { formatearFechaIsoDdMm, formatearFechaIsoDdMmAaaa } from '../utils/fecha-iso'
+import { formatearCantidad } from '../utils/formatear-cantidad'
 import type { DiaProduccion, ProduccionDiaria } from '../types/kpis.types'
 
 interface ProduccionDiariaChartProps {
@@ -10,13 +11,9 @@ interface ProduccionDiariaChartProps {
 const COLOR_MEJOR = '#15803d'
 const COLOR_DIA = '#4ade80'
 const COLOR_SIN_REGISTRO = '#cbd5e1'
-const ALTO_MINIMO_BARRA = 6
-const ALTO_SIN_REGISTRO = 3
+const ALTO_MINIMO_BARRA_PORCENTAJE = 6
+const ALTO_SIN_REGISTRO_PX = 3
 const CADA_CUANTOS_DIAS_SE_ROTULA = 7
-
-function formatear(valor: number): string {
-  return valor.toLocaleString('es-CL', { maximumFractionDigits: 1 })
-}
 
 export function ProduccionDiariaChart({ titulo, produccion, unidad }: ProduccionDiariaChartProps) {
   const { dias, maximo, promedio, diasConRegistro, mejorDia } = produccion
@@ -36,8 +33,8 @@ export function ProduccionDiariaChart({ titulo, produccion, unidad }: Produccion
       ) : (
         <>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Resumen etiqueta="Promedio por día trabajado" valor={`${formatear(promedio)} ${unidad}`} />
-            <Resumen etiqueta="Mejor día" valor={mejorDia === null ? '—' : `${formatear(mejorDia.valor)} · ${formatearFechaIsoDdMmAaaa(mejorDia.fecha).slice(0, 5)}`} />
+            <Resumen etiqueta="Promedio por día trabajado" valor={`${formatearCantidad(promedio)} ${unidad}`} />
+            <Resumen etiqueta="Mejor día" valor={mejorDia === null ? '—' : `${formatearCantidad(mejorDia.valor)} · ${formatearFechaIsoDdMm(mejorDia.fecha)}`} />
             <Resumen etiqueta="Días sin cargar" valor={String(diasSinRegistro)} />
           </div>
 
@@ -48,7 +45,11 @@ export function ProduccionDiariaChart({ titulo, produccion, unidad }: Produccion
                 style={{ bottom: `${(promedio / maximo) * 100}%` }}
                 aria-hidden="true"
               />
-              <div className="flex h-full items-end gap-px">
+              <div
+                className="flex h-full items-end gap-px"
+                role="img"
+                aria-label={`Producción por día: ${diasConRegistro} de ${dias.length} días con registro, promedio ${formatearCantidad(promedio)} ${unidad}`}
+              >
                 {dias.map((dia) => (
                   <BarraDia key={dia.fecha} dia={dia} maximo={maximo} unidad={unidad} esMejor={dia.fecha === mejorDia?.fecha} />
                 ))}
@@ -64,7 +65,7 @@ export function ProduccionDiariaChart({ titulo, produccion, unidad }: Produccion
           </div>
 
           <p className="mt-3 text-sm font-bold text-slate-600">
-            La línea punteada es el promedio ({formatear(promedio)} {unidad}). Las barras grises son días sin ningún registro.
+            La línea punteada es el promedio ({formatearCantidad(promedio)} {unidad}). Las barras grises son días sin ningún registro.
           </p>
         </>
       )}
@@ -90,17 +91,17 @@ interface BarraDiaProps {
 
 function BarraDia({ dia, maximo, unidad, esMejor }: BarraDiaProps) {
   const sinRegistro = dia.valor <= 0
-  const alto = sinRegistro ? ALTO_SIN_REGISTRO : Math.max((dia.valor / maximo) * 100, ALTO_MINIMO_BARRA)
+  const altoPorcentaje = Math.max((dia.valor / maximo) * 100, ALTO_MINIMO_BARRA_PORCENTAJE)
 
   return (
     <div
       className="flex h-full flex-1 items-end"
-      title={sinRegistro ? `${formatearFechaIsoDdMmAaaa(dia.fecha)}: sin registro` : `${formatearFechaIsoDdMmAaaa(dia.fecha)}: ${formatear(dia.valor)} ${unidad}`}
+      title={sinRegistro ? `${formatearFechaIsoDdMmAaaa(dia.fecha)}: sin registro` : `${formatearFechaIsoDdMmAaaa(dia.fecha)}: ${formatearCantidad(dia.valor)} ${unidad}`}
     >
       <div
         className="w-full rounded-t-[3px]"
         style={{
-          height: sinRegistro ? `${ALTO_SIN_REGISTRO}px` : `${alto}%`,
+          height: sinRegistro ? `${ALTO_SIN_REGISTRO_PX}px` : `${altoPorcentaje}%`,
           backgroundColor: sinRegistro ? COLOR_SIN_REGISTRO : esMejor ? COLOR_MEJOR : COLOR_DIA,
         }}
       />

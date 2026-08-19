@@ -17,7 +17,7 @@ Single Vite React/TS PWA — not a monorepo. Entry: `src/main.tsx` → `src/App.
 
 ## Done means
 
-`pnpm build` (tsc + vite) → `pnpm lint` → `pnpm exec vitest run` all pass. pnpm only, never npm/yarn. After a migration, regenerate types with `pnpm db:types` — never hand-edit `src/shared/types/supabase.types.ts`.
+`pnpm build` (tsc + vite) → `pnpm lint` → `pnpm exec vitest run` → `pnpm dlx react-doctor --verbose` at 100%. All four green. pnpm only, never npm/yarn. After a migration, regenerate types with `pnpm db:types` — never hand-edit `src/shared/types/supabase.types.ts`.
 
 ## Supabase
 
@@ -25,7 +25,10 @@ Single Vite React/TS PWA — not a monorepo. Entry: `src/main.tsx` → `src/App.
 - Never a service role key in frontend code. Single client: `src/shared/lib/supabase-client.ts`.
 - Never `select('*')` — list columns, throw on `error`.
 - Soft delete (`activo`/`activa`), never physical deletes of business data.
-- RLS joins through `usuario` (`usuario.auth_user_id = auth.uid() and usuario.finca_id = <tabla>.finca_id and usuario.activo = true`).
+- RLS scoping goes through `usuario`, but no longer as a copy-pasted `EXISTS`: use `<tabla>.finca_id = (select private.finca_del_usuario())`, OR-ed with `(select private.es_admin_oficina())` where oficina reads cross-finca (`20260818184228`).
+- Wrap every `auth.*` / helper call as `(select ...)` — a bare call is re-evaluated per row and the advisor flags it (`0003_auth_rls_initplan`).
+- **One permissive policy per table + action.** Two policies for the same role and action both run on every row (`0006_multiple_permissive_policies`) — merge with `or`, never add a second one.
+- A `SECURITY DEFINER` helper goes in schema `private`, never `public` — `public` is exposed by PostgREST. Always `set search_path = ''` with a fully qualified body.
 - **Every migration creating a table must also `grant select, insert, update, delete on table public.x to authenticated;`** — without it local dev 403s while the schema applies clean. See `CLAUDE.md`.
 
 ## Migrations

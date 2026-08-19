@@ -42,3 +42,8 @@ export function formatearFechaIsoDdMmAaaa(fecha: string): string {
   const { anio, mes, dia } = descomponerFechaIso(fecha)
   return `${conCero(dia)}/${conCero(mes)}/${anio}`
 }
+
+export function formatearFechaIsoDdMm(fecha: string): string {
+  const { mes, dia } = descomponerFechaIso(fecha)
+  return `${conCero(dia)}/${conCero(mes)}`
+}

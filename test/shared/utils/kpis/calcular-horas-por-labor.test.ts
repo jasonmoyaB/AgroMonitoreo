@@ -40,6 +40,17 @@ describe('calcularHorasPorLabor', () => {
     expect(filas).toHaveLength(1)
   })
 
+  it('una labor que existe en la base pero no en la constante no se lleva parte del porcentaje', () => {
+    const filas = calcularHorasPorLabor([registro('amarre_5', 4, 8), registro('cosecha', 4, 12)], TIPOS)
+
+    expect(filas).toHaveLength(1)
+    expect(filas[0].porcentaje).toBe(100)
+  })
+
+  it('solo labores desconocidas devuelve lista vacia', () => {
+    expect(calcularHorasPorLabor([registro('amarre_5', 4, 8)], TIPOS)).toEqual([])
+  })
+
   it('sin registros devuelve lista vacia en vez de dividir por cero', () => {
     expect(calcularHorasPorLabor([], TIPOS)).toEqual([])
   })

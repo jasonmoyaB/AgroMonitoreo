@@ -24,7 +24,7 @@ PWA (React + TS) replacing an Excel daily labor log (`docs/mano de obra.xlsx`) f
 One-way flow: supervisor logs field data → admin/oficina reads it. No reverse flow.
 
 - **supervisor** ("capataz") — capture, workers, asistencia, traslados, own profile, KPIs.
-- **admin/oficina** — `/admin/*` behind `AdminGuard`: rollup + per-finca dashboards, fincas CRUD, supervisores CRUD, trabajadores/asistencia por finca, salarios, traslados, configuración. Reads across every `finca_id` (`20260714165119`).
+- **admin/oficina** — `/admin/*` behind `RouteGuard soloAdmin`: rollup + per-finca dashboards, fincas CRUD, supervisores CRUD, trabajadores/asistencia por finca, planilla (salarios se editan dentro de ella), traslados, configuración. Reads across every `finca_id` (`20260714165119`).
 
 No public signup (`enable_signup = false`). The only way in is an admin invite from `/admin/supervisores` (edge function `supabase/functions/invitar-usuario`); the invitee is born `supervisor` with **`finca_id` null** server-side (`20260817164409`), and an `admin_oficina` is promoted from that same screen (`20260714171722`). Assigning the finca is a second, explicit admin step on that screen — until then `RouteGuard` shows `SinFincaAsignada` instead of letting them into `/supervisor/*` or `/captura/*`.
 
@@ -34,7 +34,7 @@ Postgres + Auth + RLS + Storage, migrations in `supabase/migrations/`. Isolation
 
 **Tables**: `roles`, `fincas` (+ `valor_hora`, `valor_hora_usd`), `trabajadores`, `salarios_trabajadores` (1:1 with `trabajadores`; `salario_mensual`, `moneda` in `usd|colones`), `datos_trabajadores` (1:1 with `trabajadores`; `cedula`, `fecha_ingreso`, `telefono` — PII kept off `trabajadores` for the same reason as salary), `labores`, `usuario` (1:1 with `auth.users` via `auth_user_id`; holds `rol_id`, `finca_id`, `nombre`, plus the operator's own PII: `cedula`, `direccion`, `fecha_nacimiento`, `telefono`, `email_contacto` — **its read scope is owner-of-the-row + oficina, so never add a cross-user read policy on `usuario` without moving those columns out first**), `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`.
 
-- **`registros_trabajo`**: `registrado_por` defaults via `public.usuario_actual_id()` (`auth.uid()` → `usuario.id`), so the client never passes it.
+- **`registros_trabajo`**: `registrado_por` defaults via `public.usuario_actual_id()` (`auth.uid()` → `usuario.id`), so the client never passes it. Since `20260819165307` a `before insert or update` trigger (`private.rechazar_fecha_futura_registro()`) rejects a future `fecha` — the rule used to live only in the client (`captura/utils/ajustar-fecha-a-limites.ts`), so a raw POST could poison KPIs and quincena ranges. A trigger, not a `check`: `current_date` is not immutable and a check using it breaks `pg_restore` of rows that were valid when written.
 - **`traslados_trabajadores`** (`20260724173240`): one-day loan of a worker between fincas, `estado` = `pendiente|aprobado|rechazado`. No "return" action — it expires by date scoping. Partial unique index blocks a second live row per worker+date; `resolver_traslado_trabajador()` stamps `resuelto_por`/`resuelto_en`, rejects any update to an already-resolved row, and pins `trabajador_id`/`fecha`/both `finca_*` to their original values so approving can only move `estado`; check constraint rejects origen = destino.
 - **`pagos_quincenales`** (`20260729163414`): one row per worker per quincena. `monto`/`moneda`/`monto_bruto`/`dias_ausentes` are a **snapshot** — raising a salary, changing `valor_hora` or deleting an absence later never rewrites what was already paid, and the liquidación PDF can still explain the net it printed (`20260731185135`). Admin-only, cross-finca, and deliberately no UPDATE/DELETE policy: a paid quincena is corrected with a new adjustment, not by editing the past. Same migration adds `tocar_actualizado_en()`, which stamps `salarios_trabajadores.actualizado_en` server-side (the client used to send it).
 - **Signup trigger**: `crear_usuario_desde_auth()` (`AFTER INSERT ON auth.users`, `SECURITY DEFINER`). Role/finca are hardcoded, never read from `raw_user_meta_data` (`20260708183000`) — trusting client metadata was a privilege-escalation hole.
@@ -86,19 +86,21 @@ Hard limits: ~150 lines/file, ~30 lines/function, ≤3 function params (object b
 
 ### Features
 
-- `app/router.tsx` — routes only. Public: `/login`, `/olvide-password`, `/reset-password` (this last one also receives the invite, with `?invitacion=1`). `AuthGuard`: `/supervisor/*`, `/captura/*`. `AdminGuard`: `/admin/*`.
-- `features/auth` — login/recuperación, `AuthGuard`, session hook, login cooldown.
+- `app/router.tsx` — routes only. Public: `/login`, `/olvide-password`, `/reset-password` (this last one also receives the invite, with `?invitacion=1`). One guard, not two: `RouteGuard` wraps `/supervisor/*` + `/captura/*`, and the same component with `soloAdmin` wraps `/admin/*`. There is no `AuthGuard` / `AdminGuard` file.
+- `features/auth` — login/recuperación, `RouteGuard`, session hook, login cooldown. The branching lives in the pure `utils/decidir-acceso-ruta.ts` (`cargando | a-login | a-admin | a-supervisor | sin-finca | permitido`) so the security branches have a test; the component only turns that into JSX.
 - `features/captura` — the foreman flow. `/supervisor` (labor list) → `/captura/labor/:tipoLaborId/trabajadores` (grid, green check if already logged today) → `.../:trabajadorId` (hours + quantity steppers → confirm).
 - `features/trabajadores` — headless: worker CRUD + photo upload (`validar-foto-trabajador.ts` checks MIME **and** magic bytes), per-worker metrics modal.
 - `features/asistencia` — headless: daily absence, weekly table, monthly calendar, PDF export.
 - `features/traslados` — request/approve one-day worker loans between fincas; badges on both origin and destination sides.
-- `features/perfil` — headless: edit own name, change password.
+- `features/perfil` — headless: edit own name, change password, own personal data (`DatosPersonalesForm`, columns on `usuario`).
 - `features/planilla` — headless: quincena range (1–15 / 16–end), rows crossing current salary with the already-registered payment, register payment, liquidación PDF. Hosted by `admin/screens/PlanillaScreen.tsx` at `/admin/planilla`.
 - `features/supervisor` — supervisor shell; hosts the headless features above. KPIs read `registros_trabajo` from Supabase.
 - `features/admin` — admin shell (see Roles).
-- `shared/` — `components/` (IconTile, Avatar, NumericStepper, Modal, Toast, charts, KPI cards), `stores/` (captura session, toasts), `lib/` (supabase client, `local-db.ts`, `pdf-doc.ts`, sound/vibrate), `utils/kpis/`, `utils/pdf/`, `types/domain.types.ts`.
+- `shared/` — `components/` (IconTile, Avatar, NumericStepper, Modal, Toast, charts, KPI cards), `stores/` (captura session, toasts), `lib/` (supabase client, `pdf-doc.ts`/`pdf-texto.ts`, sound/vibrate, `descargar-blob.ts`), `hooks/` (`use-network-status.ts`, `use-descargar-dashboard-pdf.ts`, `use-contribuyente-hacienda.ts`), `services/hacienda-service.ts`, `utils/kpis/`, `utils/pdf/`, `types/domain.types.ts`. There is no `local-db.ts` — `use-registro-draft.ts` imports `idb-keyval` directly.
 
-### Payroll (`/admin/salarios`, `/admin/planilla`)
+### Payroll (`/admin/planilla`)
+
+There is **no `/admin/salarios` screen** — salary and currency are edited inline in the planilla row (`admin/components/CeldasSalario.tsx`) and the finca's hourly rate above the table (`ValorHoraFinca.tsx`), both invalidating `PLANILLA_QUERY_KEY` so the quincena recomputes without navigating.
 
 Admin types a fixed **monthly** salary per worker; the quincena's **gross** is simply half, rounded per currency (colones to the unit, usd to 2 decimals — `shared/utils/redondear-por-moneda.ts`, shared with the absence deduction so gross − deduction always closes). Not computed from hours or production.
 

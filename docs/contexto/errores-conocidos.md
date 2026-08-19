@@ -51,6 +51,9 @@ Usar `shared/utils/fecha-local.ts`. Y sumarle un offset para compensar hace que 
 **Un mínimo de fecha calculado a nivel de módulo se congela.**
 La PWA queda abierta de un día para el otro, y con el mínimo viejo se podían pedir traslados para fechas ya pasadas. Calcularlo en el render — ver `traslados/components/SolicitarTrasladoTrabajadoresStep.tsx`.
 
+**Una regla de fecha que solo vive en el cliente no es una regla.**
+"Un registro nunca lleva fecha futura" estaba solo en `captura/utils/ajustar-fecha-a-limites.ts`. `registros_trabajo.fecha` no tenia ningun check y la RLS solo mira `finca_id`, asi que un POST a `/rest/v1/registros_trabajo` con `'2030-01-01'` entraba: no es escalacion — el supervisor ya puede escribir en su finca — pero ensucia KPIs, tendencias y el rango de quincena con datos que ningun flujo de la app pudo generar. Cerrado con trigger en `20260819165307`. Y **trigger, no `check`**: `current_date` no es inmutable, y un check que la use hace fallar un `pg_restore` con filas que eran validas el dia que se escribieron.
+
 **Los tests fijan `TZ: 'America/Costa_Rica'`** en `vitest.config.ts`. Sin eso, un runner en UTC deja pasar en verde justo los tests de desfase horario.
 
 ## JavaScript / datos
@@ -61,6 +64,7 @@ La PWA queda abierta de un día para el otro, y con el mínimo viejo se podían 
 
 **`toLocaleString('es-CR')` a secas pinta un salario en USD como si fueran colones.**
 Formatear siempre con la moneda de la fila — ver `shared/utils/formatear-monto.ts`, que además cachea un `Intl.NumberFormat` por moneda porque construirlo es caro y se llama por cada celda de la planilla.
+Los números que **no** son dinero (horas, cantidades de producción, porcentajes de los dashboards) van por `shared/utils/formatear-cantidad.ts`, que topa en 1 decimal. Son dos utils a propósito: el de dinero necesita la moneda de la fila y el otro no debe pedirla.
 
 **Un PATCH completo pisa datos viejos.**
 En la tabla de salarios cada control manda solo su campo: si el selector de moneda mandara también el salario leído de props desactualizadas, lo reescribiría. Ver `admin/services/salarios-service.ts`.
@@ -93,4 +97,4 @@ Dos trampas al diagnosticarlo, las dos me costaron una conclusión falsa:
 
 **Cambiar `valor_hora` no reescribe una quincena ya pagada, y está bien.** El pago congela `monto_bruto` y `dias_ausentes`, así que la fila pagada y la liquidación siguen mostrando lo de ese día. Si el descuento sale distinto al esperado, mirar primero si la fila ya tiene pago.
 
-**`valor_hora_usd` en 0 no descuenta nada.** Es a propósito (`calcular-deduccion-ausencias.ts`): descontar 1750 *dólares* por hora sería peor que no descontar. Si un trabajador en USD aparece sin descuento pese a tener ausencias, falta cargar el valor hora en USD en `/admin/salarios`.
+**`valor_hora_usd` en 0 no descuenta nada.** Es a propósito (`calcular-deduccion-ausencias.ts`): descontar 1750 *dólares* por hora sería peor que no descontar. Si un trabajador en USD aparece sin descuento pese a tener ausencias, falta cargar el valor hora en USD arriba de la tabla de `/admin/planilla`.

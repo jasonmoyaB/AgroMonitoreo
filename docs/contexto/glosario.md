@@ -18,6 +18,7 @@ El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inv
 | Término | Qué es | Dónde |
 |---|---|---|
 | **Trabajador** | Persona de la finca. Tiene foto (bucket `trabajador-fotos`) y baja lógica (`activo`). | tabla `trabajadores` |
+| **Datos personales** | Cédula, fecha de ingreso y teléfono del trabajador. Viven en `datos_trabajadores`, tabla propia, **no** en columnas de `trabajadores`: es PII y la policy de `trabajadores` alcanza otras fincas. | tabla `datos_trabajadores` (`20260814173849`) |
 | **Asegurado** | Si el trabajador está inscrito ante la CCSS. Lo marca la oficina desde `/admin/trabajadores`; el supervisor ya no lo edita. Default `false`. | `trabajadores.asegurado`, `decisiones.md` 3b |
 | **Labor** | Una de las 11 tareas agrícolas: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Cada una lleva icono, color y unidad (`cajas`, `tramos`, …) que manejan el stepper de cantidad. | `shared/constants/tipos-labor.constants.ts` (duplica la tabla `labores`) |
 | **Registro de trabajo** | La unidad que carga el capataz: trabajador + labor + fecha + horas + cantidad. | tabla `registros_trabajo` |
@@ -38,13 +39,14 @@ El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inv
 
 | Término | Qué es | Dónde |
 |---|---|---|
-| **Salario mensual** | Monto fijo que el admin escribe a mano por trabajador, en `usd` o `colones`. No se calcula desde horas ni producción. | tabla `salarios_trabajadores`, `/admin/salarios` |
+| **Salario mensual** | Monto fijo que el admin escribe a mano por trabajador, en `usd` o `colones`. No se calcula desde horas ni producción. Se edita en la propia fila de la planilla, no en una pantalla aparte. | tabla `salarios_trabajadores`, `admin/components/CeldasSalario.tsx` en `/admin/planilla` |
 | **Quincena** | Medio mes calendario: 1–15 y 16–fin de mes. 24 por año. | `planilla/utils/obtener-rango-quincena.ts` |
 | **Monto de quincena** | Bruto: `salario_mensual / 2`, redondeado según moneda (colones al entero, USD a 2 decimales). Neto: bruto menos las ausencias de esa quincena, topado en 0. | `shared/utils/calcular-monto-quincena.ts`, `planilla/utils/construir-filas-planilla.ts` |
+| **Monto semanal** | Columna **informativa** de la planilla: mensual / 4. No se paga ni se registra, solo se muestra. | `shared/utils/calcular-monto-semanal.ts` |
 | **Planilla** | La vista de la quincena: todos los trabajadores de una finca con su monto y si ya se pagó. | `features/planilla`, `/admin/planilla` |
 | **Pago quincenal** | El registro financiero del pago. `monto` y `moneda` son un snapshot congelado: subir un salario después no reescribe lo ya pagado. | tabla `pagos_quincenales` |
 | **Liquidación** | El PDF por trabajador de esa quincena. | `planilla/utils/generar-pdf-liquidacion.ts` |
-| **Valor hora** | Dos campos de `fincas`, editables en `/admin/salarios`: `valor_hora` (colones) y `valor_hora_usd`. Se usa el que coincide con la moneda del salario. `0` = sin definir, no descuenta. | `fincas.valor_hora`, `fincas.valor_hora_usd` |
+| **Valor hora** | Dos campos de `fincas`, editables arriba de la tabla en `/admin/planilla` (`ValorHoraFinca.tsx`): `valor_hora` (colones) y `valor_hora_usd`. Se usa el que coincide con la moneda del salario. `0` = sin definir, no descuenta. | `fincas.valor_hora`, `fincas.valor_hora_usd` |
 | **Día ausente** | Lo que cuesta una falta: `valor_hora × 8`. Con 1750 son 14 000. | `planilla/utils/calcular-deduccion-ausencias.ts` |
 
 ## Siglas

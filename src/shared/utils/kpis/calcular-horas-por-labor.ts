@@ -23,11 +23,14 @@ export function calcularHorasPorLabor(registros: readonly RegistroTrabajo[], tip
     })
   }
 
-  const totalHoras = Array.from(totalesPorLabor.values()).reduce((suma, totales) => suma + totales.horas, 0)
-  if (totalHoras <= 0) return []
+  // El denominador suma solo las labores conocidas, no todo el Map: tipos-labor.constants.ts
+  // duplica a mano la tabla `labores` y se desincronizan sin que nada se queje, y un id que
+  // entra al total pero no se pinta deja los porcentajes sumando menos de 100 en silencio.
+  const horasConocidas = tiposLabor.reduce((suma, tipoLabor) => suma + (totalesPorLabor.get(tipoLabor.id)?.horas ?? 0), 0)
+  if (horasConocidas <= 0) return []
 
   return tiposLabor
-    .flatMap((tipoLabor) => construirFila(tipoLabor, totalesPorLabor.get(tipoLabor.id), totalHoras))
+    .flatMap((tipoLabor) => construirFila(tipoLabor, totalesPorLabor.get(tipoLabor.id), horasConocidas))
     .sort((a, b) => b.horas - a.horas)
 }
 

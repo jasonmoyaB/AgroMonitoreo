@@ -30,6 +30,9 @@ Un día ausente cuesta la jornada normal completa: `1750 × 8 = 14 000`. Cuentan
 **5c. Dos valores hora por finca, uno por moneda** (`20260731185134`).
 `valor_hora` es colones y `valor_hora_usd` dólares; se usa el que coincide con la moneda del salario del trabajador. `0` significa "sin definir" y no descuenta nada. *Descartado*: un solo valor hora con tipo de cambio — un valor que envejece y que alguien tiene que mantener a mano.
 
+**5d. Los salarios no tienen pantalla propia: se editan dentro de `/admin/planilla`.**
+`/admin/salarios` no existe. El salario mensual y la moneda son celdas editables de la fila (`admin/components/CeldasSalario.tsx`) y el valor hora de la finca vive arriba de esa misma tabla (`ValorHoraFinca.tsx`). El motivo es que ambos son entradas del mismo cálculo: `usePlanillaQuincena` expone `guardarSalario` e invalida su propia query, así que el monto de la quincena se recalcula sin navegar. *Descartado*: una pantalla `/admin/salarios` aparte — obligaba a ir y volver para ver el efecto del número que acabás de escribir.
+
 **6. Traslado de un día, sin acción de "devolución"** (`20260724173240`).
 El préstamo vence solo por scoping de fecha. Un índice único parcial impide una segunda fila viva por trabajador+día. *Descartado*: un flujo explícito de retorno — más estado que mantener para nada.
 
@@ -57,6 +60,9 @@ El trigger `crear_usuario_desde_auth()` no se tocó: la invitación inserta en `
 `usuario.finca_id` perdió el `not null` y el `default 'birrisito'`, y el trigger dejó de pasar el literal. Antes la finca se inventaba por dos caminos a la vez — el default de la columna y el literal del trigger — y con una sola finca eso pasaba desapercibido: el invitado entraba directo a ver trabajadores, asistencia y traslados de Birrisito. Con dos fincas eso es un usuario dentro de la finca equivocada hasta que alguien lo note. *Descartado*: pedir la finca en el form de invitación (vuelve a poner en manos del cliente un dato que la decisión 9 sacó a propósito) y un default "finca de cortesía" (es el mismo bug con otro nombre).
 No hizo falta tocar ninguna policy: todas comparan la finca del usuario contra `<tabla>.finca_id` (hoy vía `private.finca_del_usuario()`, `20260818184228`) y `null = 'x'` es null, no true. Verificado en local: sin finca, `registros_trabajo` y `asistencia` devuelven 0 filas, el insert en `trabajadores` lo rechaza la RLS y el update afecta 0 filas. **La excepción conocida es leer `trabajadores`**: `trabajadores_select_activos_finca_o_admin` tiene una rama `activo = true` sin scoping (traslados lo necesita), así que un usuario sin finca igual ve los nombres de los activos. No es nuevo ni es peor — le pasa a cualquier supervisor, y es estrictamente menos de lo que veía naciendo dentro de Birrisito.
 El front lo corta en un solo lugar, `RouteGuard`, que muestra `SinFincaAsignada` (con botón de salir, para no dejar a nadie encerrado) en vez de dejar entrar a `/supervisor/*` o `/captura/*`. El admin no se ve afectado: elige finca a mano en cada pantalla, no depende de la propia.
+
+**9e. La fecha futura la rechaza la base, con trigger y no con `check`** (`20260819165307`).
+La regla vivía solo en el cliente (`captura/utils/ajustar-fecha-a-limites.ts`) y `registros_trabajo.fecha` no tenía ninguna restricción: un POST directo a PostgREST con `'2030-01-01'` entraba. No es escalación de privilegios — el supervisor ya puede escribir en su finca — pero mete en los KPIs, las tendencias y el rango de quincena datos que ningún flujo de la app pudo haber generado. *Descartado*: un `check (fecha <= current_date)` — `current_date` no es inmutable, Postgres no la acepta en un check, y aunque la aceptara haría fallar un `pg_restore` de filas que eran válidas el día que se escribieron. `security invoker` + `search_path` vacío, en schema `private`, como el resto.
 
 **10. Los campos de auditoría los sella la base, no el cliente.**
 `registrado_por` entra por default `usuario_actual_id()`; `actualizado_en` lo pone el trigger `tocar_actualizado_en()` (`20260729163414`). Antes lo mandaba `salarios-service.ts`. Mismo criterio que `resolver_traslado_trabajador()` y `crear_usuario_desde_auth()`.
@@ -87,8 +93,7 @@ Chico, vive en `shared/` (`toast-store.ts`, `Toast.tsx`, `ToastViewport.tsx` mon
 vitest 3.2 declara `vite ^5||^6||^7` y pnpm le resuelve vite 7 mientras el proyecto compila con vite 8; importar `vitest/config` dentro de `vite.config.ts` mezcla ambos juegos de tipos y rompe `tsc -b`.
 
 **15. Override de `@surma/rollup-plugin-off-main-thread@2.2.3` en `package.json`.**
-Respuesta al trust downgrade de `workbox-build@7.4.1`, que cambió una dependencia abandonada de Google por un prerelease de un mantenedor personal sin attestation. Análisis completo: `docs/seguridad-supply-chain-workbox-build.md`.
-`[PENDIENTE: ese doc todavía dice "sin resolver — decisión pendiente del usuario", pero el override ya está aplicado. Confirmar si eso cierra el tema y actualizar el estado del doc.]`
+Respuesta al trust downgrade de `workbox-build@7.4.1`, que cambió una dependencia abandonada de Google por un prerelease de un mantenedor personal sin attestation. Análisis completo: `docs/seguridad-supply-chain-workbox-build.md`. **Cerrado**: se tomó la opción 2 del doc (override en vez de bajar `vite-plugin-pwa`), y está aplicada en `package.json` — `@trickfilm400/rollup-plugin-off-main-thread` resuelve a `npm:@surma/rollup-plugin-off-main-thread@2.2.3`. `pnpm build` pasa con `vite-plugin-pwa@1.3.0`, así que el temor de que `workbox-build@7.4.1` usara API de la v3 no se materializó.
 
 **16. Paginación explícita en `captura/services/registros-service.ts`.**
 PostgREST corta cada respuesta en `max_rows` (1000): traer la tabla entera truncaba en silencio apenas pasado el primer mes de uso, y los KPIs salían bajos sin ningún aviso. Se acota al mes pedido y se pagina hasta que la base deja de devolver filas.

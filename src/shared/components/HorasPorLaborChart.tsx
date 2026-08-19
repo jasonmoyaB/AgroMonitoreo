@@ -1,4 +1,5 @@
 import { LaborIcon } from './LaborIcon'
+import { formatearCantidad } from '../utils/formatear-cantidad'
 import type { HorasPorLabor } from '../types/kpis.types'
 
 interface HorasPorLaborChartProps {
@@ -9,18 +10,14 @@ interface HorasPorLaborChartProps {
 const OPACIDAD_FONDO_ICONO = '1f'
 const ANCHO_MINIMO_SEGMENTO = 2
 
-function formatear(valor: number): string {
-  return valor.toLocaleString('es-CL', { maximumFractionDigits: 1 })
-}
-
 export function HorasPorLaborChart({ titulo, items }: HorasPorLaborChartProps) {
   const totalHoras = items.reduce((suma, item) => suma + item.horas, 0)
 
   return (
-    <div className="neu-raised flex min-h-0 flex-col rounded-[2rem] p-4 sm:p-5">
+    <div className="neu-raised flex h-full flex-col rounded-[2rem] p-4 sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 className="text-lg font-black tracking-tight text-slate-900">{titulo}</h2>
-        <span className="text-sm font-bold text-slate-600">{formatear(totalHoras)} h en total</span>
+        <span className="text-sm font-bold text-slate-600">{formatearCantidad(totalHoras)} h en total</span>
       </div>
 
       {items.length === 0 ? (
@@ -33,7 +30,7 @@ export function HorasPorLaborChart({ titulo, items }: HorasPorLaborChartProps) {
                 key={item.id}
                 className="h-full"
                 style={{ width: `${Math.max(item.porcentaje, ANCHO_MINIMO_SEGMENTO)}%`, backgroundColor: item.color }}
-                title={`${item.nombre}: ${formatear(item.porcentaje)}%`}
+                title={`${item.nombre}: ${formatearCantidad(item.porcentaje)}%`}
               />
             ))}
           </div>
@@ -58,13 +55,13 @@ function FilaLabor({ item }: { item: HorasPorLabor }) {
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="truncate text-sm font-bold text-slate-700">{item.nombre}</span>
-          <span className="shrink-0 text-sm font-black text-slate-900">{formatear(item.horas)} h</span>
+          <span className="shrink-0 text-sm font-black text-slate-900">{formatearCantidad(item.horas)} h</span>
         </span>
         <span className="flex items-baseline justify-between gap-2 text-xs font-bold text-slate-500">
           <span className="truncate">
-            {formatear(item.rendimiento)} {item.unidad}/hora
+            {formatearCantidad(item.rendimiento)} {item.unidad}/hora
           </span>
-          <span className="shrink-0">{formatear(item.porcentaje)}%</span>
+          <span className="shrink-0">{formatearCantidad(item.porcentaje)}%</span>
         </span>
       </span>
     </li>

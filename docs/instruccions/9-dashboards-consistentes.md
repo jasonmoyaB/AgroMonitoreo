@@ -12,7 +12,8 @@ Ambos dashboards ya comparten los mismos bloques compartidos:
 
 - `DashboardKpiRow`
 - `RankingBarChart`
-- `TendenciaLineChart`
+- `ProduccionDiariaChart`
+- `HorasPorLaborChart`
 - mismo header (`neu-raised` + título + descripción)
 - mismo estado `isLoading` -> `"Cargando datos…"`
 
@@ -21,11 +22,12 @@ Divergencia entre ellos = deuda visual, confunde al admin al navegar entre "Dash
 ## Cómo aplicar
 
 - Cambio de estilo/estructura -> tocar los 2 (o N) screens de dashboard en el mismo PR.
-- Cambio de lógica de cálculo (KPIs, ranking, tendencia) -> ya vive en `shared/utils/kpis/*`, reusado por ambos hooks (`use-admin-rollup-kpis.ts`, `use-finca-dashboard-kpis.ts`) -> tocar el util una vez alcanza.
+- Cambio de lógica de cálculo (KPIs, ranking, producción diaria, horas por labor) -> ya vive en `shared/utils/kpis/*`, reusado por ambos hooks (`use-admin-rollup-kpis.ts`, `use-finca-dashboard-kpis.ts`) -> tocar el util una vez alcanza.
 - Si un dashboard nuevo necesita divergir a propósito (ej. comparativa entre fincas, con otro tipo de gráfico) -> no es "el mismo dashboard", documentar la excepción acá antes de romper la regla.
 
 ## Archivos afectados hoy
 
+- `src/features/supervisor/screens/DashboardScreen.tsx` + `hooks/use-dashboard-kpis.ts`
 - `src/features/admin/screens/AdminDashboardScreen.tsx`
 - `src/features/admin/screens/FincaDashboardScreen.tsx`
 - `src/features/admin/hooks/use-admin-rollup-kpis.ts`

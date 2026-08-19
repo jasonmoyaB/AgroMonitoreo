@@ -59,7 +59,7 @@ Que el cliente controle los `tool_result` **no es un agujero**: el cliente ya *e
 
 `api/chat.ts` **tiene** que verificar el JWT de Supabase (`auth.getUser(token)` con la anon key) antes de llamar a Anthropic. Sin eso, la API key es un relay abierto: cualquiera con la URL gasta tokens contra la cuenta.
 
-Además, chequear que el rol sea `admin_oficina` leyendo la propia fila de `usuario`. La ruta está detrás de `AdminGuard`, pero eso es solo cliente — un `curl` lo esquiva.
+Además, chequear que el rol sea `admin_oficina` leyendo la propia fila de `usuario`. La ruta está detrás de `RouteGuard soloAdmin`, pero eso es solo cliente — un `curl` lo esquiva.
 
 Env var: `ANTHROPIC_API_KEY`, **sin** prefijo `VITE_`.
 
@@ -113,7 +113,7 @@ Los `rewrites` de Vercel corren después del chequeo de filesystem, así que `/a
 
 ## Ubicación en el repo
 
-`features/chat` **headless**, hospedada por `admin/screens/ChatScreen.tsx` — el mismo patrón que `features/planilla` con `PlanillaScreen.tsx`. Ruta `/admin/chat` bajo `AdminGuard`, entrada en `NAV_ITEMS` de `AdminSidebar.tsx`.
+`features/chat` **headless**, hospedada por `admin/screens/ChatScreen.tsx` — el mismo patrón que `features/planilla` con `PlanillaScreen.tsx`. Ruta `/admin/chat` bajo `RouteGuard soloAdmin`, entrada en `NAV_ITEMS` de `AdminSidebar.tsx`.
 
 `ChatInput.tsx` sería el primer `<textarea>` del repo. **La restricción de UX de baja alfabetización no aplica**: es `/admin/*`, no `features/captura`.
 

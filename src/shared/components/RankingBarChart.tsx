@@ -14,7 +14,7 @@ export function RankingBarChart({ titulo, items, unidad }: RankingBarChartProps)
   const valorMaximo = items[0]?.valor ?? 0
 
   return (
-    <div className="neu-raised flex min-h-0 flex-1 flex-col rounded-[2rem] p-4 sm:p-5">
+    <div className="neu-raised rounded-[2rem] p-4 sm:p-5">
       <h2 className="text-lg font-black tracking-tight text-slate-900">{titulo}</h2>
       {items.length === 0 ? (
         <p className="mt-4 font-bold text-slate-500">Sin datos este mes.</p>
