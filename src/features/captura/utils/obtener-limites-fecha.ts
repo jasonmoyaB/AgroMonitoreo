@@ -1,5 +1,5 @@
 import { descomponerFechaIso } from '../../../shared/utils/fecha-iso'
-import { obtenerDiasEnMes } from './obtener-dias-en-mes'
+import { obtenerDiasEnMes } from '../../../shared/utils/obtener-dias-en-mes'
 
 const DICIEMBRE = 12
 

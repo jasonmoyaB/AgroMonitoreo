@@ -80,7 +80,7 @@ types/ constants/ stores/  → interfaces / fixed values / Zustand
 
 One-way: `components → hooks → services → utils`, plus `components → stores/types/constants`.
 
-**Cross-feature rule**: components never import another feature's components. Hooks/utils may, when the data genuinely originates there — e.g. `supervisor` KPI hooks read `captura/hooks/use-todos-registros.ts`; `captura/screens/TrabajadoresScreen.tsx` reads `asistencia` and `traslados` hooks to flag absent/loaned workers. `captura/services/trabajadores-service.ts` re-exports from `features/trabajadores` — don't duplicate that query. `captura/utils/obtener-dias-en-mes.ts` is read by `planilla` from outside the feature; `fecha-iso.ts` already moved to `shared/utils/` — move this one too next time it's touched.
+**Cross-feature rule**: components never import another feature's components. Hooks/utils may, when the data genuinely originates there — e.g. `supervisor` KPI hooks read `captura/hooks/use-todos-registros.ts`; `captura/screens/TrabajadoresScreen.tsx` reads `asistencia` and `traslados` hooks to flag absent/loaned workers. `captura/services/trabajadores-service.ts` re-exports from `features/trabajadores` — don't duplicate that query. `obtener-dias-en-mes.ts` and `fecha-iso.ts` both live in `shared/utils/` — they were read from three features and no longer belong to `captura`.
 
 Hard limits: ~150 lines/file, ~30 lines/function, ≤3 function params (object beyond that), ≤5 component props, no `any` (use `unknown` + narrowing), no unnamed magic numbers/strings.
 

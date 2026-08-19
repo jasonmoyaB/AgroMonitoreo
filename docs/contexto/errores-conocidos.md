@@ -91,8 +91,6 @@ Dos trampas al diagnosticarlo, las dos me costaron una conclusión falsa:
 
 **`shared/constants/tipos-labor.constants.ts` duplica la tabla `labores`** y nada verifica que coincidan: se desincronizan sin que ningún test ni build se queje.
 
-**`captura/utils/obtener-dias-en-mes.ts` lo usa `planilla` desde otra feature.** `fecha-iso.ts` ya se movió a `shared/utils/`; este quedó a medio camino. Moverlo también la próxima vez que se toque.
-
 **Cambiar `valor_hora` no reescribe una quincena ya pagada, y está bien.** El pago congela `monto_bruto` y `dias_ausentes`, así que la fila pagada y la liquidación siguen mostrando lo de ese día. Si el descuento sale distinto al esperado, mirar primero si la fila ya tiene pago.
 
 **`valor_hora_usd` en 0 no descuenta nada.** Es a propósito (`calcular-deduccion-ausencias.ts`): descontar 1750 *dólares* por hora sería peor que no descontar. Si un trabajador en USD aparece sin descuento pese a tener ausencias, falta cargar el valor hora en USD en `/admin/salarios`.
