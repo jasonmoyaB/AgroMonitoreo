@@ -89,6 +89,11 @@ De paso el `EXISTS` correlacionado contra `usuario`, que estaba copiado en diez 
 **13. Sistema de toasts propio, sin librería externa.**
 Chico, vive en `shared/` (`toast-store.ts`, `Toast.tsx`, `ToastViewport.tsx` montado una sola vez en `App.tsx`). El toast sobrevive al cierre de cualquier modal, que era el problema real. Ver `docs/instruccions/3-notificaciones-toast.md`.
 
+**13b. La base de desarrollo es el stack local de Docker, no un segundo proyecto hosteado.**
+Hasta acá había una sola base y `pnpm dev` escribía en producción: probar una migración o resetear era tocar los datos reales de Birrisito. Se quiso un `AgroMonitoreoDev` hosteado, pero la cuota del plan Free es de **2 proyectos activos en total cruzando todas las orgs del dueño** (los pausados no cuentan), y ya están ocupados por AgroMonitoreo y OrganicoCR. La separación queda por env de Vite: `.env.development.local` apunta al local y solo lo carga mode `development`, así que pisa a `.env.local` en `pnpm dev` sin tocar `pnpm build` ni Vercel. Cero cambios en el código de la app — `shared/lib/supabase-client.ts` sigue leyendo las mismas dos vars.
+*Descartado*: pausar OrganicoCR para liberar el cupo (deja un proyecto real offline, y en Free un proyecto pausado más de 90 días puede perder el backup) y subir a Pro por $25/mes, que además habilitaría Branching (rama de BD por PR) y la protección de contraseñas filtradas de 12c. Si algún día se paga Pro, Branching reemplaza a esto.
+Los datos de prueba viven en `supabase/seed.sql`, versionado y sintético: nunca un dump de producción, que metería cédulas, teléfonos y salarios reales en la máquina de cualquiera que clone. Los trabajadores no se siembran ahí — ya los trae la migración `20260708171418`; el seed solo agrega los dos usuarios de auth, los montos y los registros.
+
 **14. `vitest.config.ts` separado de `vite.config.ts`.**
 vitest 3.2 declara `vite ^5||^6||^7` y pnpm le resuelve vite 7 mientras el proyecto compila con vite 8; importar `vitest/config` dentro de `vite.config.ts` mezcla ambos juegos de tipos y rompe `tsc -b`.
 
