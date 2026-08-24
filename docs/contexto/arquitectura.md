@@ -35,23 +35,29 @@ Los componentes nunca importan componentes de otra feature. Hooks y utils sí pu
 
 | Feature | Qué es |
 |---|---|
-| `auth` | login / recuperación / alta por invitación, `AuthGuard`, `AdminGuard`, cooldown de login |
+| `auth` | login / recuperación / alta por invitación, `RouteGuard` (uno solo, con prop `soloAdmin`), cooldown de login |
 | `captura` | el flujo del capataz en campo (labor → trabajador → horas/cantidad) |
 | `trabajadores` | headless: CRUD + foto, modal de métricas por trabajador |
 | `asistencia` | headless: ausencia diaria, tabla semanal, calendario mensual, PDF |
 | `traslados` | préstamo de un trabajador a otra finca por un día |
-| `perfil` | headless: editar nombre propio, cambiar contraseña |
+| `perfil` | headless: editar nombre propio, cambiar contraseña, datos personales propios (columnas de `usuario`) |
 | `planilla` | headless: quincena, pago quincenal, PDF de liquidación |
 | `supervisor` | shell del supervisor; hospeda las features headless + KPIs |
 | `admin` | shell de oficina; hospeda `salarios`, `planilla`, dashboards, CRUDs |
 
-`shared/` tiene componentes comunes (IconTile, Avatar, NumericStepper, Modal, Toast, charts, KPI cards), `lib/` (cliente Supabase, `local-db.ts`, `pdf-doc.ts`, sonido/vibración), `utils/kpis/`, `utils/pdf/` y `types/domain.types.ts`.
+`shared/` tiene componentes comunes (IconTile, Avatar, NumericStepper, Modal, Toast, charts, KPI cards), `lib/` (cliente Supabase, `pdf-doc.ts` / `pdf-texto.ts`, sonido/vibración, `descargar-blob.ts`), `hooks/` (`use-network-status.ts`, `use-descargar-dashboard-pdf.ts`, `use-contribuyente-hacienda.ts`), `services/hacienda-service.ts`, `utils/kpis/`, `utils/pdf/` y `types/domain.types.ts`.
+
+No hay `lib/local-db.ts`: el draft de captura importa `idb-keyval` directo.
 
 ## Rutas (`src/app/router.tsx`)
 
 - **Públicas**: `/login`, `/olvide-password`, `/reset-password` (esta última también recibe la invitación, con `?invitacion=1`)
-- **`AuthGuard`**: `/supervisor`, `/supervisor/{dashboard,trabajadores,asistencia,traslados,configuracion}`, `/captura/fecha`, `/captura/labor/:tipoLaborId/trabajadores[/:trabajadorId]`
-- **`AdminGuard`**: `/admin`, `/admin/{dashboard-finca,fincas,supervisores,trabajadores,salarios,planilla,asistencia,traslados,configuracion}`
+- **`RouteGuard`**: `/supervisor`, `/supervisor/{dashboard,trabajadores,asistencia,traslados,configuracion}`, `/captura/fecha`, `/captura/labor/:tipoLaborId/trabajadores[/:trabajadorId]`
+- **`RouteGuard soloAdmin`**: `/admin`, `/admin/{dashboard-finca,fincas,supervisores,trabajadores,planilla,asistencia,traslados,configuracion}`
+
+Es **un solo componente** (`auth/components/RouteGuard.tsx`) con prop `soloAdmin`; no existen `AuthGuard.tsx` ni `AdminGuard.tsx`. Decide con el util puro `auth/utils/decidir-acceso-ruta.ts`, que devuelve `cargando | a-login | a-admin | a-supervisor | sin-finca | permitido` — las ramas de seguridad viven ahí para poder testearlas.
+
+**No hay `/admin/salarios`**: el salario mensual y la moneda se editan en la propia fila de `/admin/planilla`, y el valor hora de la finca arriba de esa misma tabla.
 
 ## Flujo de datos
 

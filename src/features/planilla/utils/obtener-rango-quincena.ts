@@ -1,5 +1,5 @@
 import { construirFechaIso } from '../../../shared/utils/fecha-iso'
-import { obtenerDiasEnMes } from '../../captura/utils/obtener-dias-en-mes'
+import { obtenerDiasEnMes } from '../../../shared/utils/obtener-dias-en-mes'
 import { PRIMERA_QUINCENA, ULTIMO_DIA_PRIMERA_QUINCENA } from '../constants/quincena.constants'
 import type { NumeroQuincena, RangoQuincena } from '../types/planilla.types'
 

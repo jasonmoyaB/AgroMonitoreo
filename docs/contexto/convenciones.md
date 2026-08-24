@@ -15,7 +15,7 @@ Todo en español: nombres de funciones (`calcularMontoQuincena`, `listarPagosQui
 | Types | `*.types.ts` | `planilla.types.ts` |
 | Constants | `*.constants.ts` | `quincena.constants.ts` |
 
-Verbos de util que ya se usan: `calcular-`, `construir-`, `obtener-`, `filtrar-`, `agrupar-`, `validar-`, `resumir-`, `formatear-`, `leer-`.
+Verbos de util que ya se usan: `calcular-`, `construir-`, `obtener-`, `filtrar-`, `agrupar-`, `validar-`, `resumir-`, `formatear-`, `leer-`, `crear-`, `ajustar-`, `encontrar-`, `redondear-`, `normalizar-`, `quitar-`, `describir-`, `decidir-`, `evaluar-`, `capitalizar-`.
 
 ## Límites duros
 
@@ -23,7 +23,7 @@ Verbos de util que ya se usan: `calcular-`, `construir-`, `obtener-`, `filtrar-`
 
 ## Patrones que usamos
 
-- **Query keys**: siempre constante exportada en `constants/*-query.constants.ts` (`PLANILLA_QUERY_KEY`, `TRABAJADORES_QUERY_KEY`, `TRASLADOS_QUERY_KEY`, `ASISTENCIA_*_QUERY_KEY`, `REGISTROS_*_QUERY_KEY`, `FINCAS_QUERY_KEY`, `SALARIOS_QUERY_KEY`, `SUPERVISORES_QUERY_KEY`). Nunca un string inline.
+- **Query keys**: siempre constante exportada en `constants/*-query.constants.ts`. Nunca un string inline. Las que existen hoy: `PLANILLA_QUERY_KEY`, `FINCAS_QUERY_KEY`, `SUPERVISORES_QUERY_KEY`, `USUARIO_ACTUAL_QUERY_KEY`, `DATOS_PERSONALES_QUERY_KEY`, `HACIENDA_QUERY_KEY`, `TRASLADOS_QUERY_KEY`, `TRABAJADORES_QUERY_KEY` (+ `_ADMIN`, `_OTRAS_FINCAS`, `_PRESTADOS`, `_TRASLADADOS_HOY`), `ASISTENCIA_QUERY_KEY` por alcance (`_DIA`, `_SEMANA`, `_MES`, `_TRABAJADOR`, `_TRABAJADORES_AUSENTES`) y `REGISTROS_QUERY_KEY` (+ `_MES`, `_TRABAJADOR`, `_PRIMER_ANIO`). **No hay `SALARIOS_QUERY_KEY`**: los salarios se leen y se invalidan dentro de `PLANILLA_QUERY_KEY`, porque cambiarlos recalcula la quincena.
 - **Services inyectables**: último parámetro `client: SupabaseClient = supabase`, para poder testear el service sin red.
   ```ts
   export async function listarPagosQuincena(fincaId: string, quincenaInicio: string, client: SupabaseClient = supabase): Promise<PagoQuincenal[]>

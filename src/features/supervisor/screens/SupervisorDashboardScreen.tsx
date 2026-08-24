@@ -1,7 +1,6 @@
-import { CalendarDays } from 'lucide-react'
-
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { LaborTaskList } from '../components/LaborTaskList'
+import { FechaCapturaButton } from '../components/FechaCapturaButton'
 import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
@@ -32,10 +31,11 @@ export function SupervisorDashboardScreen() {
                   Elige una labor y registra trabajadores. Menos pasos, más campo.
                 </p>
               </div>
-              <span className="neu-pressed flex min-h-14 items-center justify-center gap-2 rounded-2xl px-4 font-black capitalize text-slate-700">
-                <CalendarDays className="h-5 w-5 shrink-0 text-green-800" aria-hidden="true" />
-                {dashboard.fechaHoy}
-              </span>
+              <FechaCapturaButton
+                fecha={dashboard.fechaCaptura}
+                esHoy={dashboard.esFechaDeHoy}
+                onClick={dashboard.abrirSelectorFecha}
+              />
             </div>
           </header>
 

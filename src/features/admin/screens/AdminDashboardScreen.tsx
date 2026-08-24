@@ -2,7 +2,8 @@ import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { DashboardKpiRow } from '../../../shared/components/DashboardKpiRow'
 import { RankingBarChart } from '../../../shared/components/RankingBarChart'
-import { TendenciaLineChart } from '../../../shared/components/TendenciaLineChart'
+import { ProduccionDiariaChart } from '../../../shared/components/ProduccionDiariaChart'
+import { HorasPorLaborChart } from '../../../shared/components/HorasPorLaborChart'
 import { DescargarDashboardPdfButton } from '../../../shared/components/DescargarDashboardPdfButton'
 import { AdminSidebar } from '../components/AdminSidebar'
 import { PeriodoSelector } from '../components/PeriodoSelector'
@@ -51,11 +52,14 @@ export function AdminDashboardScreen() {
           ) : (
             <>
               <DashboardKpiRow kpis={rollup.kpis} />
-              <div className="grid gap-3 md:grid-cols-2 md:gap-4">
+              <ProduccionDiariaChart titulo={`Producción diaria · ${periodo.periodoNombre}`} produccion={rollup.produccionDiaria} unidad={UNIDAD_GENERICA} />
+              <div className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
                 <RankingBarChart titulo={`Mejor labor · ${periodo.periodoNombre}`} items={rollup.rankingLabores} unidad={UNIDAD_GENERICA} />
                 <RankingBarChart titulo={`Mejor trabajador · ${periodo.periodoNombre}`} items={rollup.rankingTrabajadores} unidad={UNIDAD_GENERICA} />
+                <div className="md:col-span-2 xl:col-span-1">
+                  <HorasPorLaborChart titulo="En qué se van las horas" items={rollup.horasPorLabor} />
+                </div>
               </div>
-              <TendenciaLineChart titulo={`Producción diaria · ${periodo.periodoNombre}`} puntos={rollup.tendenciaDiaria} unidad={UNIDAD_GENERICA} />
             </>
           )}
         </section>

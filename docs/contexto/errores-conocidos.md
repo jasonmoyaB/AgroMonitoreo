@@ -35,6 +35,24 @@ Segunda lección: esto **no lo ve `psql`**. La migración se verificó con SQL d
 
 **El generador de tipos marca un embed como array** cuando la unicidad es compuesta (ej. `asistencia` es única por `trabajador_id + fecha`, no por `trabajador_id`), aunque PostgREST devuelva un objeto único por ser FK muchos-a-uno. Ver `asistencia/services/asistencia-service.ts`.
 
+**Dos flags del CLI corren `seed.sql` contra producción.**
+`supabase db push --include-seed` y `supabase db reset --linked` (sin `--no-seed`) no son locales: `--linked` apunta al proyecto remoto y es el **default** de `push`. Con el seed de este repo eso crearía `admin@dev.local` como `admin_oficina` real, con la password que está escrita en el archivo versionado. No es hipotético: `db push` es el comando que sí se corre a propósito, y `--include-seed` está a un flag de distancia.
+El freno vive en el propio `supabase/seed.sql`, arriba de todo: un `do $$ ... raise exception` que aborta si `public.usuario` tiene algún email que no termine en `@dev.local`. El `raise` revierte el `begin;` del archivo, así que no queda nada a medias. Verificado contra una base local con un usuario renombrado a `real@finca.com`: corta en la línea 29 con `ERROR: seed.sql: esta base tiene usuarios reales, no es el stack local. Abortado.` y `ROLLBACK`, cero filas escritas. Un comentario de advertencia no habría servido — el freno tiene que viajar con el archivo.
+
+**`supabase db restart` no existe.** Los subcomandos de `db` son `reset` (local, salvo `--linked`) y `start`. Si se buscaba "volver a levantar la base", es `supabase start`; si era "reaplicar migraciones", `supabase db reset`.
+
+**Docker abajo → `pnpm dev` levanta igual y la app falla en cada query sin decir por qué.**
+El dev server no sabe nada del stack local: arranca, sirve la SPA, y recién en runtime cada llamada a Supabase muere con un error de red genérico. Se ve como si la app estuviera rota, no como si faltara la base. Chequeo en un comando: `supabase status`, o `curl http://127.0.0.1:54321/rest/v1/`. No hay guard en `pnpm dev` a propósito — con el autostart de Docker Desktop prendido el caso deja de pasar, y un wrapper sería una capa más que mantener. Escotilla si Docker no arranca: `pnpm dev --mode production`, que corre el dev server contra **producción**.
+
+**`[auth.email].enable_signup = false` apaga el login local, no solo el registro.**
+El CLI mapea esa clave a `GOTRUE_EXTERNAL_EMAIL_ENABLED`, o sea que en `false` desactiva el **proveedor de correo entero** y todo `POST /auth/v1/token?grant_type=password` devuelve `422 email_provider_disabled`. En remoto no pasa: el Dashboard separa "Enable Email provider" de "Allow new users to sign up". Va en `true` en `config.toml`; el registro igual queda cerrado por `enable_signup = false` de `[auth]`, que es `GOTRUE_DISABLE_SIGNUP` y manda sobre el otro — verificado, `POST /auth/v1/signup` sigue devolviendo `422 signup_disabled`.
+
+**Una fila insertada a mano en `auth.users` con tokens en `null` rompe el login con un 500 mudo.**
+`confirmation_token`, `recovery_token`, `email_change`, `email_change_token_new`, `email_change_token_current`, `phone_change`, `phone_change_token` y `reauthentication_token` son nullable en el esquema, pero GoTrue las lee en strings de Go que no aceptan `null`. El síntoma es `500 unexpected_failure` / `"Database error querying schema"`, que no nombra ni la columna ni la tabla. Sembrarlas en `''`. Y además hace falta una fila en `auth.identities` (`provider = 'email'`, `provider_id` = el id del usuario en texto): sin ella GoTrue no encuentra la identidad y ni llega a validar el hash. Las dos cosas están resueltas en `supabase/seed.sql`.
+
+**`pnpm db:types` contra local borra el bloque `__InternalSupabase`.**
+El PostgREST del stack local va atrás del remoto (14.5 vs 14.15), así que el generador no emite el `PostgrestVersion`. Si ese es el **único** cambio del diff, no hay drift de esquema: descartar esa parte y no commitearla. Si aparece cualquier otra diferencia, sí hay drift entre las migraciones y producción.
+
 **Los `content_path` de `config.toml` no se resuelven todos igual.**
 `[auth.email.template.*]` (invite, recovery) van con `./supabase/templates/...`, relativos a la raíz. `[auth.email.notification.*]` (password_changed) va con `./templates/...`, relativo a `supabase/`. La inconsistencia parece un error de tipeo y no lo es: "normalizar" las tres al mismo prefijo hace que `supabase db reset` aborte antes de aplicar nada con `open supabase\supabase\templates\...: no se encuentra la ruta`.
 
@@ -51,6 +69,9 @@ Usar `shared/utils/fecha-local.ts`. Y sumarle un offset para compensar hace que 
 **Un mínimo de fecha calculado a nivel de módulo se congela.**
 La PWA queda abierta de un día para el otro, y con el mínimo viejo se podían pedir traslados para fechas ya pasadas. Calcularlo en el render — ver `traslados/components/SolicitarTrasladoTrabajadoresStep.tsx`.
 
+**Una regla de fecha que solo vive en el cliente no es una regla.**
+"Un registro nunca lleva fecha futura" estaba solo en `captura/utils/ajustar-fecha-a-limites.ts`. `registros_trabajo.fecha` no tenia ningun check y la RLS solo mira `finca_id`, asi que un POST a `/rest/v1/registros_trabajo` con `'2030-01-01'` entraba: no es escalacion — el supervisor ya puede escribir en su finca — pero ensucia KPIs, tendencias y el rango de quincena con datos que ningun flujo de la app pudo generar. Cerrado con trigger en `20260819165307`. Y **trigger, no `check`**: `current_date` no es inmutable, y un check que la use hace fallar un `pg_restore` con filas que eran validas el dia que se escribieron.
+
 **Los tests fijan `TZ: 'America/Costa_Rica'`** en `vitest.config.ts`. Sin eso, un runner en UTC deja pasar en verde justo los tests de desfase horario.
 
 ## JavaScript / datos
@@ -61,6 +82,7 @@ La PWA queda abierta de un día para el otro, y con el mínimo viejo se podían 
 
 **`toLocaleString('es-CR')` a secas pinta un salario en USD como si fueran colones.**
 Formatear siempre con la moneda de la fila — ver `shared/utils/formatear-monto.ts`, que además cachea un `Intl.NumberFormat` por moneda porque construirlo es caro y se llama por cada celda de la planilla.
+Los números que **no** son dinero (horas, cantidades de producción, porcentajes de los dashboards) van por `shared/utils/formatear-cantidad.ts`, que topa en 1 decimal. Son dos utils a propósito: el de dinero necesita la moneda de la fila y el otro no debe pedirla.
 
 **Un PATCH completo pisa datos viejos.**
 En la tabla de salarios cada control manda solo su campo: si el selector de moneda mandara también el salario leído de props desactualizadas, lo reescribiría. Ver `admin/services/salarios-service.ts`.
@@ -91,8 +113,6 @@ Dos trampas al diagnosticarlo, las dos me costaron una conclusión falsa:
 
 **`shared/constants/tipos-labor.constants.ts` duplica la tabla `labores`** y nada verifica que coincidan: se desincronizan sin que ningún test ni build se queje.
 
-**`captura/utils/obtener-dias-en-mes.ts` lo usa `planilla` desde otra feature.** `fecha-iso.ts` ya se movió a `shared/utils/`; este quedó a medio camino. Moverlo también la próxima vez que se toque.
-
 **Cambiar `valor_hora` no reescribe una quincena ya pagada, y está bien.** El pago congela `monto_bruto` y `dias_ausentes`, así que la fila pagada y la liquidación siguen mostrando lo de ese día. Si el descuento sale distinto al esperado, mirar primero si la fila ya tiene pago.
 
-**`valor_hora_usd` en 0 no descuenta nada.** Es a propósito (`calcular-deduccion-ausencias.ts`): descontar 1750 *dólares* por hora sería peor que no descontar. Si un trabajador en USD aparece sin descuento pese a tener ausencias, falta cargar el valor hora en USD en `/admin/salarios`.
+**`valor_hora_usd` en 0 no descuenta nada.** Es a propósito (`calcular-deduccion-ausencias.ts`): descontar 1750 *dólares* por hora sería peor que no descontar. Si un trabajador en USD aparece sin descuento pese a tener ausencias, falta cargar el valor hora en USD arriba de la tabla de `/admin/planilla`.

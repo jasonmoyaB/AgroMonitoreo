@@ -1,7 +1,7 @@
 const LONGITUD_MIN = 2
 const DICIEMBRE = 12
 
-interface FechaDescompuesta {
+export interface FechaDescompuesta {
   anio: number
   mes: number
   dia: number
@@ -41,4 +41,9 @@ export function descomponerFechaIso(fecha: string): FechaDescompuesta {
 export function formatearFechaIsoDdMmAaaa(fecha: string): string {
   const { anio, mes, dia } = descomponerFechaIso(fecha)
   return `${conCero(dia)}/${conCero(mes)}/${anio}`
+}
+
+export function formatearFechaIsoDdMm(fecha: string): string {
+  const { mes, dia } = descomponerFechaIso(fecha)
+  return `${conCero(dia)}/${conCero(mes)}`
 }
