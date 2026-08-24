@@ -4,11 +4,12 @@ import type { DashboardUnidad } from '../types/kpis.types'
 
 interface DashboardPorUnidadProps {
   bloques: readonly DashboardUnidad[]
-  // Se intercala en cada titulo: "del mes" o "· Agosto 2026". La unidad la agrega este componente.
-  sufijoTitulo: string
+  // Ya formateado ("Agosto 2026"). Los titulos los arma entero este componente: si el
+  // separador se reparte con el llamador, cada pantalla inventa el suyo.
+  periodoNombre: string
 }
 
-export function DashboardPorUnidad({ bloques, sufijoTitulo }: DashboardPorUnidadProps) {
+export function DashboardPorUnidad({ bloques, periodoNombre }: DashboardPorUnidadProps) {
   if (bloques.length === 0) {
     return <p className="font-bold text-slate-500">Sin producción registrada este mes.</p>
   }
@@ -16,14 +17,19 @@ export function DashboardPorUnidad({ bloques, sufijoTitulo }: DashboardPorUnidad
   return (
     <>
       {bloques.map((bloque) => (
-        <BloqueUnidad key={bloque.unidad} bloque={bloque} sufijoTitulo={sufijoTitulo} />
+        <BloqueUnidad key={bloque.unidad} bloque={bloque} periodoNombre={periodoNombre} />
       ))}
     </>
   )
 }
 
-function BloqueUnidad({ bloque, sufijoTitulo }: { bloque: DashboardUnidad; sufijoTitulo: string }) {
-  const sufijo = `${sufijoTitulo} · ${bloque.unidad}`
+interface BloqueUnidadProps {
+  bloque: DashboardUnidad
+  periodoNombre: string
+}
+
+function BloqueUnidad({ bloque, periodoNombre }: BloqueUnidadProps) {
+  const sufijo = `· ${periodoNombre} · ${bloque.unidad}`
 
   return (
     <>

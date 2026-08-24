@@ -48,7 +48,7 @@ export function DashboardScreen() {
           ) : (
             <>
               <DashboardKpiRow kpis={dashboard.kpis} />
-              <DashboardPorUnidad bloques={dashboard.porUnidad} sufijoTitulo="del mes" />
+              <DashboardPorUnidad bloques={dashboard.porUnidad} periodoNombre={dashboard.periodoNombre} />
               <HorasPorLaborChart titulo="En qué se van las horas" items={dashboard.horasPorLabor} />
             </>
           )}

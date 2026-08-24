@@ -30,6 +30,12 @@ export function construirDashboardPorUnidad({ periodo, registros, trabajadores, 
 
 // El orden lo fija tiposLabor, no el orden en que llegaron los registros: si no, los
 // bloques del dashboard se reordenan segun quien cargo primero ese mes.
+// Un registro cuya labor no esta en tiposLabor (o no tiene unidad) se descarta a proposito:
+// sin unidad no hay bloque al que sumarlo. Es el mismo criterio que ya aplican
+// calcular-cantidades-por-unidad.ts y el denominador de calcular-horas-por-labor.ts, asi que
+// las tarjetas de KPI y los graficos cuentan lo mismo. El riesgo real es que
+// tipos-labor.constants.ts se desincronice de la tabla `labores` (errores-conocidos.md):
+// esa produccion desaparece del dashboard entero, no solo de un grafico.
 function agruparPorUnidad(registros: readonly RegistroTrabajo[], tiposLabor: readonly TipoLabor[]): [string, RegistroTrabajo[]][] {
   const unidadPorLabor = new Map(tiposLabor.map((tipoLabor) => [tipoLabor.id, tipoLabor.unidadMedida]))
   const porUnidad = new Map<string, RegistroTrabajo[]>()

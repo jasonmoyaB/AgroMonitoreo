@@ -1,10 +1,11 @@
 import { capitalizar } from '../capitalizar'
+import { formatearCantidad } from '../formatear-cantidad'
 import { crearBlobPdf } from '../../lib/pdf-doc'
 import { formatearFechaIsoDdMmAaaa } from '../fecha-iso'
 import { fechaLocalIso } from '../fecha-local'
 import type { DashboardKpis, DashboardUnidad } from '../../types/kpis.types'
 import { PDF_ESPACIO, PDF_LAYOUT, PDF_PAGINA, pintarEncabezadoPdf, pintarFondoPdf, pintarPiePdf, pintarTarjetaResumenPdf } from './estilos-pdf'
-import { formatearNumeroPdf, pintarSeccionesUnidadPdf } from './secciones-dashboard-pdf'
+import { pintarSeccionesUnidadPdf } from './secciones-dashboard-pdf'
 
 const KPI = { columnas: 4, gap: PDF_ESPACIO.sm }
 const META = 'REPORTE DE GESTION'
@@ -29,6 +30,7 @@ export function generarPdfDashboard(input: GenerarPdfDashboardInput): Blob {
 // rotular el total como "unidades", que no dice nada; y las dos no entran en una pagina.
 function crearPaginas(input: GenerarPdfDashboardInput): string[] {
   const tarjetas = construirTarjetasKpi(input.kpis)
+  // Un mes sin produccion sigue siendo una pagina: `bloque` null pinta los estados vacios.
   if (input.porUnidad.length === 0) return [crearPagina({ input, tarjetas, bloque: null })]
   return input.porUnidad.map((bloque, index) => crearPagina({ input, tarjetas: index === 0 ? tarjetas : [], bloque }))
 }
@@ -40,16 +42,16 @@ function crearPagina({ input, tarjetas, bloque }: { input: GenerarPdfDashboardIn
     pintarFondoPdf(),
     pintarEncabezadoPdf({ titulo: input.titulo, subtitulo, meta: META }),
     pintarResumen(tarjetas),
-    bloque === null ? '' : pintarSeccionesUnidadPdf(bloque, bottomResumen(tarjetas.length)),
+    pintarSeccionesUnidadPdf(bloque, bottomResumen(tarjetas.length)),
     pintarPiePdf(formatearFechaIsoDdMmAaaa(fechaLocalIso())),
   ].join('\n')
 }
 
 function construirTarjetasKpi(kpis: DashboardKpis): TarjetaKpi[] {
   return [
-    { titulo: 'Horas del mes', valor: formatearNumeroPdf(kpis.totalHoras) },
+    { titulo: 'Horas del mes', valor: formatearCantidad(kpis.totalHoras) },
     { titulo: 'Trabajadores activos', valor: String(kpis.trabajadoresActivos) },
-    ...kpis.cantidadesPorUnidad.map((item) => ({ titulo: `${capitalizar(item.unidad)} producidos`, valor: formatearNumeroPdf(item.totalCantidad) })),
+    ...kpis.cantidadesPorUnidad.map((item) => ({ titulo: `${capitalizar(item.unidad)} producidos`, valor: formatearCantidad(item.totalCantidad) })),
     // "Productividad (cajas/hora)" no entra en el ancho de tarjeta con 4 columnas
     ...kpis.cantidadesPorUnidad.map((item) => ({ titulo: `Prod. (${item.unidad}/hora)`, valor: item.productividadPromedio.toFixed(1) })),
   ]

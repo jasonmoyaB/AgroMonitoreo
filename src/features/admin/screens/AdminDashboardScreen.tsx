@@ -47,7 +47,7 @@ export function AdminDashboardScreen() {
           ) : (
             <>
               <DashboardKpiRow kpis={rollup.kpis} />
-              <DashboardPorUnidad bloques={rollup.porUnidad} sufijoTitulo={`· ${periodo.periodoNombre}`} />
+              <DashboardPorUnidad bloques={rollup.porUnidad} periodoNombre={periodo.periodoNombre} />
               <HorasPorLaborChart titulo="En qué se van las horas" items={rollup.horasPorLabor} />
             </>
           )}

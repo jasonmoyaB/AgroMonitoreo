@@ -6,6 +6,7 @@ import { calcularKpisMensuales } from '../../../shared/utils/kpis/calcular-kpis-
 import { calcularHorasPorLabor } from '../../../shared/utils/kpis/calcular-horas-por-labor'
 import { construirDashboardPorUnidad } from '../../../shared/utils/kpis/construir-dashboard-por-unidad'
 import { anioMesLocal } from '../../../shared/utils/fecha-local'
+import { formatearPeriodoNombre } from '../../../shared/utils/formatear-periodo-nombre'
 
 export function useDashboardKpis() {
   const periodo = anioMesLocal()
@@ -16,6 +17,7 @@ export function useDashboardKpis() {
 
   return {
     isLoading: registrosQuery.isLoading || trabajadoresQuery.isLoading,
+    periodoNombre: formatearPeriodoNombre(periodo),
     kpis: calcularKpisMensuales(registrosDelMes, trabajadores, TIPOS_LABOR),
     porUnidad: construirDashboardPorUnidad({ periodo, registros: registrosDelMes, trabajadores, tiposLabor: TIPOS_LABOR }),
     horasPorLabor: calcularHorasPorLabor(registrosDelMes, TIPOS_LABOR),

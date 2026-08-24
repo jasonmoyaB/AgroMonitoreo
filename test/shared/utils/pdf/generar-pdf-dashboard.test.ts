@@ -19,13 +19,8 @@ const POR_UNIDAD: DashboardUnidad[] = ['tramos', 'cajas'].map((unidad) => ({
   tendenciaDiaria: [{ fecha: '01/08', valor: 120 }],
 }))
 
-async function generarTextoPdf(): Promise<string> {
-  const blob = generarPdfDashboard({
-    titulo: 'Dashboard',
-    subtitulo: 'Resumen del mes',
-    kpis: KPIS,
-    porUnidad: POR_UNIDAD,
-  })
+async function generarTextoPdf(porUnidad: readonly DashboardUnidad[] = POR_UNIDAD): Promise<string> {
+  const blob = generarPdfDashboard({ titulo: 'Dashboard', subtitulo: 'Resumen del mes', kpis: KPIS, porUnidad })
   return blob.text()
 }
 
@@ -58,5 +53,21 @@ describe('generarPdfDashboard', () => {
   it('abre una pagina por unidad para no mezclar cajas con tramos', async () => {
     const texto = await generarTextoPdf()
     expect(texto).toContain('/Count 2')
+  })
+
+  // Un mes sin registros imprimia encabezado, tarjetas en cero y media pagina en blanco.
+  it('un mes sin produccion imprime los estados vacios y no una pagina hueca', async () => {
+    const texto = await generarTextoPdf([])
+
+    expect(texto).toContain('Sin datos del mes.')
+    expect(texto).toContain('Sin produccion registrada este mes.')
+    expect(texto).toContain('/Count 1')
+  })
+
+  it('sin unidad de la que hablar, los titulos no arrastran un sufijo vacio', async () => {
+    const texto = await generarTextoPdf([])
+
+    expect(texto).toContain('(Mejor labor)')
+    expect(texto).toContain('(Produccion diaria del mes)')
   })
 })

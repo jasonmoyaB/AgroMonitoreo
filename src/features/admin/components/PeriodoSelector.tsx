@@ -1,4 +1,4 @@
-import { MESES } from '../../captura/constants/meses.constants'
+import { MESES } from '../../../shared/constants/meses.constants'
 
 interface PeriodoSelectorProps {
   anio: number

@@ -55,7 +55,7 @@ export function FincaDashboardScreen() {
           ) : (
             <>
               <DashboardKpiRow kpis={kpisFinca.kpis} />
-              <DashboardPorUnidad bloques={kpisFinca.porUnidad} sufijoTitulo={`· ${periodoNombre}`} />
+              <DashboardPorUnidad bloques={kpisFinca.porUnidad} periodoNombre={periodoNombre} />
               <HorasPorLaborChart titulo="En qué se van las horas" items={kpisFinca.horasPorLabor} />
             </>
           )}

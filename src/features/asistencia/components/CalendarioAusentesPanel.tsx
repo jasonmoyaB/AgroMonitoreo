@@ -7,7 +7,7 @@ import { obtenerEspaciosCalendario } from '../utils/obtener-espacios-calendario'
 import { formatearTipoAusencia } from '../utils/formatear-tipo-ausencia'
 import { BOTON_ICONO } from '../../../shared/constants/botones.constants'
 import { construirFechaIso } from '../../../shared/utils/fecha-iso'
-import { MESES } from '../../captura/constants/meses.constants'
+import { MESES } from '../../../shared/constants/meses.constants'
 import { obtenerDiasEnMes } from '../../../shared/utils/obtener-dias-en-mes'
 import { TipoAusenciaIcon } from './TipoAusenciaIcon'
 
