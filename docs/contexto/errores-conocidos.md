@@ -56,7 +56,7 @@ El PostgREST del stack local va atrás del remoto (14.5 vs 14.15), así que el g
 **Los `content_path` de `config.toml` no se resuelven todos igual.**
 `[auth.email.template.*]` (invite, recovery) van con `./supabase/templates/...`, relativos a la raíz. `[auth.email.notification.*]` (password_changed) va con `./templates/...`, relativo a `supabase/`. La inconsistencia parece un error de tipeo y no lo es: "normalizar" las tres al mismo prefijo hace que `supabase db reset` aborte antes de aplicar nada con `open supabase\supabase\templates\...: no se encuentra la ruta`.
 
-**Advisor abierto que ninguna migración puede cerrar**: protección de contraseñas filtradas — es un toggle del Dashboard.
+**Advisor abierto que ninguna migración puede cerrar**: protección de contraseñas filtradas — es un toggle del Dashboard, y encima de plan Pro. No buscarle el fix en SQL: la protección equivalente ya está en el front (`auth/services/pwned-passwords-service.ts`, decisión 12c-bis), pero el advisor lee la config del proyecto, no el código, así que **va a seguir en amarillo**.
 
 ## Fechas (Costa Rica, UTC−6)
 

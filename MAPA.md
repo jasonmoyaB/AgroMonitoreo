@@ -30,6 +30,7 @@
 | Componentes compartidos (IconTile, Avatar, Stepper...) | `src/shared/components/` |
 | Cliente Supabase | `src/shared/lib/supabase-client.ts` |
 | Consulta de cédula a la API de Hacienda (autocompleta nombre) | `src/shared/services/hacienda-service.ts` + `hooks/use-contribuyente-hacienda.ts` + `components/CampoCedulaHacienda.tsx` + `features/trabajadores/components/DatosHaciendaTrabajador.tsx` (ficha) |
+| Rechazo de contraseñas filtradas (HaveIBeenPwned) | `src/features/auth/services/pwned-passwords-service.ts` (`esPasswordFiltrada`, k-anonymity: solo viajan los primeros 5 caracteres del SHA-1) + `utils/hashear-password-sha1.ts` + `utils/contar-apariciones-pwned.ts` + constantes en `constants/password.constants.ts`. Se engancha en `auth/services/auth-service.ts` → `actualizarPassword`, el único `updateUser({ password })` del repo, así que cubre `/reset-password`, la invitación y el cambio de contraseña del perfil. **Falla abierto** (ver `decisiones.md` 12c-bis) |
 | Tipos generados de Supabase (regenerar tras migración) | `src/shared/types/supabase.types.ts` |
 | Draft local (IndexedDB, autosave) | `src/features/captura/hooks/use-registro-draft.ts` |
 | Zustand store de sesión de captura | `src/shared/stores/captura-session-store.ts` |

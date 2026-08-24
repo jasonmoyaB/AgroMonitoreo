@@ -1,4 +1,6 @@
 import { supabase } from '../../../shared/lib/supabase-client'
+import { MENSAJE_PASSWORD_FILTRADA } from '../constants/password.constants'
+import { esPasswordFiltrada } from './pwned-passwords-service'
 import { traducirErrorAuth } from '../utils/traducir-error-auth'
 import type { AuthCredentials } from '../types/auth.types'
 
@@ -14,7 +16,13 @@ export async function cerrarSesion() {
   if (error) throw new Error(`cerrarSesion: ${error.message}`)
 }
 
+// La guarda vive aca y no en los hooks porque este es el unico lugar del repo que llama a
+// `updateUser({ password })`: lo cubre tanto /reset-password (y la invitacion) como el
+// cambio de contrasena del perfil. El mensaje va pelado, sin el prefijo `nombreFuncion:` de
+// la convencion de errores, porque lo ve el usuario — mismo criterio que `iniciarSesion`.
 export async function actualizarPassword(password: string) {
+  if (await esPasswordFiltrada(password)) throw new Error(MENSAJE_PASSWORD_FILTRADA)
+
   const { error } = await supabase.auth.updateUser({ password })
 
   if (error) throw new Error(`actualizarPassword: ${error.message}`)
