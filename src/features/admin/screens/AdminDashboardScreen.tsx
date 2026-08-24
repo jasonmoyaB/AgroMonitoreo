@@ -1,8 +1,7 @@
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { DashboardKpiRow } from '../../../shared/components/DashboardKpiRow'
-import { RankingBarChart } from '../../../shared/components/RankingBarChart'
-import { ProduccionDiariaChart } from '../../../shared/components/ProduccionDiariaChart'
+import { DashboardPorUnidad } from '../../../shared/components/DashboardPorUnidad'
 import { HorasPorLaborChart } from '../../../shared/components/HorasPorLaborChart'
 import { DescargarDashboardPdfButton } from '../../../shared/components/DescargarDashboardPdfButton'
 import { AdminSidebar } from '../components/AdminSidebar'
@@ -11,8 +10,6 @@ import { useAdminDashboard } from '../hooks/use-admin-dashboard'
 import { useAdminRollupKpis } from '../hooks/use-admin-rollup-kpis'
 import { usePeriodoDashboard } from '../hooks/use-periodo-dashboard'
 import { useDescargarDashboardPdf } from '../../../shared/hooks/use-descargar-dashboard-pdf'
-
-const UNIDAD_GENERICA = 'unidades'
 
 export function AdminDashboardScreen() {
   const dashboard = useAdminDashboard()
@@ -25,9 +22,7 @@ export function AdminDashboardScreen() {
     titulo: 'Dashboard',
     subtitulo: `Todas las fincas — ${periodo.periodoNombre}`,
     kpis: rollup.kpis,
-    rankingLabores: rollup.rankingLabores,
-    rankingTrabajadores: rollup.rankingTrabajadores,
-    tendenciaDiaria: rollup.tendenciaDiaria,
+    porUnidad: rollup.porUnidad,
   })
 
   return (
@@ -52,14 +47,8 @@ export function AdminDashboardScreen() {
           ) : (
             <>
               <DashboardKpiRow kpis={rollup.kpis} />
-              <ProduccionDiariaChart titulo={`Producción diaria · ${periodo.periodoNombre}`} produccion={rollup.produccionDiaria} unidad={UNIDAD_GENERICA} />
-              <div className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
-                <RankingBarChart titulo={`Mejor labor · ${periodo.periodoNombre}`} items={rollup.rankingLabores} unidad={UNIDAD_GENERICA} />
-                <RankingBarChart titulo={`Mejor trabajador · ${periodo.periodoNombre}`} items={rollup.rankingTrabajadores} unidad={UNIDAD_GENERICA} />
-                <div className="md:col-span-2 xl:col-span-1">
-                  <HorasPorLaborChart titulo="En qué se van las horas" items={rollup.horasPorLabor} />
-                </div>
-              </div>
+              <DashboardPorUnidad bloques={rollup.porUnidad} sufijoTitulo={`· ${periodo.periodoNombre}`} />
+              <HorasPorLaborChart titulo="En qué se van las horas" items={rollup.horasPorLabor} />
             </>
           )}
         </section>

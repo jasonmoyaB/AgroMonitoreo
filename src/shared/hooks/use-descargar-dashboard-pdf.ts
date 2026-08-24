@@ -3,16 +3,14 @@ import { useToastStore } from '../stores/toast-store'
 import { descargarBlob } from '../lib/descargar-blob'
 import { generarPdfDashboard } from '../utils/pdf/generar-pdf-dashboard'
 import { crearSlugArchivo } from '../utils/crear-slug-archivo'
-import type { DashboardKpis, RankingItem, TendenciaPunto } from '../types/kpis.types'
+import type { DashboardKpis, DashboardUnidad } from '../types/kpis.types'
 
 interface UseDescargarDashboardPdfInput {
   archivoPrefijo: string
   titulo: string
   subtitulo: string
   kpis: DashboardKpis
-  rankingLabores: readonly RankingItem[]
-  rankingTrabajadores: readonly RankingItem[]
-  tendenciaDiaria: readonly TendenciaPunto[]
+  porUnidad: readonly DashboardUnidad[]
 }
 
 export function useDescargarDashboardPdf(input: UseDescargarDashboardPdfInput) {

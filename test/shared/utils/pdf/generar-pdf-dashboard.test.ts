@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { generarPdfDashboard } from '../../../../src/shared/utils/pdf/generar-pdf-dashboard'
-import type { DashboardKpis } from '../../../../src/shared/types/kpis.types'
+import type { DashboardKpis, DashboardUnidad } from '../../../../src/shared/types/kpis.types'
 
 const KPIS: DashboardKpis = {
   totalHoras: 120,
@@ -11,14 +11,20 @@ const KPIS: DashboardKpis = {
   ],
 }
 
+const POR_UNIDAD: DashboardUnidad[] = ['tramos', 'cajas'].map((unidad) => ({
+  unidad,
+  produccionDiaria: { dias: [], total: 0, maximo: 0, promedio: 0, diasConRegistro: 0, mejorDia: null },
+  rankingLabores: [{ id: 'cosecha', etiqueta: 'Cosecha', valor: 900 }],
+  rankingTrabajadores: [{ id: 't1', etiqueta: 'Ana Vega', valor: 450 }],
+  tendenciaDiaria: [{ fecha: '01/08', valor: 120 }],
+}))
+
 async function generarTextoPdf(): Promise<string> {
   const blob = generarPdfDashboard({
     titulo: 'Dashboard',
     subtitulo: 'Resumen del mes',
     kpis: KPIS,
-    rankingLabores: [],
-    rankingTrabajadores: [],
-    tendenciaDiaria: [],
+    porUnidad: POR_UNIDAD,
   })
   return blob.text()
 }
@@ -40,5 +46,17 @@ describe('generarPdfDashboard', () => {
     const texto = await generarTextoPdf()
     expect(texto).toContain('Horas del mes')
     expect(texto).toContain('Trabajadores activos')
+  })
+
+  it('rotula cada total con su unidad en vez de dejarlo en "unidades"', async () => {
+    const texto = await generarTextoPdf()
+    expect(texto).toContain('Total \\(cajas\\)')
+    expect(texto).toContain('Total \\(tramos\\)')
+    expect(texto).not.toContain('unidades')
+  })
+
+  it('abre una pagina por unidad para no mezclar cajas con tramos', async () => {
+    const texto = await generarTextoPdf()
+    expect(texto).toContain('/Count 2')
   })
 })

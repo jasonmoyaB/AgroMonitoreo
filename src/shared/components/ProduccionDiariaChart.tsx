@@ -34,7 +34,7 @@ export function ProduccionDiariaChart({ titulo, produccion, unidad }: Produccion
         <>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Resumen etiqueta="Promedio por día trabajado" valor={`${formatearCantidad(promedio)} ${unidad}`} />
-            <Resumen etiqueta="Mejor día" valor={mejorDia === null ? '—' : `${formatearCantidad(mejorDia.valor)} · ${formatearFechaIsoDdMm(mejorDia.fecha)}`} />
+            <Resumen etiqueta="Mejor día" valor={mejorDia === null ? '—' : `${formatearCantidad(mejorDia.valor)} ${unidad} · ${formatearFechaIsoDdMm(mejorDia.fecha)}`} />
             <Resumen etiqueta="Días sin cargar" valor={String(diasSinRegistro)} />
           </div>
 

@@ -1,7 +1,6 @@
 import { SupervisorSidebar } from '../components/SupervisorSidebar'
 import { DashboardKpiRow } from '../../../shared/components/DashboardKpiRow'
-import { RankingBarChart } from '../../../shared/components/RankingBarChart'
-import { ProduccionDiariaChart } from '../../../shared/components/ProduccionDiariaChart'
+import { DashboardPorUnidad } from '../../../shared/components/DashboardPorUnidad'
 import { HorasPorLaborChart } from '../../../shared/components/HorasPorLaborChart'
 import { DescargarDashboardPdfButton } from '../../../shared/components/DescargarDashboardPdfButton'
 import { useDashboardKpis } from '../hooks/use-dashboard-kpis'
@@ -9,8 +8,6 @@ import { useSupervisorDashboard } from '../hooks/use-supervisor-dashboard'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { useDescargarDashboardPdf } from '../../../shared/hooks/use-descargar-dashboard-pdf'
-
-const UNIDAD_GENERICA = 'unidades'
 
 export function DashboardScreen() {
   const sidebar = useSupervisorDashboard()
@@ -22,9 +19,7 @@ export function DashboardScreen() {
     titulo: 'Dashboard',
     subtitulo: 'Resumen del mes: producción, horas y quiénes destacan.',
     kpis: dashboard.kpis,
-    rankingLabores: dashboard.rankingLabores,
-    rankingTrabajadores: dashboard.rankingTrabajadores,
-    tendenciaDiaria: dashboard.tendenciaDiaria,
+    porUnidad: dashboard.porUnidad,
   })
 
   return (
@@ -53,14 +48,8 @@ export function DashboardScreen() {
           ) : (
             <>
               <DashboardKpiRow kpis={dashboard.kpis} />
-              <ProduccionDiariaChart titulo="Producción diaria del mes" produccion={dashboard.produccionDiaria} unidad={UNIDAD_GENERICA} />
-              <div className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
-                <RankingBarChart titulo="Mejor labor del mes" items={dashboard.rankingLabores} unidad={UNIDAD_GENERICA} />
-                <RankingBarChart titulo="Mejor trabajador del mes" items={dashboard.rankingTrabajadores} unidad={UNIDAD_GENERICA} />
-                <div className="md:col-span-2 xl:col-span-1">
-                  <HorasPorLaborChart titulo="En qué se van las horas" items={dashboard.horasPorLabor} />
-                </div>
-              </div>
+              <DashboardPorUnidad bloques={dashboard.porUnidad} sufijoTitulo="del mes" />
+              <HorasPorLaborChart titulo="En qué se van las horas" items={dashboard.horasPorLabor} />
             </>
           )}
         </section>
