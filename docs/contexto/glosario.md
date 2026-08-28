@@ -21,10 +21,12 @@ El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inv
 | **Datos personales** | Cédula, fecha de ingreso y teléfono del trabajador. Viven en `datos_trabajadores`, tabla propia, **no** en columnas de `trabajadores`: es PII y la policy de `trabajadores` alcanza otras fincas. | tabla `datos_trabajadores` (`20260814173849`) |
 | **Asegurado** | Si el trabajador está inscrito ante la CCSS. Lo marca la oficina desde `/admin/trabajadores`; el supervisor ya no lo edita. Default `false`. | `trabajadores.asegurado`, `decisiones.md` 3b |
 | **Labor** | Una de las 11 tareas agrícolas: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Cada una lleva icono, color y unidad (`cajas`, `tramos`, …) que manejan el stepper de cantidad. | `shared/constants/tipos-labor.constants.ts` (duplica la tabla `labores`) |
+| **Unidad de medida** | Con qué se cuenta la cantidad de una labor: `cosecha` va en **cajas**, las otras diez en **tramos**. No es cosmética — los dashboards agrupan por ella y **nunca suman entre unidades**. | `TipoLabor.unidadMedida`, `shared/utils/kpis/construir-dashboard-por-unidad.ts` |
 | **Registro de trabajo** | La unidad que carga el capataz: trabajador + labor + fecha + horas + cantidad. | tabla `registros_trabajo` |
 | **Captura** | El flujo del capataz: elegir labor → elegir trabajador → horas y cantidad con steppers → confirmar. | `features/captura` |
 | **Draft** | Captura a medias guardada en IndexedDB con debounce de 300ms. Resiliencia, no fuente de verdad. | `captura/hooks/use-registro-draft.ts` |
-| **Productividad** | `cantidad / horas`. El motivo original de la app. | `shared/utils/kpis/` |
+| **Productividad** | `cantidad / horas`. El motivo original de la app. Se calcula por unidad, nunca sobre un total mezclado. | `shared/utils/kpis/` |
+| **Bloque por unidad** | Lo que pinta un dashboard para *una* unidad: producción diaria del mes, mejor labor y mejor trabajador, todos rotulados con esa unidad. Un mes con cosecha y amarre saca dos bloques. En el PDF, una página por bloque. | `DashboardUnidad` en `kpis.types.ts`, `shared/components/DashboardPorUnidad.tsx` |
 | **Hora extra** | Acumulado del día del trabajador, sumando todas sus labores, estrictamente mayor a 8h. | `docs/horas-extra.md`, `JORNADA_NORMAL_HORAS` |
 
 ## Ausencias y movimientos
@@ -53,6 +55,6 @@ El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inv
 
 - **RLS** — Row Level Security de Postgres. Acá todas las policies hacen join a través de `usuario`.
 - **PWA** — Progressive Web App. La app se instala y tiene service worker (`vite-plugin-pwa`).
-- **KPI** — los indicadores de los dashboards (horas, cantidad, productividad, rankings, tendencia).
+- **KPI** — los indicadores de los dashboards (horas, cantidad, productividad, rankings, tendencia). Los que dependen de la cantidad producida van siempre por unidad.
 - **MCP `codebase-memory`** — el servidor con el que se navega este repo. Es la primera opción para buscar código, antes que Grep/Glob.
 - **`neu-*`** — los tokens neumórficos de `src/index.css` (`neu-raised`, `neu-pressed`, `neu-well`).

@@ -6,6 +6,8 @@ Guidance for Claude Code in this repo. Paths: see `MAPA.md`.
 
 ## Contexto del proyecto
 
+- Specs por módulo → `Specs/` (una por feature: qué hace, qué reglas obliga, qué **no** hace). Leerla antes de tocar esa feature; si el cambio la deja mintiendo, se corrige en el mismo PR.
+
 - Arquitectura → @docs/contexto/arquitectura.md
 - Convenciones → @docs/contexto/convenciones.md
 - Decisiones → @docs/contexto/decisiones.md
@@ -80,7 +82,7 @@ types/ constants/ stores/  → interfaces / fixed values / Zustand
 
 One-way: `components → hooks → services → utils`, plus `components → stores/types/constants`.
 
-**Cross-feature rule**: components never import another feature's components. Hooks/utils may, when the data genuinely originates there — e.g. `supervisor` KPI hooks read `captura/hooks/use-todos-registros.ts`; `captura/screens/TrabajadoresScreen.tsx` reads `asistencia` and `traslados` hooks to flag absent/loaned workers. `captura/services/trabajadores-service.ts` re-exports from `features/trabajadores` — don't duplicate that query. `obtener-dias-en-mes.ts` and `fecha-iso.ts` both live in `shared/utils/` — they were read from three features and no longer belong to `captura`.
+**Cross-feature rule**: components never import another feature's components. Hooks/utils may, when the data genuinely originates there — e.g. `supervisor` KPI hooks read `captura/hooks/use-registros-del-mes.ts`; `captura/screens/TrabajadoresScreen.tsx` reads `asistencia` and `traslados` hooks to flag absent/loaned workers. `captura/services/trabajadores-service.ts` re-exports from `features/trabajadores` — don't duplicate that query. `obtener-dias-en-mes.ts` and `fecha-iso.ts` both live in `shared/utils/` — they were read from three features and no longer belong to `captura`.
 
 Hard limits: ~150 lines/file, ~30 lines/function, ≤3 function params (object beyond that), ≤5 component props, no `any` (use `unknown` + narrowing), no unnamed magic numbers/strings.
 
@@ -96,7 +98,7 @@ Hard limits: ~150 lines/file, ~30 lines/function, ≤3 function params (object b
 - `features/planilla` — headless: quincena range (1–15 / 16–end), rows crossing current salary with the already-registered payment, register payment, liquidación PDF. Hosted by `admin/screens/PlanillaScreen.tsx` at `/admin/planilla`.
 - `features/supervisor` — supervisor shell; hosts the headless features above. KPIs read `registros_trabajo` from Supabase.
 - `features/admin` — admin shell (see Roles).
-- `shared/` — `components/` (IconTile, Avatar, NumericStepper, Modal, Toast, charts, KPI cards), `stores/` (captura session, toasts), `lib/` (supabase client, `pdf-doc.ts`/`pdf-texto.ts`, sound/vibrate, `descargar-blob.ts`), `hooks/` (`use-network-status.ts`, `use-descargar-dashboard-pdf.ts`, `use-contribuyente-hacienda.ts`), `services/hacienda-service.ts`, `utils/kpis/`, `utils/pdf/`, `types/domain.types.ts`. There is no `local-db.ts` — `use-registro-draft.ts` imports `idb-keyval` directly.
+- `shared/` — `components/` (`LaborIcon`, `Avatar`, `NumericStepper`, `StepperButton`, `Modal`, `Toast`, charts, KPI cards, `DashboardPorUnidad`), `stores/` (captura session, toasts), `lib/` (supabase client, `pdf-doc.ts`/`pdf-texto.ts`, sound/vibrate, `descargar-blob.ts`), `hooks/` (`use-network-status.ts`, `use-descargar-dashboard-pdf.ts`, `use-contribuyente-hacienda.ts`), `services/hacienda-service.ts`, `constants/` (`tipos-labor`, `meses`, `finca`, `hacienda`, …), `utils/kpis/`, `utils/pdf/`, `types/domain.types.ts` + `types/kpis.types.ts`. **`shared/` never imports from `features/`** — that is why `meses.constants.ts`, `obtener-dias-en-mes.ts` and `fecha-iso.ts` all left `captura/`. There is no `local-db.ts` — `use-registro-draft.ts` imports `idb-keyval` directly.
 
 ### Payroll (`/admin/planilla`)
 
@@ -112,11 +114,17 @@ Salary lives in its own table `salarios_trabajadores`, **not** as columns on `tr
 
 ### Persistence
 
-Everything real is Supabase. The **only** IndexedDB thing left is the in-progress capture draft (`use-registro-draft.ts`, 300ms debounce) — a resilience layer for a half-filled form, not a source of truth. Dropped-connection resilience is three layers: that draft, optimistic mutation with `retry: 3`, and the PWA service worker (`vite-plugin-pwa`, `autoUpdate`). Not offline-first; wifi is normally available.
+Everything real is Supabase. IndexedDB holds two things, both resilience layers and neither a source of truth: the in-progress capture draft (`use-registro-draft.ts`, 300ms debounce) and the **persisted TanStack Query cache** (`shared/lib/persistencia-query.ts` + `shared/hooks/use-cache-persistente.ts`).
+
+That second one is what makes capture work without signal, and it is not optional polish: with `networkMode: 'online'` a mutation offline is *paused*, not failed, so `onSuccess` never ran and the screen didn't react — and reads died too, leaving `CapturaRegistroScreen` rendering `null`. `dehydrate` carries paused mutations, `resumePausedMutations()` replays them on reconnect, and `crearRegistro`'s upsert makes the replay idempotent. Two rules: `gcTime` must be ≥ the persisted maxAge (the 5-minute default GCs whatever you rehydrate), and nothing renders until rehydration finishes. The `mutationFn` lives in `setMutationDefaults` (`src/app/query-client.ts`), not in the hook — a rehydrated mutation has no function otherwise. Logging out clears it (worker PII on a shared device). No new dependency: `@tanstack/react-query-persist-client` is blocked by pnpm's `trust-policy=no-downgrade` and the core exports cover it (`decisiones.md` 17).
+
+Still **not offline-first**: no local database, nothing resolved device-side, only what was already read survives. Third layer is the PWA service worker (`vite-plugin-pwa`, `autoUpdate`).
 
 ### The 11 labor types
 
-`shared/constants/tipos-labor.constants.ts`: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Each carries icon, color, unit (`cajas`/`tramos`/…) driving the quantity stepper. This duplicates the seeded `public.labores` table — the frontend still doesn't fetch it, so **keep both in sync by hand**.
+`shared/constants/tipos-labor.constants.ts`: `cosecha`, `amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`, `palea`, `deshierba`, `emplasticado`. Each carries icon, color, unit (`cajas`/`tramos`/…) driving the quantity stepper. This duplicates the seeded `public.labores` table — the frontend still doesn't fetch it, so **keep both in sync by hand**; a labor missing here now vanishes from the whole dashboard, not just one chart.
+
+The unit is not cosmetic. **Nothing sums across units** — a `cosecha` box and an `amarre` tramo are different magnitudes, and the mixed total (labelled "unidades") was a lie. `shared/utils/kpis/construir-dashboard-por-unidad.ts` returns one `DashboardUnidad` per unit present in the month; `shared/components/DashboardPorUnidad.tsx` paints a full block per unit with the unit on every title, axis and tooltip, and the dashboard PDF is multipage, one page per unit. Block order comes from `tipos-labor.constants.ts`, not from insertion order. Details: `docs/contexto/decisiones.md` 5e.
 
 ### Styling
 

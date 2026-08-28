@@ -7,11 +7,11 @@ import { useAniosDashboard } from './use-anios-dashboard'
 import { useTrabajadoresFincaAdmin } from './use-trabajadores-finca-admin'
 
 export function useFincaDashboardKpis(fincaId: string | null, periodo: string) {
-  const registrosQuery = useRegistrosDelMes(periodo)
+  const registrosQuery = useRegistrosDelMes(periodo, fincaId)
   const trabajadoresQuery = useTrabajadoresFincaAdmin(fincaId)
   const aniosDisponibles = useAniosDashboard()
 
-  const registrosDelMes = (registrosQuery.data ?? []).filter((registro) => registro.fincaId === fincaId)
+  const registrosDelMes = registrosQuery.data ?? []
   const trabajadores = trabajadoresQuery.trabajadores
 
   return {

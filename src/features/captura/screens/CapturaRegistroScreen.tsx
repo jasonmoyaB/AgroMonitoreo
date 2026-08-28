@@ -15,6 +15,7 @@ import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { PASO_HORAS, TIEMPO_CONFIRMACION_MS, HORAS_MAXIMAS_POR_DIA, CANTIDAD_MAXIMA_POR_REGISTRO } from '../constants/captura.constants'
 import { vibrarConfirmacion } from '../../../shared/lib/vibrate'
 import { construirRegistro } from '../utils/construir-registro'
+import type { EstadoConfirmacion } from '../types/estado-confirmacion.types'
 
 const TOTAL_PASOS_CAPTURA = 2
 
@@ -22,7 +23,7 @@ export function CapturaRegistroScreen() {
   const { tipoLaborId = '', trabajadorId = '' } = useParams<{ tipoLaborId: string; trabajadorId: string }>()
   const navigate = useNavigate()
   const fecha = useFechaCaptura()
-  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
+  const [confirmacion, setConfirmacion] = useState<EstadoConfirmacion>('oculto')
   const draftPrecargado = useRef(false)
 
   const { usuario } = useUsuarioActual()
@@ -48,14 +49,23 @@ export function CapturaRegistroScreen() {
     }
   }, [cargado, registroExistente, draft, setDraft])
 
+  // Sin señal la mutacion queda pausada y `onSuccess` no corre nunca: sin esto el capataz
+  // toca Confirmar y la pantalla no reacciona, que es como se perdian los registros.
+  const quedoPendiente = crearRegistro.isPaused
+  useEffect(() => {
+    if (quedoPendiente) cerrarConConfirmacion('pendiente')
+    // cerrarConConfirmacion se recrea en cada render; listarla haria correr el efecto siempre
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [quedoPendiente])
+
   if (!tipoLabor || !trabajador || !fincaId) return null
 
-  function manejarExito() {
+  function cerrarConConfirmacion(estado: EstadoConfirmacion) {
     vibrarConfirmacion()
     limpiarDraft()
-    setMostrarConfirmacion(true)
+    setConfirmacion(estado)
     setTimeout(() => {
-      setMostrarConfirmacion(false)
+      setConfirmacion('oculto')
       navigate(`/captura/labor/${tipoLaborId}/trabajadores`)
     }, TIEMPO_CONFIRMACION_MS)
   }
@@ -70,7 +80,7 @@ export function CapturaRegistroScreen() {
       horas: draft.horas,
       cantidad: draft.cantidad,
     })
-    crearRegistro.mutate(registro, { onSuccess: manejarExito })
+    crearRegistro.mutate(registro, { onSuccess: () => cerrarConConfirmacion('enviado') })
   }
 
   return (
@@ -107,7 +117,7 @@ export function CapturaRegistroScreen() {
           texto={registroExistente ? 'Guardar cambios' : 'Confirmar'}
         />
       </div>
-      <ConfirmacionOverlay visible={mostrarConfirmacion} />
+      <ConfirmacionOverlay estado={confirmacion} />
     </main>
   )
 }

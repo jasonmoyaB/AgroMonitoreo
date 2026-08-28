@@ -8,14 +8,16 @@ Todo en español: nombres de funciones (`calcularMontoQuincena`, `listarPagosQui
 
 | Tipo | Formato | Ejemplo |
 |---|---|---|
-| Componentes y screens | `PascalCase.tsx` | `PlanillaTable.tsx`, `SalariosScreen.tsx` |
+| Componentes y screens | `PascalCase.tsx` | `PlanillaTable.tsx`, `PlanillaScreen.tsx` |
 | Hooks | `use-kebab-case.ts` | `use-planilla-quincena.ts` |
 | Services | `<dominio>-service.ts` | `planilla-service.ts` |
 | Utils | verbo en infinitivo, kebab | `calcular-monto-quincena.ts`, `construir-filas-planilla.ts`, `obtener-rango-quincena.ts`, `filtrar-trabajadores.ts`, `validar-foto-trabajador.ts` |
 | Types | `*.types.ts` | `planilla.types.ts` |
 | Constants | `*.constants.ts` | `quincena.constants.ts` |
 
-Verbos de util que ya se usan: `calcular-`, `construir-`, `obtener-`, `filtrar-`, `agrupar-`, `validar-`, `resumir-`, `formatear-`, `leer-`, `crear-`, `ajustar-`, `encontrar-`, `redondear-`, `normalizar-`, `quitar-`, `describir-`, `decidir-`, `evaluar-`, `capitalizar-`.
+Verbos de util que ya se usan: `calcular-`, `construir-`, `obtener-`, `filtrar-`, `agrupar-`, `ordenar-`, `contar-`, `validar-`, `resumir-`, `formatear-`, `generar-`, `leer-`, `crear-`, `ajustar-`, `encontrar-`, `redondear-`, `normalizar-`, `quitar-`, `describir-`, `decidir-`, `evaluar-`, `capitalizar-`, `mapear-`, `traducir-`, `hashear-`.
+
+La excepción son los módulos del sistema visual de PDF, que se nombran por lo que **son** y no por lo que hacen (`tokens-pdf.ts`, `estilos-pdf.ts`, `tabla-pdf.ts`, `secciones-dashboard-pdf.ts`): exportan varias funciones hermanas, y un verbo en el nombre del archivo mentiría sobre cuál. Mismo caso que `fecha-iso.ts` y `fecha-local.ts`.
 
 ## Límites duros
 
@@ -48,7 +50,7 @@ Verbos de util que ya se usan: `calcular-`, `construir-`, `obtener-`, `filtrar-`
 ## Tests
 
 - vitest. Viven en **`/test` raíz espejando `src/`**, no colocados: `src/features/planilla/utils/foo.ts` → `test/features/planilla/utils/foo.test.ts`.
-- Se testean utils y services con ramificación real (validación, cálculos, fechas). Los one-liners no.
+- Se testean utils y services con ramificación real (validación, cálculos, fechas). Los one-liners no. También hay tests de `shared/lib/` (los dos módulos de PDF), de una constante con validación al cargar (`hacienda.constants.ts`), del store de sesión de captura y de un hook cuya lógica real es a qué query keys invalida (`use-crear-registro-invalidacion`). Lo que **no** se testea es JSX renderizado.
 - Nombres de `it()` en español, en indicativo: `it('febrero bisiesto termina el 29')`.
 - `vitest.config.ts` está separado de `vite.config.ts` **a propósito**: vitest 3.2 declara `vite ^5||^6||^7` y pnpm le resuelve vite 7, así que mezclar ambos juegos de tipos rompe `tsc -b`.
 - Ese config fija `TZ: 'America/Costa_Rica'`. Sin eso, un runner en UTC deja pasar en verde todo test de "el día local no es el día UTC", que es justo la clase de bug que más duele acá.
