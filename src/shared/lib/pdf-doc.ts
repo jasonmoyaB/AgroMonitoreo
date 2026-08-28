@@ -22,14 +22,23 @@ export function textoPdf({ valor, x, y, size, color, peso = 'normal', alinear = 
   return `${color} rg\nBT\n${FUENTE[peso]} ${size} Tf\n${inicio} ${redondear(y)} Td\n(${escaparTextoPdf(valor)}) Tj\nET`
 }
 
-export function crearBlobPdf(stream: string, anchoPagina: number, altoPagina: number): Blob {
+// Los objetos 1-4 son fijos (catalogo, arbol de paginas y las dos fuentes); de ahi en
+// adelante cada pagina aporta dos: la pagina y su stream de contenido.
+const PRIMER_OBJETO_PAGINA = 5
+const OBJETOS_POR_PAGINA = 2
+
+export function crearBlobPdf(streams: string | readonly string[], anchoPagina: number, altoPagina: number): Blob {
+  const paginas = typeof streams === 'string' ? [streams] : streams
+  const idPagina = paginas.map((_stream, index) => PRIMER_OBJETO_PAGINA + index * OBJETOS_POR_PAGINA)
   const objetos = [
     '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [4 0 R] /Count 1 >>',
+    `<< /Type /Pages /Kids [${idPagina.map((id) => `${id} 0 R`).join(' ')}] /Count ${paginas.length} >>`,
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${anchoPagina} ${altoPagina}] /Resources << /Font << /F1 3 0 R /F2 6 0 R >> >> /Contents 5 0 R >>`,
-    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>',
+    ...paginas.flatMap((stream, index) => [
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${anchoPagina} ${altoPagina}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${idPagina[index] + 1} 0 R >>`,
+      `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+    ]),
   ]
   return new Blob([crearDocumentoPdf(objetos)], { type: 'application/pdf' })
 }

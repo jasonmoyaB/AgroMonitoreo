@@ -50,3 +50,15 @@ export interface HorasPorLabor {
   rendimiento: number
   unidad: string
 }
+
+// Cajas y tramos no se suman: una caja de cosecha y un tramo de amarre no son la misma
+// magnitud, y el total mezclado no se puede rotular con ninguna unidad honesta ("unidades"
+// era eso). Cada bloque agrupa los registros de una sola unidad y todo lo que pinta la
+// lleva al lado.
+export interface DashboardUnidad {
+  unidad: string
+  produccionDiaria: ProduccionDiaria
+  rankingLabores: RankingItem[]
+  rankingTrabajadores: RankingItem[]
+  tendenciaDiaria: TendenciaPunto[]
+}

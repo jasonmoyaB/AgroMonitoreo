@@ -1,6 +1,6 @@
 import { Download } from 'lucide-react'
 import { BOTON_SECUNDARIO } from '../../../shared/constants/botones.constants'
-import { MESES } from '../../captura/constants/meses.constants'
+import { MESES } from '../../../shared/constants/meses.constants'
 
 interface DescargarAusenciasPdfActions {
   onAnioChange: (anio: number) => void

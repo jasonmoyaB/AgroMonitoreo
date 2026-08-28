@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { listarRegistrosDelMes } from '../../../../src/features/captura/services/registros-service'
+import { listarRegistrosDelMes, listarRegistrosPorTrabajador } from '../../../../src/features/captura/services/registros-service'
 
 const TAMANO_PAGINA = 1000
 
@@ -24,6 +24,7 @@ function clientePaginado(total: number, maxFilasPorRespuesta = TAMANO_PAGINA) {
   const rangos: Array<[number, number]> = []
   const gte = vi.fn()
   const lt = vi.fn()
+  const eq = vi.fn()
   const cadena = {
     select: vi.fn(() => cadena),
     gte: (...args: [string, string]) => {
@@ -32,6 +33,10 @@ function clientePaginado(total: number, maxFilasPorRespuesta = TAMANO_PAGINA) {
     },
     lt: (...args: [string, string]) => {
       lt(...args)
+      return cadena
+    },
+    eq: (...args: [string, string]) => {
+      eq(...args)
       return cadena
     },
     order: vi.fn(() => cadena),
@@ -43,24 +48,40 @@ function clientePaginado(total: number, maxFilasPorRespuesta = TAMANO_PAGINA) {
     },
   }
 
-  return { client: { from: vi.fn(() => cadena) } as unknown as SupabaseClient, rangos, gte, lt }
+  return { client: { from: vi.fn(() => cadena) } as unknown as SupabaseClient, rangos, gte, lt, eq }
 }
 
 describe('listarRegistrosDelMes', () => {
   it('acota la consulta al mes en el servidor', async () => {
     const { client, gte, lt } = clientePaginado(3)
 
-    await listarRegistrosDelMes('2026-12', client)
+    await listarRegistrosDelMes('2026-12', undefined, client)
 
     expect(gte).toHaveBeenCalledWith('fecha', '2026-12-01')
     expect(lt).toHaveBeenCalledWith('fecha', '2027-01-01')
+  })
+
+  it('sin finca no filtra por finca: el rollup de oficina necesita todas', async () => {
+    const { client, eq } = clientePaginado(3)
+
+    await listarRegistrosDelMes('2026-12', undefined, client)
+
+    expect(eq).not.toHaveBeenCalled()
+  })
+
+  it('con finca el filtro baja al servidor en vez de descartarse en el cliente', async () => {
+    const { client, eq } = clientePaginado(3)
+
+    await listarRegistrosDelMes('2026-12', 'birrisito', client)
+
+    expect(eq).toHaveBeenCalledWith('finca_id', 'birrisito')
   })
 
   it('trae el mes completo cuando supera el maximo de filas por respuesta', async () => {
     const total = TAMANO_PAGINA * 2 + 7
     const { client, rangos } = clientePaginado(total)
 
-    const registros = await listarRegistrosDelMes('2026-07', client)
+    const registros = await listarRegistrosDelMes('2026-07', undefined, client)
 
     expect(registros).toHaveLength(total)
     expect(new Set(registros.map((registro) => registro.id)).size).toBe(total)
@@ -70,13 +91,40 @@ describe('listarRegistrosDelMes', () => {
   it('no corta antes de tiempo si el servidor devuelve menos filas de las pedidas', async () => {
     const { client } = clientePaginado(1500, 500)
 
-    expect(await listarRegistrosDelMes('2026-07', client)).toHaveLength(1500)
+    expect(await listarRegistrosDelMes('2026-07', undefined, client)).toHaveLength(1500)
   })
 
   it('un mes vacio resuelve sin pedir una segunda pagina', async () => {
     const { client, rangos } = clientePaginado(0)
 
-    expect(await listarRegistrosDelMes('2026-07', client)).toEqual([])
+    expect(await listarRegistrosDelMes('2026-07', undefined, client)).toEqual([])
+    expect(rangos).toHaveLength(1)
+  })
+})
+
+describe('listarRegistrosPorTrabajador', () => {
+  it('trae el historial completo aunque pase el maximo de filas por respuesta', async () => {
+    const total = TAMANO_PAGINA + 137
+    const { client, rangos } = clientePaginado(total)
+
+    const registros = await listarRegistrosPorTrabajador('t1', client)
+
+    expect(registros).toHaveLength(total)
+    expect(rangos).toHaveLength(3)
+  })
+
+  it('filtra por trabajador en el servidor', async () => {
+    const { client, eq } = clientePaginado(5)
+
+    await listarRegistrosPorTrabajador('t1', client)
+
+    expect(eq).toHaveBeenCalledWith('trabajador_id', 't1')
+  })
+
+  it('un trabajador sin registros resuelve sin pedir una segunda pagina', async () => {
+    const { client, rangos } = clientePaginado(0)
+
+    expect(await listarRegistrosPorTrabajador('t1', client)).toEqual([])
     expect(rangos).toHaveLength(1)
   })
 })

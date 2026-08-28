@@ -3,11 +3,8 @@ import { useRegistrosDelMes } from '../../captura/hooks/use-registros-del-mes'
 import { listarTodosTrabajadoresSinDatosPorFinca } from '../../trabajadores/services/trabajadores-service'
 import { TIPOS_LABOR } from '../../../shared/constants/tipos-labor.constants'
 import { calcularKpisMensuales } from '../../../shared/utils/kpis/calcular-kpis-mensuales'
-import { calcularRankingLabores } from '../../../shared/utils/kpis/calcular-ranking-labores'
-import { calcularRankingTrabajadores } from '../../../shared/utils/kpis/calcular-ranking-trabajadores'
-import { calcularTendenciaDiaria } from '../../../shared/utils/kpis/calcular-tendencia-diaria'
 import { calcularHorasPorLabor } from '../../../shared/utils/kpis/calcular-horas-por-labor'
-import { construirProduccionDiaria } from '../../../shared/utils/kpis/construir-produccion-diaria'
+import { construirDashboardPorUnidad } from '../../../shared/utils/kpis/construir-dashboard-por-unidad'
 import { useAniosDashboard } from './use-anios-dashboard'
 import { useFincas } from './use-fincas'
 
@@ -23,16 +20,12 @@ export function useAdminRollupKpis(periodo: string) {
   const aniosDisponibles = useAniosDashboard()
   const registrosDelMes = registrosQuery.data ?? []
   const trabajadores = trabajadoresQuery.data ?? []
-  const tendenciaDiaria = calcularTendenciaDiaria(registrosDelMes)
 
   return {
     isLoading: isLoadingFincas || registrosQuery.isLoading || trabajadoresQuery.isLoading,
     aniosDisponibles,
     kpis: calcularKpisMensuales(registrosDelMes, trabajadores, TIPOS_LABOR),
-    rankingLabores: calcularRankingLabores(registrosDelMes, TIPOS_LABOR),
-    rankingTrabajadores: calcularRankingTrabajadores(registrosDelMes, trabajadores),
-    tendenciaDiaria,
-    produccionDiaria: construirProduccionDiaria(periodo, tendenciaDiaria),
+    porUnidad: construirDashboardPorUnidad({ periodo, registros: registrosDelMes, trabajadores, tiposLabor: TIPOS_LABOR }),
     horasPorLabor: calcularHorasPorLabor(registrosDelMes, TIPOS_LABOR),
   }
 }

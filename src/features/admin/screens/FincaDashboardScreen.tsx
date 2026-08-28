@@ -1,8 +1,7 @@
 import { useCerrarSesion } from '../../auth/hooks/use-cerrar-sesion'
 import { usePerfilSidebar } from '../../auth/hooks/use-perfil-sidebar'
 import { DashboardKpiRow } from '../../../shared/components/DashboardKpiRow'
-import { RankingBarChart } from '../../../shared/components/RankingBarChart'
-import { ProduccionDiariaChart } from '../../../shared/components/ProduccionDiariaChart'
+import { DashboardPorUnidad } from '../../../shared/components/DashboardPorUnidad'
 import { HorasPorLaborChart } from '../../../shared/components/HorasPorLaborChart'
 import { DescargarDashboardPdfButton } from '../../../shared/components/DescargarDashboardPdfButton'
 import { AdminSidebar } from '../components/AdminSidebar'
@@ -14,7 +13,6 @@ import { useFincaSeleccionada } from '../hooks/use-finca-seleccionada'
 import { usePeriodoDashboard } from '../hooks/use-periodo-dashboard'
 import { useDescargarDashboardPdf } from '../../../shared/hooks/use-descargar-dashboard-pdf'
 
-const UNIDAD_GENERICA = 'unidades'
 const FINCA_NOMBRE_FALLBACK = 'Finca'
 
 export function FincaDashboardScreen() {
@@ -31,9 +29,7 @@ export function FincaDashboardScreen() {
     titulo: 'Dashboard por finca',
     subtitulo: `${fincaNombre} — ${periodoNombre}`,
     kpis: kpisFinca.kpis,
-    rankingLabores: kpisFinca.rankingLabores,
-    rankingTrabajadores: kpisFinca.rankingTrabajadores,
-    tendenciaDiaria: kpisFinca.tendenciaDiaria,
+    porUnidad: kpisFinca.porUnidad,
   })
 
   return (
@@ -59,14 +55,8 @@ export function FincaDashboardScreen() {
           ) : (
             <>
               <DashboardKpiRow kpis={kpisFinca.kpis} />
-              <ProduccionDiariaChart titulo={`Producción diaria · ${periodoNombre}`} produccion={kpisFinca.produccionDiaria} unidad={UNIDAD_GENERICA} />
-              <div className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
-                <RankingBarChart titulo={`Mejor labor · ${periodoNombre}`} items={kpisFinca.rankingLabores} unidad={UNIDAD_GENERICA} />
-                <RankingBarChart titulo={`Mejor trabajador · ${periodoNombre}`} items={kpisFinca.rankingTrabajadores} unidad={UNIDAD_GENERICA} />
-                <div className="md:col-span-2 xl:col-span-1">
-                  <HorasPorLaborChart titulo="En qué se van las horas" items={kpisFinca.horasPorLabor} />
-                </div>
-              </div>
+              <DashboardPorUnidad bloques={kpisFinca.porUnidad} periodoNombre={periodoNombre} />
+              <HorasPorLaborChart titulo="En qué se van las horas" items={kpisFinca.horasPorLabor} />
             </>
           )}
         </section>

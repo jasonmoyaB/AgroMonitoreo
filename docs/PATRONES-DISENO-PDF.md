@@ -9,10 +9,17 @@ Todos los PDF descargables de AgroMonitoreo deben leerse como la misma aplicaci�
 | `src/shared/utils/pdf/tokens-pdf.ts` | Paleta, escala tipográfica, espaciados y ritmo vertical. **Ningún generador declara colores ni coordenadas propias.** |
 | `src/shared/utils/pdf/estilos-pdf.ts` | Bloques: fondo, encabezado, tarjeta de resumen, título de sección, pie, rectángulo y línea. |
 | `src/shared/utils/pdf/tabla-pdf.ts` | Encabezado de tabla, fila, fila de estado vacío y las funciones que calculan su geometría. |
+| `src/shared/utils/pdf/secciones-dashboard-pdf.ts` | Secciones del dashboard (rankings y producción diaria) para una unidad de medida. Es el único generador con coordenadas de columna propias (`COLUMNA`, `TENDENCIA.separacion`), heredadas de cuando vivían dentro de `generar-pdf-dashboard.ts`. **Deuda conocida: deberían subir a `tokens-pdf.ts`.** |
 | `src/shared/lib/pdf-doc.ts` | Motor: `textoPdf` (peso y alineación) y `crearBlobPdf`. |
 | `src/shared/lib/pdf-texto.ts` | Normalización a ASCII, medición con la tabla oficial de Helvetica y recorte por ancho real. |
 
-Un generador solo debe contener **qué** se dibuja y en qué orden. El **cómo** vive en esos cinco archivos.
+Un generador solo debe contener **qué** se dibuja y en qué orden. El **cómo** vive en esos archivos.
+
+## Documentos multipágina
+
+`crearBlobPdf` acepta un stream (una página) o un array de streams (una página por elemento); arma el `/Kids`, el `/Count` y la `xref` solo. Hoy el único multipágina es el dashboard: **una página por unidad de medida**, porque cajas y tramos no se suman y las dos tablas no entran en una hoja.
+
+Cada página se pinta entera y por separado — fondo, encabezado y pie propios — y arranca en `PDF_LAYOUT.contenidoTop`. Lo que es del mes y no de la página (las tarjetas de KPI) va **solo en la primera**; el resto arranca más arriba porque no las lleva. No hay numeración de páginas: el subtítulo dice de qué unidad es cada una.
 
 ## Paleta
 
@@ -114,7 +121,7 @@ Mayúsculas **solo** en micro-etiquetas de una o dos palabras (`AGROMONITOREO`, 
 - [ ] Deriva cada `y` de `PDF_LAYOUT.contenidoTop` y `PDF_ESPACIO`; no hay números de posición sueltos.
 - [ ] Usa `pintarFondoPdf`, `pintarEncabezadoPdf` y `pintarPiePdf`.
 - [ ] Toda cifra está alineada a la derecha; todo texto que puede desbordar pasa por `acortarTextoPdf`.
-- [ ] Tiene estado vacío explícito.
+- [ ] Tiene estado vacío explícito, **también cuando el documento entero está vacío**: un mes sin datos se imprime con sus filas de "Sin datos del mes.", nunca como una página con encabezado y nada debajo.
 - [ ] Se agregó al `it.each` de `test/shared/utils/pdf/area-segura-pdf.test.ts`, con datos largos a propósito.
 - [ ] Pasa `pnpm build`, `pnpm lint`, `pnpm exec vitest run` y `pnpm dlx react-doctor --verbose` al 100%.
 
@@ -122,7 +129,7 @@ Mayúsculas **solo** en micro-etiquetas de una o dos palabras (`AGROMONITOREO`, 
 
 | Documento | Generador | Tipo (`meta`) |
 |---|---|---|
-| Dashboard mensual | `src/shared/utils/pdf/generar-pdf-dashboard.ts` | `REPORTE DE GESTION` |
+| Dashboard mensual | `src/shared/utils/pdf/generar-pdf-dashboard.ts` (+ `secciones-dashboard-pdf.ts`) | `REPORTE DE GESTION` |
 | Ausencias del mes | `src/features/asistencia/utils/generar-pdf-ausencias.ts` | `CONTROL DE ASISTENCIA` |
 | Métricas por trabajador | `src/features/trabajadores/utils/generar-pdf-metricas-trabajador.ts` | `REPORTE INDIVIDUAL` |
 | Liquidación de quincena | `src/features/planilla/utils/generar-pdf-liquidacion.ts` | `COMPROBANTE DE PAGO` |

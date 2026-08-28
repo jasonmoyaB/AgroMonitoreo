@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-import { MESES } from '../../captura/constants/meses.constants'
 import { construirAnioMes, descomponerFechaIso } from '../../../shared/utils/fecha-iso'
+import { formatearPeriodoNombre } from '../../../shared/utils/formatear-periodo-nombre'
 import { fechaLocalIso } from '../../../shared/utils/fecha-local'
 
 export function usePeriodoDashboard() {
@@ -9,12 +9,7 @@ export function usePeriodoDashboard() {
   const [anio, setAnio] = useState(hoy.anio)
   const [mes, setMes] = useState(hoy.mes)
 
-  return {
-    anio,
-    mes,
-    setAnio,
-    setMes,
-    periodo: construirAnioMes(anio, mes),
-    periodoNombre: `${MESES[mes - 1].nombre} ${anio}`,
-  }
+  const periodo = construirAnioMes(anio, mes)
+
+  return { anio, mes, setAnio, setMes, periodo, periodoNombre: formatearPeriodoNombre(periodo) }
 }

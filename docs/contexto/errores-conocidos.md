@@ -24,6 +24,7 @@ Las expresiones de una policy corren con los privilegios de quien consulta, así
 
 **`max_rows = 1000` de PostgREST trunca en silencio.**
 Traer la tabla entera de `registros_trabajo` cortaba apenas pasado el primer mes de uso, y los KPIs salían bajos sin ningún aviso. Acotar al rango pedido y paginar hasta que la base deje de devolver filas — ver `captura/services/registros-service.ts`.
+Y arreglarlo en una función **no** lo arregla en las de al lado: `listarRegistrosPorTrabajador` quedó sin paginar más de un año después de que se arreglara `listarRegistrosDelMes`. Alimenta el modal de métricas, que necesita el historial completo (de ahí salen los años del selector), así que un trabajador cruzaba las 1000 filas cerca del tercer año y a partir de ahí sus métricas salían bajas y con años faltantes, sin error. Encima no tenía `.order()`: PostgREST cortaba por orden arbitrario, así que no se perdía "lo viejo", se perdía cualquier cosa. Hoy las dos comparten el helper `paginarRegistros` del mismo archivo, y el orden estable (`fecha` + `id`) es obligatorio o `range` repite u omite filas entre páginas.
 
 **`.or()` no acepta parámetros.**
 Recibe un string de filtro, así que `fincaId` terminaba interpolado sin escapar. Usar dos `.eq()` — ver `traslados/services/traslados-service.ts`.
@@ -56,7 +57,7 @@ El PostgREST del stack local va atrás del remoto (14.5 vs 14.15), así que el g
 **Los `content_path` de `config.toml` no se resuelven todos igual.**
 `[auth.email.template.*]` (invite, recovery) van con `./supabase/templates/...`, relativos a la raíz. `[auth.email.notification.*]` (password_changed) va con `./templates/...`, relativo a `supabase/`. La inconsistencia parece un error de tipeo y no lo es: "normalizar" las tres al mismo prefijo hace que `supabase db reset` aborte antes de aplicar nada con `open supabase\supabase\templates\...: no se encuentra la ruta`.
 
-**Advisor abierto que ninguna migración puede cerrar**: protección de contraseñas filtradas — es un toggle del Dashboard.
+**Advisor abierto que ninguna migración puede cerrar**: protección de contraseñas filtradas — es un toggle del Dashboard, y encima de plan Pro. No buscarle el fix en SQL: la protección equivalente ya está en el front (`auth/services/pwned-passwords-service.ts`, decisión 12c-bis), pero el advisor lee la config del proyecto, no el código, así que **va a seguir en amarillo**.
 
 ## Fechas (Costa Rica, UTC−6)
 
@@ -99,9 +100,30 @@ Dos trampas al diagnosticarlo, las dos me costaron una conclusión falsa:
 - **`CrRendererMain` al 1% no significa "no hay problema de performance".** El costo estaba entero en `VizCompositorThread`, que es GPU/compositing, no JS. Mirar el reparto por hilo antes de culpar a React.
 - **Headless no lo reproduce.** `chromium-headless-shell` rasteriza por CPU con SwiftShader y no ejecuta el render pass como Viz: medía "cero costo" para el mismo markup. Hay que medir con `channel: 'chrome'` y `headless: false`.
 
+**Persistir el cache de queries sin subir `gcTime` no persiste nada.**
+Con el default de 5 minutos, lo que se rehidrata desde IndexedDB se recolecta apenas monta y la app queda igual de vacía que antes. `gcTime` tiene que ser ≥ la vigencia de lo guardado (`src/app/query-client.ts`). El síntoma engaña: el registro se guarda bien y se lee bien, y aun así la pantalla arranca sin datos.
+
+**`dehydrate` sin filtro persiste la planilla y las cédulas en el disco del dispositivo.**
+El default de v5 (`defaultShouldDehydrateQuery`) guarda **toda** query en `success`. Con el cache persistido eso metía `PLANILLA_QUERY_KEY` (salario mensual y moneda por trabajador) y los datos personales en IndexedDB, sin cifrar y por 7 días — anulando en la práctica lo que la decisión 3 protegió moviendo el salario a su propia tabla. Lo que se persiste va por allowlist explícita en `src/app/claves-persistibles.ts`; sumar una clave ahí es una decisión, no un descuido.
+
+**Una promesa de IndexedDB sin `catch` deja la app en blanco para siempre.**
+`App` no pinta hasta que `useCachePersistente` termina de rehidratar. Si `get()` rechaza (navegación privada de Firefox, Safari con almacenamiento bloqueado, entrada corrupta), sin `.catch` el flag nunca se pone en true y el router **nunca se monta**: el `errorElement` no salva porque no hay router, y el usuario ni siquiera llega a `/login`. Solo se sale borrando los datos del sitio. Vale para las dos promesas del hook — la de guardar también, ahí el síntoma es peor porque es silencioso: la app cree que persiste y no persiste.
+
+**`signOut()` sin red falla y deja la sesión local viva.**
+GoTrue devuelve `AuthRetryableFetchError` y sale **antes** de `_removeSession()`, así que el usuario sigue autenticado. `scope: 'local'` tampoco ayuda: también pega a la API primero. No se puede cerrar sesión offline, y fingir que sí (navegar a `/login`, vaciar el cache) solo rompe la pantalla — `RouteGuard` lo devuelve adentro y las queries se vuelven a llenar con el token vivo. Lo que no se puede hacer es fallar callado, que era el comportamiento anterior: hoy sale un toast.
+
+**Montar la app antes de rehidratar tira las queries contra la red.**
+Si `App` pinta el router mientras el cache todavía se está restaurando, cada `useQuery` arranca, falla sin señal y la pantalla queda vacía **justo** cuando el cache guardado la salvaba. Por eso `App` devuelve `null` hasta que `useCachePersistente` termina.
+
 **El autofill del navegador rompe el look neumórfico** de los inputs; el workaround es un `box-shadow` inset en `src/index.css`. No borrarlo por parecer redundante.
 
 **Un `setSuccess` inline se pierde** si el modal que lo muestra se cierra al guardar. Por eso el toast vive en `App.tsx` y sobrevive al desmontaje — ver `docs/instruccions/3-notificaciones-toast.md`.
+
+**Un PDF multipágina rompe el guard de `/Length` si el test mira un solo stream.**
+`crearBlobPdf` acepta ahora varios streams (`decisiones.md` 5e) y cada uno declara su propio `/Length`. `test/shared/utils/pdf/area-segura-pdf.test.ts` valía **todos** con `matchAll`, no el primero: con un solo `match` un desfase en la página 2 pasaba en verde y el PDF abría corrupto en lectores estrictos.
+
+**Un documento vacío también necesita estado vacío, no solo una tabla vacía.**
+Al partir el dashboard en una página por unidad, un mes sin producción se quedó sin ninguna sección: el PDF salía con encabezado y nada más. `pintarSeccionesUnidadPdf` se llama siempre, con `bloque` en `null`, para que las secciones se pinten con su estado vacío. La checklist de `docs/PATRONES-DISENO-PDF.md` lo exige explícitamente desde entonces.
 
 ## Tooling
 
@@ -112,6 +134,7 @@ Dos trampas al diagnosticarlo, las dos me costaron una conclusión falsa:
 ## Deuda silenciosa
 
 **`shared/constants/tipos-labor.constants.ts` duplica la tabla `labores`** y nada verifica que coincidan: se desincronizan sin que ningún test ni build se queje.
+Desde que los dashboards agrupan por unidad (`decisiones.md` 5e) el costo subió: la unidad sale de esa constante, así que una labor que exista en `labores` pero no ahí no pierde un gráfico — **desaparece del dashboard entero**, tarjetas incluidas, sin error ni fila en cero. Si una producción cargada no aparece en ningún bloque, mirar primero si la labor está en la constante.
 
 **Cambiar `valor_hora` no reescribe una quincena ya pagada, y está bien.** El pago congela `monto_bruto` y `dias_ausentes`, así que la fila pagada y la liquidación siguen mostrando lo de ese día. Si el descuento sale distinto al esperado, mirar primero si la fila ya tiene pago.
 

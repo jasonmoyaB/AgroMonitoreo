@@ -109,6 +109,28 @@ file. The rule's naming heuristic likely tripped on the `_DEFAULT` suffix patter
 with a hardcoded string literal, not on any actual secret-shaped value. Suppressed via
 `doctor.config.json`.
 
+### `src/features/auth/constants/password.constants.ts:14`
+
+```ts
+export const MENSAJE_PASSWORD_FILTRADA = 'Esa contraseña apareció en filtraciones de datos conocidas. Elegí otra.'
+```
+
+Mismo falso positivo que el de arriba, y por el mismo motivo: es copy en español que se le
+muestra al usuario cuando `actualizarPassword` rechaza una contraseña que aparece en
+HaveIBeenPwned. La heurística de nombres se dispara con `PASSWORD` en el identificador más
+un string literal; el valor no es ni una credencial ni un token ni un connection string.
+
+Verificado contra el archivo completo y contra el bundle: las otras cuatro constantes son
+`PASSWORD_MIN_LENGTH` (8), `PWNED_PASSWORDS_URL` (`https://api.pwnedpasswords.com/range`,
+API pública y sin llave — el propio protocolo de k-anonymity existe para no necesitar
+autenticación), `PWNED_PREFIJO_LARGO` (5) y `PWNED_TIMEOUT_MS` (4000). Ninguna es secreta,
+y no puede haber una en este archivo: el chequeo corre entero en el cliente, así que
+cualquier llave acá sería pública por construcción y por eso se eligió una API que no pide
+ninguna. Suprimido por path en `doctor.config.json`, junto al de `traducir-error-auth.ts`.
+
+Renombrar la constante para esquivar la heurística se descartó: el nombre describe
+exactamente lo que es, y doblarlo para complacer a un scanner deja peor código.
+
 ## `react-doctor/command-execution-input-risk`
 
 ### `.agents/skills/skill-creator/eval-viewer/generate_review.py:291`

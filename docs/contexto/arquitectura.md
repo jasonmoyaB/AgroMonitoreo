@@ -29,7 +29,7 @@ types/ constants/ stores/  → interfaces / valores fijos / Zustand
 
 Dirección única: `components → hooks → services → utils`, más `components → stores/types/constants`.
 
-Los componentes nunca importan componentes de otra feature. Hooks y utils sí pueden, cuando el dato nace ahí (ej. los KPIs de `supervisor` leen `captura/hooks/use-todos-registros.ts`).
+Los componentes nunca importan componentes de otra feature. Hooks y utils sí pueden, cuando el dato nace ahí (ej. los KPIs de `supervisor` leen `captura/hooks/use-registros-del-mes.ts`).
 
 ## Features (`src/features/`)
 
@@ -43,16 +43,19 @@ Los componentes nunca importan componentes de otra feature. Hooks y utils sí pu
 | `perfil` | headless: editar nombre propio, cambiar contraseña, datos personales propios (columnas de `usuario`) |
 | `planilla` | headless: quincena, pago quincenal, PDF de liquidación |
 | `supervisor` | shell del supervisor; hospeda las features headless + KPIs |
-| `admin` | shell de oficina; hospeda `salarios`, `planilla`, dashboards, CRUDs |
+| `admin` | shell de oficina; hospeda `planilla` (con los salarios editables adentro), dashboards, CRUDs |
 
-`shared/` tiene componentes comunes (IconTile, Avatar, NumericStepper, Modal, Toast, charts, KPI cards), `lib/` (cliente Supabase, `pdf-doc.ts` / `pdf-texto.ts`, sonido/vibración, `descargar-blob.ts`), `hooks/` (`use-network-status.ts`, `use-descargar-dashboard-pdf.ts`, `use-contribuyente-hacienda.ts`), `services/hacienda-service.ts`, `utils/kpis/`, `utils/pdf/` y `types/domain.types.ts`.
+`shared/` tiene componentes comunes (`LaborIcon`, `Avatar`, `NumericStepper`, `StepperButton`, `Modal`, `Toast`, charts, KPI cards, `DashboardPorUnidad`), `lib/` (cliente Supabase, `pdf-doc.ts` / `pdf-texto.ts`, sonido/vibración, `descargar-blob.ts`), `hooks/` (`use-network-status.ts`, `use-descargar-dashboard-pdf.ts`, `use-contribuyente-hacienda.ts`), `services/hacienda-service.ts`, `constants/` (`tipos-labor`, `meses`, `finca`, `hacienda`, `toast`, `botones`, `campos`), `utils/kpis/`, `utils/pdf/` y `types/domain.types.ts` + `types/kpis.types.ts`.
+
+La regla que ordena qué sube a `shared/` es de una sola dirección: **`shared/` nunca importa de `features/`**. Por eso `meses.constants.ts` dejó de vivir en `captura/constants/` — lo leen `admin`, `asistencia` y los títulos de los gráficos — igual que antes lo hicieron `obtener-dias-en-mes.ts` y `fecha-iso.ts`.
 
 No hay `lib/local-db.ts`: el draft de captura importa `idb-keyval` directo.
 
 ## Rutas (`src/app/router.tsx`)
 
 - **Públicas**: `/login`, `/olvide-password`, `/reset-password` (esta última también recibe la invitación, con `?invitacion=1`)
-- **`RouteGuard`**: `/supervisor`, `/supervisor/{dashboard,trabajadores,asistencia,traslados,configuracion}`, `/captura/fecha`, `/captura/labor/:tipoLaborId/trabajadores[/:trabajadorId]`
+- **Sin pantalla propia**: `/` redirige a `/supervisor` y `*` cae en `NotFoundScreen`
+- **`RouteGuard`**: `/supervisor`, `/supervisor/{dashboard,trabajadores,trabajadores/nuevo,asistencia,traslados,configuracion}`, `/captura/fecha`, `/captura/labor/:tipoLaborId/trabajadores[/:trabajadorId]`
 - **`RouteGuard soloAdmin`**: `/admin`, `/admin/{dashboard-finca,fincas,supervisores,trabajadores,planilla,asistencia,traslados,configuracion}`
 
 Es **un solo componente** (`auth/components/RouteGuard.tsx`) con prop `soloAdmin`; no existen `AuthGuard.tsx` ni `AdminGuard.tsx`. Decide con el util puro `auth/utils/decidir-acceso-ruta.ts`, que devuelve `cargando | a-login | a-admin | a-supervisor | sin-finca | permitido` — las ramas de seguridad viven ahí para poder testearlas.
@@ -86,5 +89,5 @@ Cliente único: `shared/lib/supabase-client.ts`. Envs: `VITE_SUPABASE_URL` y `VI
 - **No hay librería de toasts.** Sistema propio en `shared/` (ver `docs/instruccions/3-notificaciones-toast.md`).
 - **No hay signup público.** `enable_signup = false`: nadie se registra solo, ni por pantalla ni por `POST /auth/v1/signup`. El admin invita por correo desde `/admin/supervisores`; el invitado entra como `supervisor` **sin finca** (`finca_id` null) y el admin le asigna la finca desde esa misma tabla, donde también se lo promueve a admin (`docs/instruccions/7-crear-usuario-admin.md`).
 - **El frontend no lee la tabla `labores`.** Usa `shared/constants/tipos-labor.constants.ts`; las dos se sincronizan a mano.
-- **No hay tests de componentes.** Solo utils y services (ver `convenciones.md`).
+- **No hay tests de componentes.** Sí hay de utils, services, `lib/`, constants, stores y de un hook (`use-crear-registro-invalidacion`) — lo que falta es JSX renderizado (ver `convenciones.md`).
 - **CI mínima**: `.github/workflows/react-doctor.yml` corre React Doctor en PRs y en push a `main`, en modo advisory (nunca falla el check). No hay job de `build`, `lint` ni `vitest` — esos se corren en local.

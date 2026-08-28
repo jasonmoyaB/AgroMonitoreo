@@ -1,4 +1,4 @@
-import { MESES } from '../constants/meses.constants'
+import { MESES } from '../../../shared/constants/meses.constants'
 
 interface MesGridProps {
   mesSeleccionado: number

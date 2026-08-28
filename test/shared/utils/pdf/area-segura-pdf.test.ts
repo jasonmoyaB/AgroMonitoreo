@@ -38,9 +38,13 @@ const DOCUMENTOS: Record<string, Blob> = {
         { unidad: 'tramos', totalCantidad: 890, productividadPromedio: 0.72 },
       ],
     },
-    rankingLabores: ['Cosecha', 'Amarre 1', 'Deshija de matas grandes', 'Emplasticado', 'Deshierba'].map((etiqueta, index) => ({ id: String(index), etiqueta, valor: 900 - index * 120 })),
-    rankingTrabajadores: NOMBRES.map((etiqueta, index) => ({ id: String(index), etiqueta, valor: 450 - index * 47 })),
-    tendenciaDiaria: Array.from({ length: 12 }, (_item, index) => ({ fecha: `${String(index + 1).padStart(2, '0')}/08`, valor: 120 + index * 33 })),
+    porUnidad: ['cajas', 'tramos'].map((unidad) => ({
+      unidad,
+      produccionDiaria: { dias: [], total: 0, maximo: 0, promedio: 0, diasConRegistro: 0, mejorDia: null },
+      rankingLabores: ['Cosecha', 'Amarre 1', 'Deshija de matas grandes', 'Emplasticado', 'Deshierba'].map((etiqueta, index) => ({ id: String(index), etiqueta, valor: 900 - index * 120 })),
+      rankingTrabajadores: NOMBRES.map((etiqueta, index) => ({ id: String(index), etiqueta, valor: 450 - index * 47 })),
+      tendenciaDiaria: Array.from({ length: 12 }, (_item, index) => ({ fecha: `${String(index + 1).padStart(2, '0')}/08`, valor: 120 + index * 33 })),
+    })),
   }),
   ausencias: generarPdfAusencias({ registros: REGISTROS, fincaNombre: 'Finca Birrisito', anio: 2026, mes: 8 }),
   liquidacion: generarPdfLiquidacion({
@@ -80,11 +84,11 @@ describe('area segura de los PDF', () => {
     }
   })
 
-  it.each(Object.keys(DOCUMENTOS))('%s declara la longitud real del stream', async (nombre) => {
+  it.each(Object.keys(DOCUMENTOS))('%s declara la longitud real de cada stream', async (nombre) => {
     const contenido = await DOCUMENTOS[nombre].text()
-    const declarada = Number(/\/Length (\d+)/.exec(contenido)?.[1])
-    const real = contenido.slice(contenido.indexOf('stream\n') + 'stream\n'.length, contenido.indexOf('\nendstream')).length
+    const streams = [...contenido.matchAll(/\/Length (\d+) >>\nstream\n([\s\S]*?)\nendstream/g)]
 
-    expect(declarada).toBe(real)
+    expect(streams.length).toBeGreaterThan(0)
+    for (const [, declarada, real] of streams) expect(Number(declarada)).toBe(real.length)
   })
 })
