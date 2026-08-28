@@ -40,6 +40,24 @@ Segunda lección: esto **no lo ve `psql`**. La migración se verificó con SQL d
 `supabase db push --include-seed` y `supabase db reset --linked` (sin `--no-seed`) no son locales: `--linked` apunta al proyecto remoto y es el **default** de `push`. Con el seed de este repo eso crearía `admin@dev.local` como `admin_oficina` real, con la password que está escrita en el archivo versionado. No es hipotético: `db push` es el comando que sí se corre a propósito, y `--include-seed` está a un flag de distancia.
 El freno vive en el propio `supabase/seed.sql`, arriba de todo: un `do $$ ... raise exception` que aborta si `public.usuario` tiene algún email que no termine en `@dev.local`. El `raise` revierte el `begin;` del archivo, así que no queda nada a medias. Verificado contra una base local con un usuario renombrado a `real@finca.com`: corta en la línea 29 con `ERROR: seed.sql: esta base tiene usuarios reales, no es el stack local. Abortado.` y `ROLLBACK`, cero filas escritas. Un comentario de advertencia no habría servido — el freno tiene que viajar con el archivo.
 
+**Un `update` sobre `usuario` desde el SQL Editor lo rechaza el trigger de escalada.**
+`evitar_escalada_privilegios_usuario` corre para **todos**, `postgres` incluido — un trigger no
+distingue quién dispara la sentencia. Y desde el SQL Editor (o `psql`, o el MCP) no hay JWT:
+`auth.uid()` es null → `private.es_admin_oficina()` devuelve false → la guarda toma la rama de
+"no sos admin" y aborta con `No tienes permiso para modificar rol, finca o estado de tu cuenta.`
+Engaña porque el mensaje habla de "tu cuenta" mientras estás corriendo como superusuario.
+
+El arreglo no es apagar el trigger, es hacerse pasar por un admin:
+`set local request.jwt.claims = '{"sub":"<auth_user_id de un admin_oficina activo>"}'` dentro de
+la transacción. `es_admin_oficina()` no mira la organización, solo el rol, así que cualquier
+admin activo sirve. Verificado en local: sin claim falla, con claim de admin pasa, con claim de
+un supervisor vuelve a fallar, y mover a alguien de organización sigue prohibido incluso con
+claim de admin.
+Esto rompía calladamente los dos runbooks de alta (`7-crear-usuario-admin.md` y
+`10-alta-de-organizacion.md`), que traían el `update` pelado. `supabase/seed.sql` nunca lo
+sufrió porque apaga el trigger — pero eso vale para una base descartable, no para producción:
+ahí toma un `ACCESS EXCLUSIVE` sobre `usuario` y deja la guarda apagada si algo se interrumpe.
+
 **`supabase db restart` no existe.** Los subcomandos de `db` son `reset` (local, salvo `--linked`) y `start`. Si se buscaba "volver a levantar la base", es `supabase start`; si era "reaplicar migraciones", `supabase db reset`.
 
 **Docker abajo → `pnpm dev` levanta igual y la app falla en cada query sin decir por qué.**

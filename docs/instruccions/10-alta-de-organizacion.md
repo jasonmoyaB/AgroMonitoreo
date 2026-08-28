@@ -25,25 +25,60 @@ returning id;
 ## 2. Invitar a su primer admin
 
 Esto **no** se puede hacer desde `/admin/supervisores`: esa pantalla invita dentro de *tu*
-organización, y acá el invitado tiene que nacer en la del cliente.
+organización (`invitar-usuario` le estampa al invitado la organización de quien llama), y acá
+el invitado tiene que nacer en la del cliente.
 
-Invitá desde el Dashboard (**Authentication → Users → Invite user**) y después asigná rol y
-organización a mano:
+Invitá desde el Dashboard: **Authentication → Users → Invite user**.
+
+Después promovelo. **El `update` a secas no funciona** — leé el bloque siguiente antes de
+copiarlo:
 
 ```sql
-update public.usuario
-   set nombre = 'Nombre del dueño',
-       organizacion_id = (select id from public.organizaciones where slug = 'chayotes'),
-       rol_id = (select id from public.roles where nombre = 'admin_oficina')
- where email = 'admin@clientenuevo.com';
+begin;
+  -- Sin esta linea el update falla. El trigger evitar_escalada_privilegios_usuario corre
+  -- tambien para `postgres`, y desde el SQL Editor no hay JWT: auth.uid() es null,
+  -- private.es_admin_oficina() devuelve false, y la guarda toma la rama de "no sos admin".
+  -- El claim la deja pasar. es_admin_oficina() NO mira la organizacion, solo el rol, asi que
+  -- el auth_user_id de TU admin sirve para promover al primer admin de cualquier cliente.
+  set local request.jwt.claims = '{"sub":"<auth_user_id de tu admin>"}';
+
+  update public.usuario
+     set nombre          = 'Nombre del dueño',
+         organizacion_id = (select id from public.organizaciones where slug = 'chayotes'),
+         rol_id          = (select id from public.roles where nombre = 'admin_oficina')
+   where email = 'admin@clientenuevo.com';
+commit;
 ```
+
+El `auth_user_id` que va en el claim:
+
+```sql
+select auth_user_id, email from public.usuario
+ where email = 'tu-admin@ejemplo.com';
+```
+
+`organizacion_id` y `rol_id` van en el **mismo** update. La organización solo se puede escribir
+mientras la fila la tiene en null (recién invitada); una vez puesta, el trigger rechaza
+cambiarla, incluso siendo admin.
 
 El `admin_oficina` queda **sin finca** a propósito: administra todas las fincas de su
 organización y elige cuál mirar en cada pantalla. Su alcance sale de `organizacion_id`.
 
-> Si el update tira `No se puede mover un usuario de organizacion`, esa fila ya tenía una
-> organización asignada. Es el trigger `evitar_escalada_privilegios_usuario` haciendo su
-> trabajo: un usuario no cambia de empresa. Invitá con otro correo.
+> **No uses `alter table public.usuario disable trigger ...`.** Es lo que hace `seed.sql`, pero
+> ahí corre dentro de un archivo transaccional y contra una base descartable. Acá, en
+> producción, toma un `ACCESS EXCLUSIVE` sobre `usuario` y deja una guarda de escalada de
+> privilegios apagada si algo se interrumpe entre el disable y el enable.
+
+### Que defina su contraseña
+
+**El link del correo del Dashboard no sirve para eso.** La invitación desde el Dashboard no
+permite fijar `redirectTo`, así que el link cae al `Site URL` y la persona aterriza en `/` con
+**sesión activa y sin contraseña propia**.
+
+Decile que entre por **"Olvidé mi contraseña"** (`/olvide-password`) con el correo que
+invitaste. Ese flujo sí manda al `/reset-password` correcto —
+`docs/instruccions/8-recuperacion-password-prod.md`. De ahí en adelante sus supervisores los
+invita él desde la app, donde la edge function sí pone el `redirectTo` bien.
 
 ## 3. Listo
 
@@ -80,6 +115,16 @@ select count(*) from public.fincas where organizacion_id is null;
 -- Un usuario sin organización no lo puede rescatar ningún admin desde la UI: arreglalo acá.
 select email, organizacion_id from public.usuario where organizacion_id is null;
 ```
+
+## Si algo falla
+
+| Error | Qué pasó |
+|---|---|
+| `No tienes permiso para modificar rol, finca o estado de tu cuenta.` | Falta el `set local request.jwt.claims` del paso 2, o el `auth_user_id` que pusiste no es de un `admin_oficina` **activo**. Sin JWT, `es_admin_oficina()` da false y el trigger te trata como si fueras el propio usuario editándose |
+| `No se puede mover un usuario de organizacion.` | Esa fila ya tenía organización. Un usuario no cambia de empresa, ni siquiera por SQL: invitá con otro correo |
+| `La finca asignada no pertenece a la organizacion del usuario.` | Le asignaste una finca de otra organización. Si estás creando al admin, no le pongas finca |
+| `La finca debe pertenecer a una organizacion existente.` | El `organizacion_id` del insert de finca vino null o inexistente |
+| `new row violates row-level security policy` al crear finca desde la app | El admin quedó sin `organizacion_id`. Revisalo con la última consulta de arriba |
 
 La prueba de verdad es `supabase/tests/aislamiento.sql`, pero **corre contra el stack local**
 (necesita las dos organizaciones sintéticas del seed y hacerse pasar por cada rol). No lo

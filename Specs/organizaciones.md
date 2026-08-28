@@ -61,6 +61,18 @@ default es no ver nada.
 `super_admin`: un rol que ve todas las organizaciones sería la única cuenta capaz de mezclar
 clientes.
 
+Dos cosas del procedimiento que no son obvias y ya mordieron:
+
+- **Promover al primer admin exige un claim.** El `update` sobre `usuario` lo rechaza
+  `evitar_escalada_privilegios_usuario` si no hay JWT (`auth.uid()` null →
+  `es_admin_oficina()` false). Va con
+  `set local request.jwt.claims = '{"sub":"<auth_user_id de un admin activo>"}'`, no apagando
+  el trigger. Detalle en `errores-conocidos.md`.
+- **El invitado del Dashboard no define contraseña.** Esa invitación no permite fijar
+  `redirectTo`, así que el link cae al `Site URL` y la persona entra con sesión activa y sin
+  contraseña propia. Tiene que pasar por `/olvide-password`. La invitación desde la app no
+  tiene el problema: `invitar-usuario` manda el `redirectTo` correcto.
+
 ## Verificación
 
 `supabase/tests/aislamiento.sql`, contra el stack local después de `supabase db reset`.
