@@ -30,6 +30,20 @@ export function decidirAccesoRuta({ isLoading, sesionActiva, usuario, soloAdmin 
   // errorElement RouteErrorScreen, que ademas distingue el caso offline. Es defensa en
   // profundidad, no el arreglo de un bug vivo: si alguien saca throwOnError, el default
   // sigue siendo frenar en vez de pintar el shell de supervisor vacio.
+  // Sin organizacion no hay absolutamente nada que ver: los helpers de RLS
+  // (private.organizacion_del_usuario, fincas_de_mi_organizacion) devuelven null y conjunto
+  // vacio, asi que el shell se pintaria entero con las listas en cero y sin explicar por que.
+  // Alcanza tambien al admin, que no depende de finca propia pero si de su empresa.
+  //
+  // Se reusa el estado `sin-finca` en vez de agregar uno nuevo: para el usuario los dos
+  // casos son el mismo — la cuenta existe pero el admin todavia no terminó de configurarla —
+  // y SinFincaAsignada ya trae boton de salir para no dejar a nadie encerrado.
+  //
+  // No deberia pasar por el flujo normal: `invitar-usuario` borra el usuario de auth si no
+  // logra estamparle la organizacion, justamente para no dejar huerfanos. Queda como
+  // defensa en profundidad para un alta hecha a mano por SQL.
+  if (!usuario?.organizacionNombre) return 'sin-finca'
+
   if (!soloAdmin && !usuario?.fincaId) return 'sin-finca'
 
   return 'permitido'

@@ -44,6 +44,10 @@ export interface Trabajador {
   id: string
   fincaId: string
   nombreCompleto: string
+  // Dos campos y no uno: `fotoRuta` es lo que esta guardado en la base y lo que hay que
+  // volver a escribir al editar; `fotoUrl` es la URL firmada, solo para pintar. Guardar la
+  // firmada la dejaria rota al vencer (foto-trabajador-service.ts).
+  fotoRuta: string | null
   fotoUrl: string | null
   activo: boolean
   asegurado: boolean
@@ -96,6 +100,9 @@ export interface Usuario {
   // contrasena, pero todavia no pertenece a ninguna finca (RouteGuard lo frena).
   fincaId: string | null
   fincaNombre: string | null
+  // La organizacion a la que pertenece. Es el alcance real del usuario: un admin_oficina
+  // administra las N fincas de la suya y por eso su fincaId puede ser null.
+  organizacionNombre: string | null
   activo: boolean
   rol: RolNombre
 }

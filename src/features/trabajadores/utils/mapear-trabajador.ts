@@ -22,6 +22,8 @@ export function mapearTrabajador(row: TrabajadorRow): Trabajador {
     id: row.id,
     fincaId: row.finca_id,
     nombreCompleto: row.nombre_completo,
+    fotoRuta: row.foto_url,
+    // La reemplaza firmarFotosTrabajadores en el service; el mapper es puro y no firma.
     fotoUrl: row.foto_url,
     activo: row.activo,
     asegurado: row.asegurado,

@@ -7,7 +7,7 @@ import type { TrabajadorFormValues } from '../types/trabajador-form.types'
 export function construirValuesTrabajador(trabajador: Trabajador | null): TrabajadorFormValues {
   return {
     nombreCompleto: trabajador?.nombreCompleto ?? '',
-    fotoUrl: trabajador?.fotoUrl ?? '',
+    fotoUrl: trabajador?.fotoRuta ?? '',
     activo: trabajador?.activo ?? true,
     cedula: trabajador?.cedula ?? '',
     fechaIngreso: trabajador?.fechaIngreso ?? '',

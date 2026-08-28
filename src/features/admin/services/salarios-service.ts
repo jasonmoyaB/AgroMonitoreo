@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
 import type { Moneda, SalarioTrabajador } from '../../../shared/types/domain.types'
+import { firmarFotosTrabajadores } from '../../trabajadores/services/foto-trabajador-service'
 
 interface SalarioRow {
   id: string
@@ -19,16 +20,20 @@ export async function listarSalariosPorFinca(fincaId: string, client: SupabaseCl
     .returns<SalarioRow[]>()
 
   if (error) throw new Error(`listarSalariosPorFinca: ${error.message}`)
-  return data.map((row) => ({
-    trabajadorId: row.id,
-    nombreCompleto: row.nombre_completo,
-    fotoUrl: row.foto_url,
-    asegurado: row.asegurado,
-    // sin fila en salarios_trabajadores todavia: el trabajador se creo despues de la
-    // migracion y nadie le puso salario
-    salarioMensual: row.salario?.salario_mensual ?? 0,
-    moneda: row.salario?.moneda ?? 'colones',
-  }))
+  // El bucket es privado: la foto se sirve firmada, en una sola llamada para toda la tabla.
+  return firmarFotosTrabajadores(
+    data.map((row) => ({
+      trabajadorId: row.id,
+      nombreCompleto: row.nombre_completo,
+      fotoUrl: row.foto_url,
+      asegurado: row.asegurado,
+      // sin fila en salarios_trabajadores todavia: el trabajador se creo despues de la
+      // migracion y nadie le puso salario
+      salarioMensual: row.salario?.salario_mensual ?? 0,
+      moneda: row.salario?.moneda ?? 'colones',
+    })),
+    client,
+  )
 }
 
 // patch parcial a proposito: cada control de la tabla manda solo su campo, para que

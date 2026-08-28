@@ -88,6 +88,14 @@ export function AdminSidebar({ isCollapsed, isSigningOut, perfil, onToggle, onSi
             <span className="truncate">{perfil.nombre ?? perfil.email}</span>
           </p>
           <p className="mt-1 truncate text-xs font-bold text-slate-600">Administrador</p>
+          {/* Que organizacion se esta administrando. Con varias empresas en la misma app, es
+              la unica forma que tiene el admin de confirmar donde esta parado. */}
+          {perfil.organizacionNombre && (
+            <p className="mt-1 flex items-center gap-1.5 truncate text-xs font-black text-green-900">
+              <Building2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span className="truncate">{perfil.organizacionNombre}</span>
+            </p>
+          )}
         </Link>
       )}
 

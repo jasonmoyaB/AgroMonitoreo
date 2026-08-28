@@ -19,6 +19,16 @@ interface Cadena {
   returns: () => Promise<{ data: unknown; error: { message: string } | null }>
 }
 
+
+// El bucket es privado: los services de lectura firman las fotos en lote antes de devolver.
+// El doble devuelve una firma predecible para poder afirmar sobre ella.
+const storage = {
+  from: () => ({
+    createSignedUrls: (rutas: string[]) =>
+      Promise.resolve({ data: rutas.map((path) => ({ path, signedUrl: `firmada://${path}`, error: null })), error: null }),
+  }),
+}
+
 // cada .from() consume la siguiente respuesta de la cola: listarMisTraslados dispara dos
 // consultas (origen primero, destino despues) y cada una tiene que poder devolver lo suyo
 function clienteLectura(...respuestas: RespuestaSupabase[]) {
@@ -48,7 +58,7 @@ function clienteLectura(...respuestas: RespuestaSupabase[]) {
     return cadena
   })
 
-  return { client: { from } as unknown as SupabaseClient, from, select, eq, or }
+  return { client: { from, storage } as unknown as SupabaseClient, from, select, eq, or }
 }
 
 interface FilaTraslado {
@@ -174,7 +184,7 @@ describe('listarTrabajadoresPrestadosHoy', () => {
     const { client } = clienteLectura({ data: [crearFilaPrestado()] })
 
     expect(await listarTrabajadoresPrestadosHoy('birrisito', '2026-08-03', client)).toEqual([
-      { id: 't1', fincaId: 'la-flor', nombreCompleto: 'Alvin Alcantara', fotoUrl: 'foto.jpg', activo: true, fincaOrigenNombre: 'La Flor' },
+      { id: 't1', fincaId: 'la-flor', nombreCompleto: 'Alvin Alcantara', fotoUrl: 'firmada://foto.jpg', activo: true, fincaOrigenNombre: 'La Flor' },
     ])
   })
 

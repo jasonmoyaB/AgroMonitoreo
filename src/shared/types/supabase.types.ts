@@ -147,6 +147,7 @@ export type Database = {
           creado_en: string
           id: string
           nombre: string
+          organizacion_id: string
           valor_hora: number
           valor_hora_usd: number
         }
@@ -156,6 +157,7 @@ export type Database = {
           creado_en?: string
           id: string
           nombre: string
+          organizacion_id: string
           valor_hora?: number
           valor_hora_usd?: number
         }
@@ -165,10 +167,19 @@ export type Database = {
           creado_en?: string
           id?: string
           nombre?: string
+          organizacion_id?: string
           valor_hora?: number
           valor_hora_usd?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fincas_organizacion_id_fkey"
+            columns: ["organizacion_id"]
+            isOneToOne: false
+            referencedRelation: "organizaciones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       labores: {
         Row: {
@@ -212,6 +223,33 @@ export type Database = {
           paso_cantidad?: number
           tiene_cantidad?: boolean
           unidad_medida?: string | null
+        }
+        Relationships: []
+      }
+      organizaciones: {
+        Row: {
+          activa: boolean
+          actualizado_en: string
+          creado_en: string
+          id: string
+          nombre: string
+          slug: string
+        }
+        Insert: {
+          activa?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          id?: string
+          nombre: string
+          slug: string
+        }
+        Update: {
+          activa?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          id?: string
+          nombre?: string
+          slug?: string
         }
         Relationships: []
       }
@@ -522,6 +560,7 @@ export type Database = {
           finca_id: string | null
           id: string
           nombre: string | null
+          organizacion_id: string | null
           rol_id: string
           telefono: string | null
         }
@@ -539,6 +578,7 @@ export type Database = {
           finca_id?: string | null
           id?: string
           nombre?: string | null
+          organizacion_id?: string | null
           rol_id: string
           telefono?: string | null
         }
@@ -556,6 +596,7 @@ export type Database = {
           finca_id?: string | null
           id?: string
           nombre?: string | null
+          organizacion_id?: string | null
           rol_id?: string
           telefono?: string | null
         }
@@ -565,6 +606,13 @@ export type Database = {
             columns: ["finca_id"]
             isOneToOne: false
             referencedRelation: "fincas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuario_organizacion_id_fkey"
+            columns: ["organizacion_id"]
+            isOneToOne: false
+            referencedRelation: "organizaciones"
             referencedColumns: ["id"]
           },
           {

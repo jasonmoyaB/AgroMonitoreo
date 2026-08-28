@@ -6,7 +6,7 @@ import { FINCAS_QUERY_KEY } from '../constants/fincas-query.constants'
 import { actualizarFinca, cambiarEstadoFinca, crearFinca, listarFincas } from '../services/fincas-service'
 import type { CrearFincaInput } from '../types/finca-form.types'
 
-const FORM_INICIAL: CrearFincaInput = { id: '', nombre: '' }
+const FORM_INICIAL: CrearFincaInput = { nombre: '' }
 const QUERY_KEY = [FINCAS_QUERY_KEY]
 
 export function useFincasCrud() {
@@ -32,7 +32,7 @@ export function useFincasCrud() {
 
   function abrirEditar(finca: Finca) {
     setEditando(finca)
-    setValues({ id: finca.id, nombre: finca.nombre })
+    setValues({ nombre: finca.nombre })
     setError(null)
     setIsFormOpen(true)
   }
@@ -46,8 +46,8 @@ export function useFincasCrud() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!values.id.trim() || !values.nombre.trim()) {
-      setError('Escribe un identificador y un nombre para la finca.')
+    if (!values.nombre.trim()) {
+      setError('Escribe un nombre para la finca.')
       return
     }
 

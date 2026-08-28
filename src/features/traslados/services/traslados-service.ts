@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
+import { firmarFotosTrabajadores } from '../../trabajadores/services/foto-trabajador-service'
 import type { EstadoTraslado, SolicitarTrasladoInput, Traslado, TrabajadorOtraFinca, TrabajadorPrestado, TrabajadorTrasladadoHoy } from '../types/traslado.types'
 
 const TRASLADO_COLUMNS =
@@ -107,16 +108,19 @@ export async function listarTrabajadoresPrestadosHoy(fincaDestinoId: string, fec
 
   if (error) throw new Error(`listarTrabajadoresPrestadosHoy: ${error.message}`)
   if (!data) throw new Error('listarTrabajadoresPrestadosHoy: No data returned')
-  return data
-    .filter((row): row is TrabajadorPrestadoRow & { trabajador: NonNullable<TrabajadorPrestadoRow['trabajador']> } => row.trabajador !== null)
-    .map((row) => ({
-      id: row.trabajador.id,
-      fincaId: row.trabajador.finca_id,
-      nombreCompleto: row.trabajador.nombre_completo,
-      fotoUrl: row.trabajador.foto_url,
-      activo: row.trabajador.activo,
-      fincaOrigenNombre: row.finca_origen?.nombre ?? row.trabajador.finca_id,
-    }))
+  return firmarFotosTrabajadores(
+    data
+      .filter((row): row is TrabajadorPrestadoRow & { trabajador: NonNullable<TrabajadorPrestadoRow['trabajador']> } => row.trabajador !== null)
+      .map((row) => ({
+        id: row.trabajador.id,
+        fincaId: row.trabajador.finca_id,
+        nombreCompleto: row.trabajador.nombre_completo,
+        fotoUrl: row.trabajador.foto_url,
+        activo: row.trabajador.activo,
+        fincaOrigenNombre: row.finca_origen?.nombre ?? row.trabajador.finca_id,
+      })),
+    client,
+  )
 }
 
 interface TrabajadorTrasladadoHoyRow {

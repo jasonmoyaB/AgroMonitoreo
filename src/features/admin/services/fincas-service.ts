@@ -15,7 +15,7 @@ export async function listarFincas(client: SupabaseClient = supabase): Promise<F
 export async function crearFinca(input: CrearFincaInput, client: SupabaseClient = supabase): Promise<Finca> {
   const { data, error } = await client
     .from('fincas')
-    .insert({ id: input.id.trim(), nombre: input.nombre.trim() })
+    .insert({ nombre: input.nombre.trim() })
     .select(FINCAS_COLUMNS)
     .single()
 

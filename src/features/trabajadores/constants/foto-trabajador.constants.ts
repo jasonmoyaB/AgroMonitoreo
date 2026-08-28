@@ -16,3 +16,9 @@ export const FIRMA_BINARIA_POR_MIME: Record<TipoMimePermitido, number[]> = {
 }
 
 export const BUCKET_FOTOS_TRABAJADORES = 'trabajador-fotos'
+
+// El bucket es privado, asi que la foto se sirve por URL firmada. La vigencia iguala a la
+// del cache persistido en IndexedDB (7 dias, persistencia-query.ts): si la firma venciera
+// antes, la grilla de captura rehidratada sin señal pintaria avatares rotos justo cuando el
+// cache la estaba salvando.
+export const VIGENCIA_FIRMA_SEGUNDOS = 7 * 24 * 60 * 60

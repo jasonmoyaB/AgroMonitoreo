@@ -4,8 +4,32 @@ Formato: **qué se decidió → por qué → qué se descartó**. Todas están r
 
 ## Modelo de datos
 
-**1. Aislamiento por `finca_id`, no por `organizacion_id`.**
-El caso real es un dueño con varias fincas, no multi-tenancy. *Descartado*: el modelo multi-tenant de AgroTrace (otro proyecto; `CLAUDE.md` lo marca explícitamente para que no se mezclen).
+**1. Aislamiento por `finca_id`, no por `organizacion_id`.** — **REVISADA en `20260828174850`, ver 1b.**
+El caso original era un dueño con varias fincas, no multi-tenancy. Valió mientras hubo un solo cliente. *Descartado en su momento*: el modelo multi-tenant de AgroTrace (otro proyecto).
+
+**1b. La app se vende a varias empresas: entra `organizaciones` arriba de `fincas`** (`20260828174850`).
+Cada cliente ve solo lo suyo y **nada puede cruzarse**. La organización es una capa nueva, no un reemplazo: `finca_id` sigue siendo el grano de todas las tablas de datos y cada organización puede tener las fincas que quiera.
+
+`organizacion_id` vive **solo en `fincas`**. Las 7 tablas de datos ya tienen `finca_id`, y una finca pertenece a exactamente una organización, así que el estado inconsistente —una fila con la finca de un cliente y la organización de otro— sencillamente no existe. *Descartado*: denormalizar `organizacion_id` en cada tabla. Da policies más simples y rápidas, pero para que no se desincronice de `finca_id` haría falta una foreign key **compuesta** `(finca_id, organizacion_id)` en siete tablas, y una FK compuesta crea un segundo camino de embed que rompe PostgREST con `PGRST201` — el bug que ya se pagó una vez en `datos_trabajadores` (`errores-conocidos.md`).
+
+*Descartado* también: un proyecto Supabase por cliente. Aísla por construcción, pero el plan Free topa en **2 proyectos activos en toda la cuenta** (ya ocupados por AgroMonitoreo y OrganicoCR, ver 13b), obligaría a enrutar por subdominio o env por cliente y a aplicar cada migración N veces a mano. Y un schema Postgres por cliente: PostgREST tendría que exponer cada schema, `supabase.types.ts` se multiplica y el cliente JS elegiría schema en runtime — mucha maquinaria para el tamaño de esta app.
+
+**1c. `usuario` lleva su propia `organizacion_id`, y es la única excepción a 1b** (`20260828174850`).
+No se puede derivar de la finca: un `admin_oficina` administra las N fincas de su organización y su `finca_id` es irrelevante (puede ser null), y un invitado nace sin finca (9d). Si el alcance del admin saliera de `finca_id`, esa columna pasaría a ser un dato crítico de seguridad disfrazado de preferencia — y hoy la UI permite dejarla en null, o sea que un admin podría quedarse sin ver su propia empresa.
+
+El invariante "la finca asignada pertenece a mi organización" lo impone un **trigger**, no una FK compuesta, por la misma razón de 1b: `listarSupervisores` ya hace `finca:fincas(nombre)`, y un segundo camino de embed lo rompería con `PGRST201`. Se verificó por REST que el embed sigue devolviendo objeto y no array.
+`organizacion_id` queda **nullable**, con la misma semántica que ya tiene `finca_id` null: sin organización no se ve nada (los helpers devuelven null o conjunto vacío, y `<col> = null` es null, o sea false). Tiene que serlo porque el trigger de alta inserta la fila antes de que la edge function pueda estamparla — ver 9f.
+
+**1d. Un usuario pertenece a UNA organización.**
+Nada de N:M ni de "organización activa" en la sesión: ese sería justo el lugar donde el aislamiento se rompe (una query que corre con la organización anterior, un cache persistido que sobrevive al cambio de contexto). Si un contador lleva la planilla de dos clientes, se lo invita dos veces con dos correos. No agrega ninguna restricción nueva: `usuario.email` ya era unique global.
+
+**1e. `fincas.id` se genera con el prefijo de la organización** (`20260828174850`).
+El id es un slug de texto y es la primary key, o sea único **globalmente**. Mientras lo tipeaba el admin, el segundo cliente que escribiera `la-esperanza` recibía un error de duplicado — que además le confirma que otro cliente existe (enumeración). Con N fincas por organización eso pasa de raro a frecuente. Ahora el campo "Identificador (slug)" no está en el formulario: el admin escribe el nombre y un trigger arma `<slug org>-<slug nombre>`, desempatando con un sufijo numérico si hace falta. Las 3 fincas que ya viven en producción conservan su id sin prefijo — cero migración de datos, cero FK tocada, cero archivo movido en el bucket. *Descartado*: migrar `fincas.id` a uuid. Es lo más limpio (PK opaca + `unique (organizacion_id, nombre)`) pero toca los FK de 7 tablas, las rutas del bucket de fotos —habría que mover los archivos ya subidos—, los filtros de PostgREST y los ~51 archivos del front que tratan `fincaId` como string.
+
+**1f. El alta de una organización es un runbook SQL, no una pantalla.**
+No se creó un rol `super_admin`. Un rol cuya definición es "ve todas las organizaciones" sería la única cuenta capaz de mezclar clientes: cada policy nueva tendría que acordarse de él y, si esa cuenta se compromete, se cae el aislamiento entero. Vender la app es un evento raro y con contrato de por medio; no merece UI. Runbook: `docs/instruccions/10-alta-de-organizacion.md`. Mismo criterio que la decisión 9 con el alta de admins.
+
+
 
 **2. RLS siempre haciendo join a través de `usuario`.**
 `usuario.auth_user_id = auth.uid() and usuario.finca_id = <tabla>.finca_id and usuario.activo = true`. *Descartado*: chequeo de columna suelta — no alcanza para saber quién es el que consulta. Evidencia: todas las policies de `supabase/migrations/`.
@@ -70,6 +94,26 @@ El front lo corta en un solo lugar, `RouteGuard`, que muestra `SinFincaAsignada`
 **9e. La fecha futura la rechaza la base, con trigger y no con `check`** (`20260819165307`).
 La regla vivía solo en el cliente (`captura/utils/ajustar-fecha-a-limites.ts`) y `registros_trabajo.fecha` no tenía ninguna restricción: un POST directo a PostgREST con `'2030-01-01'` entraba. No es escalación de privilegios — el supervisor ya puede escribir en su finca — pero mete en los KPIs, las tendencias y el rango de quincena datos que ningún flujo de la app pudo haber generado. *Descartado*: un `check (fecha <= current_date)` — `current_date` no es inmutable, Postgres no la acepta en un check, y aunque la aceptara haría fallar un `pg_restore` de filas que eran válidas el día que se escribieron. `security invoker` + `search_path` vacío, en schema `private`, como el resto.
 
+**9f. La organización del invitado la estampa la edge function, con rollback** (`20260828174850`).
+El trigger `crear_usuario_desde_auth()` tiene prohibido leer `raw_user_meta_data` (decisión 9), así que no puede saber a qué empresa pertenece el invitado. `invitar-usuario` ya leía server-side la fila del admin que llama para validar que sea `admin_oficina`; ahora lee también su `organizacion_id` y, tras invitar, lo escribe con `service_role`. **La organización sale del JWT del llamador, nunca del body**: pedirla en el request reabriría el agujero de la decisión 9 un nivel más arriba — elegir en qué empresa nacer.
+Si ese update falla, se borra el usuario de auth. Sin organización no vería nada, y **ningún admin podría arreglarlo desde la UI**, porque las policies acotan por organización y la suya sería null: el huérfano solo se rescata por SQL. Deshacer el alta es más barato. *Descartado*: una tabla `invitaciones` que el trigger consulte por email, que permitiría poner `organizacion_id` en `not null` — el invariante más duro posible. Es mejor y quedó anotado; cuesta una tabla más con su RLS y su limpieza de invitaciones vencidas.
+
+**12e. Toda rama de policy sin alcance se cerró a la organización** (`20260828174851`).
+Tres reglas que eran correctas con un solo dueño se volvieron fugas entre clientes en cuanto entró la segunda empresa:
+- `private.es_admin_oficina()` es un booleano global: la rama del admin no acotaba nada, así que un admin leía planilla, salarios y cédulas de los demás clientes. Ahora toda rama de admin lleva además `finca_id in (select * from private.fincas_de_mi_organizacion())`.
+- `trabajadores_select_activos_finca_o_admin` tenía `activo = true` **sin scoping**, abierta a propósito para que traslados listara trabajadores de otras fincas (`20260724174931`). Eso exponía nombre, foto y `asegurado` de todo trabajador activo de todo cliente a cualquier usuario autenticado. Se conservan las tres ramas con la forma que tenían; lo único que cambia es que las dos que no tenían límite ahora lo tienen.
+- `fincas_select_activas_o_admin` era `activa = true`: todo usuario veía las fincas de todos los clientes.
+
+`salarios_trabajadores` es la única tabla sin `finca_id` (decisión 3), así que se ancla por trabajador. Las policies de insert/delete que ya comparaban `finca_id = private.finca_del_usuario()` **no se tocaron**: esa comparación es exacta y una finca pertenece a una sola organización, así que ya eran seguras entre clientes. Se mantienen las dos reglas de 12d (una policy permissive por tabla y acción, todo `auth.*` envuelto en `(select ...)`).
+
+**12f. El bucket de fotos pasó a privado, con URL firmada** (`20260828174853`).
+Era el **único lugar del sistema con datos de trabajadores fuera de la RLS**: `public = true` y una policy `to public using(true)`. No era enumerable —el archivo se llama con un uuid v4 y la URL solo se conseguía leyendo la fila— pero una URL filtrada (compartida, en un log, en el historial, dentro de un PDF exportado) es acceso permanente y sin autenticación a la foto de una persona. Vendiéndole la app a terceros eso deja de ser aceptable: sobre un objeto público no hay frontera de organización posible.
+Consecuencia en el front: `trabajadores.foto_url` pasa a guardar la **ruta**, no una URL, porque una firma vence y escribirla en la base la dejaría rota al día siguiente. El dominio tiene ahora dos campos, `fotoRuta` (lo guardado, lo que se reescribe al editar) y `fotoUrl` (la firma, solo para pintar); las filas viejas con la URL entera las normaliza `rutaDesdeFotoUrl` en vez de migrarlas. La vigencia de la firma iguala a la del cache persistido (7 días) para que un avatar no salga roto sin señal.
+
+**12g. El cache persistido se limpia al ENTRAR, no solo al salir** (`use-auth-form.ts`).
+`use-cerrar-sesion.ts` ya borraba el blob de IndexedDB, pero solo cuando el logout tenía éxito: si al usuario anterior se le venció el token o simplemente cerró la pestaña, el blob sobrevive y `useCachePersistente` lo rehidrata en el arranque — **antes de saber quién se va a loguear**. Entre dos organizaciones eso es pintarle a un cliente los trabajadores del otro, y la RLS no puede evitarlo porque el dato ya está en el disco.
+*Descartado*: sellar el blob con el id de su dueño y descartarlo al rehidratar si no coincide. Es más fino, pero exige conocer la sesión antes del primer render, y averiguarla al arranque cuesta una llamada que puede ir a la red — justo lo que el cache persistido existe para evitar (`decisiones.md` 17). Limpiar al entrar no cuesta nada offline: iniciar sesión ya exige red, así que si se pudo llegar hasta ahí también se puede volver a leer lo que se descarta. De paso cubre el caso entre dos supervisores de la misma organización, que tampoco estaba cubierto.
+
 **10. Los campos de auditoría los sella la base, no el cliente.**
 `registrado_por` entra por default `usuario_actual_id()`; `actualizado_en` lo pone el trigger `tocar_actualizado_en()` (`20260729163414`). Antes lo mandaba `salarios-service.ts`. Mismo criterio que `resolver_traslado_trabajador()` y `crear_usuario_desde_auth()`.
 
@@ -105,6 +149,12 @@ Chico, vive en `shared/` (`toast-store.ts`, `Toast.tsx`, `ToastViewport.tsx` mon
 Hasta acá había una sola base y `pnpm dev` escribía en producción: probar una migración o resetear era tocar los datos reales de Birrisito. Se quiso un `AgroMonitoreoDev` hosteado, pero la cuota del plan Free es de **2 proyectos activos en total cruzando todas las orgs del dueño** (los pausados no cuentan), y ya están ocupados por AgroMonitoreo y OrganicoCR. La separación queda por env de Vite: `.env.development.local` apunta al local y solo lo carga mode `development`, así que pisa a `.env.local` en `pnpm dev` sin tocar `pnpm build` ni Vercel. Cero cambios en el código de la app — `shared/lib/supabase-client.ts` sigue leyendo las mismas dos vars.
 *Descartado*: pausar OrganicoCR para liberar el cupo (deja un proyecto real offline, y en Free un proyecto pausado más de 90 días puede perder el backup) y subir a Pro por $25/mes, que además habilitaría Branching (rama de BD por PR) y la protección de contraseñas filtradas de 12c. Si algún día se paga Pro, Branching reemplaza a esto.
 Los datos de prueba viven en `supabase/seed.sql`, versionado y sintético: nunca un dump de producción, que metería cédulas, teléfonos y salarios reales en la máquina de cualquiera que clone. Los trabajadores no se siembran ahí — ya los trae la migración `20260708171418`; el seed solo agrega los dos usuarios de auth, los montos y los registros.
+
+**13c. El aislamiento entre clientes se prueba, no se afirma** (`supabase/tests/aislamiento.sql`).
+Hasta la decisión 12d las policies se verificaban a mano una vez y el resultado quedaba escrito en un `.md`. Con dos empresas reales adentro eso no alcanza: el día que se agregue la tabla número once nadie va a re-verificar las otras diez. El archivo se hace pasar por los cuatro roles (admin y supervisor de cada organización) y afirma tres cosas distintas: **cero filas ajenas** en las diez tablas, **al menos una fila propia** —sin esto, una policy que no devuelve nada pasaría todos los chequeos de aislamiento y el test sería una mentira— y que los intentos de escritura cruzada son **rechazados**, no ignorados (un update que afecta 0 filas y un insert que la RLS rechaza son cosas distintas de un select vacío).
+Se verificó que el test **falla** cuando debe: recreando la vieja policy `using (activo = true)` sobre `trabajadores`, aborta con `obtenido 6, esperado 0`.
+Y `supabase/seed.sql` pasó a sembrar **dos** organizaciones. No es adorno: con un solo cliente cargado, una fuga de RLS no se ve en pantalla hasta que ya hay dos empresas de verdad en producción. Con dos, aparece en `pnpm dev` el mismo día.
+*Descartado por ahora*: tests de integración en vitest contra PostgREST con dos clientes logueados. Atraparían la clase de fuga que el SQL puro no ve (embeds, `PGRST201`, filtros `.or()`, rpc), pero necesitan Docker arriba, así que `pnpm exec vitest run` dejaría de correr en una máquina sin el stack. Mientras tanto esa capa se cubre a mano con `curl`, que es como se verificó esta rama.
 
 **14. `vitest.config.ts` separado de `vite.config.ts`.**
 vitest 3.2 declara `vite ^5||^6||^7` y pnpm le resuelve vite 7 mientras el proyecto compila con vite 8; importar `vitest/config` dentro de `vite.config.ts` mezcla ambos juegos de tipos y rompe `tsc -b`.

@@ -3,6 +3,7 @@ import { supabase } from '../../../shared/lib/supabase-client'
 import type { Trabajador } from '../../../shared/types/domain.types'
 import type { ActualizarTrabajadorInput, CrearTrabajadorInput } from '../types/trabajador-form.types'
 import { mapearTrabajador, type TrabajadorRow } from '../utils/mapear-trabajador'
+import { firmarFotosTrabajadores } from './foto-trabajador-service'
 import { guardarDatosTrabajador } from './datos-trabajadores-service'
 
 // sin el embed: lo usa la grilla del capataz en campo, que solo pinta nombre y foto.
@@ -29,14 +30,14 @@ export async function listarTrabajadoresPorFinca(fincaId: string, client: Supaba
     .returns<TrabajadorRow[]>()
 
   if (error) throw new Error(`listarTrabajadoresPorFinca: ${error.message}`)
-  return data.map(mapearTrabajador)
+  return firmarFotosTrabajadores(data.map(mapearTrabajador), client)
 }
 
 export async function listarTodosTrabajadoresPorFinca(fincaId: string, client: SupabaseClient = supabase): Promise<Trabajador[]> {
   const { data, error } = await client.from('trabajadores').select(TRABAJADORES_COLUMNS_CON_DATOS).eq('finca_id', fincaId).order('nombre_completo', { ascending: true }).returns<TrabajadorRow[]>()
 
   if (error) throw new Error(`listarTodosTrabajadoresPorFinca: ${error.message}`)
-  return data.map(mapearTrabajador)
+  return firmarFotosTrabajadores(data.map(mapearTrabajador), client)
 }
 
 // Sin el embed a proposito. El rollup de oficina llama esto una vez POR FINCA solo para
@@ -47,7 +48,7 @@ export async function listarTodosTrabajadoresSinDatosPorFinca(fincaId: string, c
   const { data, error } = await client.from('trabajadores').select(TRABAJADORES_COLUMNS).eq('finca_id', fincaId).order('nombre_completo', { ascending: true }).returns<TrabajadorRow[]>()
 
   if (error) throw new Error(`listarTodosTrabajadoresSinDatosPorFinca: ${error.message}`)
-  return data.map(mapearTrabajador)
+  return firmarFotosTrabajadores(data.map(mapearTrabajador), client)
 }
 
 export async function crearTrabajador(input: CrearTrabajadorInput, client: SupabaseClient = supabase): Promise<void> {
@@ -111,7 +112,7 @@ export async function cambiarEstadoTrabajador(trabajador: Trabajador, client: Su
   const { data, error } = await client.from('trabajadores').update({ activo: !trabajador.activo }).eq('id', trabajador.id).select(TRABAJADORES_COLUMNS_CON_DATOS).single<TrabajadorRow>()
 
   if (error) throw new Error(`cambiarEstadoTrabajador: ${error.message}`)
-  return mapearTrabajador(data)
+  return (await firmarFotosTrabajadores([mapearTrabajador(data)], client))[0]
 }
 
 // patch parcial a proposito: manda solo asegurado para no pisar el resto de la fila
@@ -119,5 +120,5 @@ export async function cambiarAseguradoTrabajador(input: { id: string; asegurado:
   const { data, error } = await client.from('trabajadores').update({ asegurado: input.asegurado }).eq('id', input.id).select(TRABAJADORES_COLUMNS_CON_DATOS).single<TrabajadorRow>()
 
   if (error) throw new Error(`cambiarAseguradoTrabajador: ${error.message}`)
-  return mapearTrabajador(data)
+  return (await firmarFotosTrabajadores([mapearTrabajador(data)], client))[0]
 }

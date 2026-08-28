@@ -9,6 +9,7 @@ function usuario(overrides: Partial<Usuario> = {}): Usuario {
     nombre: 'Capataz',
     fincaId: 'birrisito',
     fincaNombre: 'Birrisito',
+    organizacionNombre: 'Organizacion Birrisito',
     activo: true,
     rol: 'supervisor',
     ...overrides,
@@ -76,5 +77,17 @@ describe('decidirAccesoRuta', () => {
 
     expect(decidirAccesoRuta({ ...RUTA_ADMIN, usuario: admin })).toBe('permitido')
     expect(decidirAccesoRuta({ ...RUTA_SUPERVISOR, usuario: admin })).toBe('a-admin')
+  })
+
+  // sin organizacion la RLS no devuelve una sola fila: el shell se pintaria entero en cero
+  // y sin explicacion. Alcanza al admin, que no depende de finca propia pero si de su
+  // empresa. No deberia pasar por el flujo normal (invitar-usuario deshace el alta si no
+  // logra estampar la organizacion); es defensa contra un alta hecha a mano por SQL.
+  it('frena a cualquiera sin organizacion, incluido el admin', () => {
+    const supervisorSinOrg = usuario({ organizacionNombre: null })
+    const adminSinOrg = usuario({ rol: 'admin_oficina', fincaId: null, fincaNombre: null, organizacionNombre: null })
+
+    expect(decidirAccesoRuta({ ...RUTA_SUPERVISOR, usuario: supervisorSinOrg })).toBe('sin-finca')
+    expect(decidirAccesoRuta({ ...RUTA_ADMIN, usuario: adminSinOrg })).toBe('sin-finca')
   })
 })

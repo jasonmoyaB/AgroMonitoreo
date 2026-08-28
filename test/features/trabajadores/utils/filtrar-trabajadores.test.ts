@@ -4,7 +4,7 @@ import type { TrabajadoresFiltros } from '../../../../src/features/trabajadores/
 import { filtrarTrabajadores } from '../../../../src/features/trabajadores/utils/filtrar-trabajadores'
 
 function trabajador(id: string, nombreCompleto: string, activo: boolean): Trabajador {
-  return { id, fincaId: 'birrisito', nombreCompleto, fotoUrl: null, activo, asegurado: false, cedula: null, fechaIngreso: null, telefono: null }
+  return { id, fincaId: 'birrisito', nombreCompleto, fotoRuta: null, fotoUrl: null, activo, asegurado: false, cedula: null, fechaIngreso: null, telefono: null }
 }
 
 const ALVIN = trabajador('t1', 'Alvin Alcantara', true)

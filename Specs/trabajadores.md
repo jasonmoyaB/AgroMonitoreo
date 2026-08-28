@@ -5,7 +5,7 @@ Feature **headless**: no tiene rutas propias. La hospedan `supervisor/screens/Tr
 ## Qué hace
 
 - CRUD de trabajadores de una finca, con **baja lógica** (`activo`), nunca borrado físico.
-- Foto: sube al bucket `trabajador-fotos`, carpeta por finca.
+- Foto: sube al bucket `trabajador-fotos`, carpeta por finca. El bucket es **privado**: se guarda la ruta y se sirve con URL firmada (`firmarFotosTrabajadores`, en lote). El dominio tiene `fotoRuta` (lo guardado, lo que se reescribe al editar) y `fotoUrl` (la firma, solo para pintar) — guardar la firmada la dejaría rota al vencer.
 - Datos personales (cédula, fecha de ingreso, teléfono) contra `datos_trabajadores`.
 - Modal de métricas por trabajador: horas, cantidad por unidad, productividad y horas extra de un período, con PDF.
 
