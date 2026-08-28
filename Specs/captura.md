@@ -31,7 +31,8 @@ Usuarios con baja alfabetización:
 - Los registros se leen **paginados** (`registros-service.ts`). PostgREST corta en 1000 filas sin avisar: el mes se acota además por fecha, y el historial de un trabajador solo se defiende paginando, porque el modal de métricas necesita todo.
 - **Se puede capturar sin señal.** El cache de queries se persiste en IndexedDB (`shared/hooks/use-cache-persistente.ts`), así que la lista de trabajadores sigue estando; la mutación queda pausada, se guarda con el cache y se reenvía sola al reconectar. La confirmación distingue los dos casos: check verde = el servidor lo tiene, nube ámbar = pendiente de enviar. `RegistrosPendientesBadge` muestra cuántos faltan.
 - El reenvío es seguro porque `crearRegistro` es un `upsert` sobre el unique `(trabajador_id, tipo_labor_id, fecha)`: mandarlo dos veces deja una fila.
-- Al cerrar sesión el cache persistido se borra (`limpiarCacheQuery`): guarda nombres de trabajadores y el dispositivo de campo se comparte.
+- Solo se persiste lo que la captura offline necesita (`src/app/claves-persistibles.ts`, allowlist). La planilla y los datos personales **nunca** van al disco.
+- Al cerrar sesión el cache persistido se borra (`limpiarCacheQuery`): guarda nombres de trabajadores y el dispositivo de campo se comparte. Si el `signOut` falla por falta de red la sesión local sigue viva, así que no se navega ni se vacía nada — se avisa con un toast, que es lo único honesto que se puede hacer offline.
 
 ## Qué NO hace
 

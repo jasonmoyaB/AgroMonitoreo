@@ -103,6 +103,15 @@ Dos trampas al diagnosticarlo, las dos me costaron una conclusión falsa:
 **Persistir el cache de queries sin subir `gcTime` no persiste nada.**
 Con el default de 5 minutos, lo que se rehidrata desde IndexedDB se recolecta apenas monta y la app queda igual de vacía que antes. `gcTime` tiene que ser ≥ la vigencia de lo guardado (`src/app/query-client.ts`). El síntoma engaña: el registro se guarda bien y se lee bien, y aun así la pantalla arranca sin datos.
 
+**`dehydrate` sin filtro persiste la planilla y las cédulas en el disco del dispositivo.**
+El default de v5 (`defaultShouldDehydrateQuery`) guarda **toda** query en `success`. Con el cache persistido eso metía `PLANILLA_QUERY_KEY` (salario mensual y moneda por trabajador) y los datos personales en IndexedDB, sin cifrar y por 7 días — anulando en la práctica lo que la decisión 3 protegió moviendo el salario a su propia tabla. Lo que se persiste va por allowlist explícita en `src/app/claves-persistibles.ts`; sumar una clave ahí es una decisión, no un descuido.
+
+**Una promesa de IndexedDB sin `catch` deja la app en blanco para siempre.**
+`App` no pinta hasta que `useCachePersistente` termina de rehidratar. Si `get()` rechaza (navegación privada de Firefox, Safari con almacenamiento bloqueado, entrada corrupta), sin `.catch` el flag nunca se pone en true y el router **nunca se monta**: el `errorElement` no salva porque no hay router, y el usuario ni siquiera llega a `/login`. Solo se sale borrando los datos del sitio. Vale para las dos promesas del hook — la de guardar también, ahí el síntoma es peor porque es silencioso: la app cree que persiste y no persiste.
+
+**`signOut()` sin red falla y deja la sesión local viva.**
+GoTrue devuelve `AuthRetryableFetchError` y sale **antes** de `_removeSession()`, así que el usuario sigue autenticado. `scope: 'local'` tampoco ayuda: también pega a la API primero. No se puede cerrar sesión offline, y fingir que sí (navegar a `/login`, vaciar el cache) solo rompe la pantalla — `RouteGuard` lo devuelve adentro y las queries se vuelven a llenar con el token vivo. Lo que no se puede hacer es fallar callado, que era el comportamiento anterior: hoy sale un toast.
+
 **Montar la app antes de rehidratar tira las queries contra la red.**
 Si `App` pinta el router mientras el cache todavía se está restaurando, cada `useQuery` arranca, falla sin señal y la pantalla queda vacía **justo** cuando el cache guardado la salvaba. Por eso `App` devuelve `null` hasta que `useCachePersistente` termina.
 

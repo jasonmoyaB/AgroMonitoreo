@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
+import { esClavePersistible } from './claves-persistibles'
 import { crearRegistro } from '../features/captura/services/registros-service'
 import { CREAR_REGISTRO_MUTATION_KEY, REGISTROS_QUERY_KEY } from '../features/captura/constants/registros-query.constants'
 import type { RegistroTrabajo } from '../shared/types/domain.types'
@@ -11,6 +12,11 @@ const TIEMPO_EN_CACHE_MS = 7 * 24 * 60 * 60 * 1000
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: { throwOnError: true, gcTime: TIEMPO_EN_CACHE_MS },
+    // Sin este filtro `dehydrate` persiste toda query en `success`, o sea tambien la planilla
+    // y los datos personales. Ver claves-persistibles.ts.
+    dehydrate: {
+      shouldDehydrateQuery: (query) => query.state.status === 'success' && esClavePersistible(query.queryKey),
+    },
   },
 })
 

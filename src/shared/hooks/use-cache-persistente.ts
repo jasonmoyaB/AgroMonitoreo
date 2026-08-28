@@ -15,12 +15,20 @@ export function useCachePersistente(queryClient: QueryClient): boolean {
   useEffect(() => {
     let cancelado = false
 
-    restaurarCacheQuery().then((estado) => {
-      if (cancelado) return
-      if (estado !== null) hydrate(queryClient, estado)
-      setRehidratado(true)
-      void queryClient.resumePausedMutations()
-    })
+    restaurarCacheQuery()
+      .then((estado) => {
+        if (!cancelado && estado !== null) hydrate(queryClient, estado)
+      })
+      // Arrancar sin cache es recuperable; no arrancar no lo es. Si IndexedDB no esta
+      // disponible (navegacion privada, storage bloqueado) o lo guardado no se puede
+      // deserializar, la app tiene que montar igual: `App` no pinta nada hasta que esto
+      // resuelva, y el errorElement del router no ayuda porque el router ni llega a montarse.
+      .catch(() => {})
+      .finally(() => {
+        if (cancelado) return
+        setRehidratado(true)
+        void queryClient.resumePausedMutations()
+      })
 
     return () => {
       cancelado = true
@@ -31,9 +39,13 @@ export function useCachePersistente(queryClient: QueryClient): boolean {
     if (!rehidratado) return
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined
+    // Un fallo al guardar (tipico: QuotaExceededError) no puede romper la pantalla, pero
+    // tampoco puede pasar callado: si se traga, la app cree que persiste y no persiste.
     const guardarConDemora = () => {
       clearTimeout(timeoutId)
-      timeoutId = setTimeout(() => void guardarCacheQuery(dehydrate(queryClient)), DEMORA_GUARDADO_MS)
+      timeoutId = setTimeout(() => {
+        guardarCacheQuery(dehydrate(queryClient)).catch((error: unknown) => console.error('guardarCacheQuery', error))
+      }, DEMORA_GUARDADO_MS)
     }
     const desuscribirQueries = queryClient.getQueryCache().subscribe(guardarConDemora)
     const desuscribirMutaciones = queryClient.getMutationCache().subscribe(guardarConDemora)

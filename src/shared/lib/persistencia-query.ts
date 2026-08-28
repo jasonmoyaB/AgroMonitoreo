@@ -27,9 +27,11 @@ export async function restaurarCacheQuery(): Promise<DehydratedState | null> {
   return guardada.estado
 }
 
-// Al cerrar sesion: lo persistido incluye nombres y datos de trabajadores, y el dispositivo
-// de campo se comparte. Una mutacion pendiente que sobreviviera al logout tampoco serviria,
-// la RLS la rechazaria sin sesion.
+// Al cerrar sesion. Que entra al blob lo decide `src/app/claves-persistibles.ts`, no este
+// modulo: hoy son los trabajadores de la finca (con cedula y telefono, segun que pantalla
+// haya cargado la clave `trabajadores`), sus ausencias del dia, los traslados del dia, los
+// registros y el usuario actual. El dispositivo de campo se comparte y el blob sobrevive al
+// vencimiento del token, asi que se borra al salir.
 export function limpiarCacheQuery(): Promise<void> {
   return del(CLAVE_CACHE)
 }

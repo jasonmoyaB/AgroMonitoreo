@@ -25,6 +25,7 @@ export function CapturaRegistroScreen() {
   const fecha = useFechaCaptura()
   const [confirmacion, setConfirmacion] = useState<EstadoConfirmacion>('oculto')
   const draftPrecargado = useRef(false)
+  const cierreProgramado = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const { usuario } = useUsuarioActual()
   // RouteGuard ya frena al supervisor sin finca, pero los hooks piden string | undefined
@@ -49,6 +50,19 @@ export function CapturaRegistroScreen() {
     }
   }, [cargado, registroExistente, draft, setDraft])
 
+  // Un solo cierre por pantalla: si la conexion vuelve dentro del segundo del overlay, la
+  // mutacion se reanuda y `onSuccess` querria confirmar de nuevo — dos vibraciones, el overlay
+  // saltando de ambar a verde y dos `navigate`, el segundo ya sobre la grid.
+  function cerrarConConfirmacion(estado: EstadoConfirmacion) {
+    if (cierreProgramado.current !== undefined) return
+    vibrarConfirmacion()
+    limpiarDraft()
+    setConfirmacion(estado)
+    cierreProgramado.current = setTimeout(() => navigate(`/captura/labor/${tipoLaborId}/trabajadores`), TIEMPO_CONFIRMACION_MS)
+  }
+
+  useEffect(() => () => clearTimeout(cierreProgramado.current), [])
+
   // Sin señal la mutacion queda pausada y `onSuccess` no corre nunca: sin esto el capataz
   // toca Confirmar y la pantalla no reacciona, que es como se perdian los registros.
   const quedoPendiente = crearRegistro.isPaused
@@ -59,16 +73,6 @@ export function CapturaRegistroScreen() {
   }, [quedoPendiente])
 
   if (!tipoLabor || !trabajador || !fincaId) return null
-
-  function cerrarConConfirmacion(estado: EstadoConfirmacion) {
-    vibrarConfirmacion()
-    limpiarDraft()
-    setConfirmacion(estado)
-    setTimeout(() => {
-      setConfirmacion('oculto')
-      navigate(`/captura/labor/${tipoLaborId}/trabajadores`)
-    }, TIEMPO_CONFIRMACION_MS)
-  }
 
   function confirmarRegistro() {
     if (!tipoLabor || !fincaId) return
