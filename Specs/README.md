@@ -6,6 +6,7 @@ No repiten lo que ya está en `docs/contexto/` — ahí va el porqué (`decision
 
 | Spec | Módulo |
 |---|---|
+| [organizaciones.md](organizaciones.md) | **Aislamiento entre empresas clientes.** No es una feature de `src/features/`: es el contrato que todas las demás tienen que respetar |
 | [auth.md](auth.md) | Login, recuperación, invitación, guard de rutas |
 | [captura.md](captura.md) | El flujo del capataz en campo |
 | [trabajadores.md](trabajadores.md) | CRUD de trabajadores, foto, métricas |

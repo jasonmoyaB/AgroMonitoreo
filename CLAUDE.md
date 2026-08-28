@@ -32,7 +32,9 @@ No public signup (`enable_signup = false`). The only way in is an admin invite f
 
 ## Backend (Supabase — live)
 
-Postgres + Auth + RLS + Storage, migrations in `supabase/migrations/`. Isolation axis is **`finca_id`**, not a multi-tenant `organizacion_id` — one admin owning several farms.
+Postgres + Auth + RLS + Storage, migrations in `supabase/migrations/`. **Two nested isolation axes** since `20260828174850`: `organizacion_id` (the paying company — one app, several client companies, and data must *never* cross) and `finca_id` inside it (one company owning several farms, the original axis).
+
+`organizacion_id` lives on **`fincas` only**; the 7 data tables already carry `finca_id` and derive from it. Denormalizing it per table would need a composite FK `(finca_id, organizacion_id)` per table — a second embed path, which is exactly what broke PostgREST with `PGRST201` on `datos_trabajadores`. The one exception is **`usuario`, which carries its own `organizacion_id`**: it is the identity anchor of every policy, and neither an `admin_oficina` (manages N fincas, `finca_id` may be null) nor an invitee (born without a finca) has a finca to derive it from. A trigger — not a composite FK — enforces that an assigned `finca_id` belongs to the user's organization.
 
 **Tables**: `roles`, `fincas` (+ `valor_hora`, `valor_hora_usd`), `trabajadores`, `salarios_trabajadores` (1:1 with `trabajadores`; `salario_mensual`, `moneda` in `usd|colones`), `datos_trabajadores` (1:1 with `trabajadores`; `cedula`, `fecha_ingreso`, `telefono` — PII kept off `trabajadores` for the same reason as salary), `labores`, `usuario` (1:1 with `auth.users` via `auth_user_id`; holds `rol_id`, `finca_id`, `nombre`, plus the operator's own PII: `cedula`, `direccion`, `fecha_nacimiento`, `telefono`, `email_contacto` — **its read scope is owner-of-the-row + oficina, so never add a cross-user read policy on `usuario` without moving those columns out first**), `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`.
 
@@ -132,4 +134,4 @@ Tailwind v4, CSS-first: no `tailwind.config.js`, just `@import 'tailwindcss'` in
 
 ## Skills that do NOT apply here
 
-Global `agrotrace-rules` and `search-first` document **AgroTrace**, a different project: multi-tenant `organizacion_id`, `apps/web/...` monorepo. This repo is a flat single-app Vite project isolated by `finca_id`. Ignore both.
+Global `agrotrace-rules` and `search-first` document **AgroTrace**, a different project: `apps/web/...` monorepo. This repo is a flat single-app Vite project. Both are still wrong for it — and note the trap: this repo *now* has an `organizacion_id` too (`20260828174850`), so those skills look more relevant than they are. Its shape is different (org above finca, no `apps/`), and the rules here are the ones in this file. Ignore both.

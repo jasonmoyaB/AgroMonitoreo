@@ -7,6 +7,16 @@ interface RespuestaSupabase {
   error?: { message: string } | null
 }
 
+
+// El bucket es privado: los services de lectura firman las fotos en lote antes de devolver.
+// El doble devuelve una firma predecible para poder afirmar sobre ella.
+const storage = {
+  from: () => ({
+    createSignedUrls: (rutas: string[]) =>
+      Promise.resolve({ data: rutas.map((path) => ({ path, signedUrl: `firmada://${path}`, error: null })), error: null }),
+  }),
+}
+
 function clienteLectura(respuesta: RespuestaSupabase) {
   const eq = vi.fn()
   const cadena = {
@@ -20,7 +30,7 @@ function clienteLectura(respuesta: RespuestaSupabase) {
   }
   const from = vi.fn(() => cadena)
 
-  return { client: { from } as unknown as SupabaseClient, from, eq, cadena }
+  return { client: { from, storage } as unknown as SupabaseClient, from, eq, cadena }
 }
 
 function clienteEscritura(error: { message: string } | null = null) {
@@ -37,7 +47,7 @@ describe('listarSalariosPorFinca', () => {
     })
 
     expect(await listarSalariosPorFinca('birrisito', client)).toEqual([
-      { trabajadorId: 't1', nombreCompleto: 'Alvin Alcantara', fotoUrl: 'foto.jpg', asegurado: true, salarioMensual: 350000, moneda: 'colones' },
+      { trabajadorId: 't1', nombreCompleto: 'Alvin Alcantara', fotoUrl: 'firmada://foto.jpg', asegurado: true, salarioMensual: 350000, moneda: 'colones' },
     ])
   })
 

@@ -74,7 +74,11 @@ Ejemplo real de punta a punta: `admin/screens/PlanillaScreen.tsx` → `planilla/
 
 ## Backend
 
-Supabase real (Postgres + Auth + RLS + Storage). Migraciones en `supabase/migrations/`. El eje de aislamiento es **`finca_id`**, no un `organizacion_id` multi-tenant: un dueño con varias fincas.
+Supabase real (Postgres + Auth + RLS + Storage). Migraciones en `supabase/migrations/`.
+
+**Dos ejes de aislamiento, uno adentro del otro** (`20260828174850`): `organizacion_id` es la empresa que compró la app — varias conviven en la misma base y jamás pueden verse entre sí — y `finca_id` es la finca dentro de esa empresa, que puede tener todas las que quiera.
+
+La columna `organizacion_id` vive **solo en `fincas`**: las 7 tablas de datos ya tienen `finca_id` y de ahí se deriva, así que una fila no puede quedar con la finca de un cliente y la organización de otro. La excepción es `usuario`, que sí lleva la suya, porque es el ancla de toda la RLS y ni el admin (administra N fincas) ni el invitado (nace sin finca) tienen finca de la cual derivarla.
 
 Tablas: `roles`, `fincas`, `trabajadores`, `datos_trabajadores`, `salarios_trabajadores`, `labores`, `usuario`, `registros_trabajo`, `asistencia`, `traslados_trabajadores`, `pagos_quincenales`. Storage: bucket `trabajador-fotos`.
 

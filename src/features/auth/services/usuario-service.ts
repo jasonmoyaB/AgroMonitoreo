@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../../shared/lib/supabase-client'
 import type { RolNombre, Usuario } from '../../../shared/types/domain.types'
 
-const USUARIO_COLUMNS = 'id, email, nombre, finca_id, activo, rol:roles(nombre), finca:fincas(nombre)'
+const USUARIO_COLUMNS = 'id, email, nombre, finca_id, activo, rol:roles(nombre), finca:fincas(nombre), organizacion:organizaciones(nombre)'
 
 interface UsuarioRow {
   id: string
@@ -12,6 +12,7 @@ interface UsuarioRow {
   activo: boolean
   rol: { nombre: RolNombre } | null
   finca: { nombre: string } | null
+  organizacion: { nombre: string } | null
 }
 
 export async function obtenerUsuarioActual(client: SupabaseClient = supabase): Promise<Usuario> {
@@ -37,6 +38,7 @@ export async function obtenerUsuarioActual(client: SupabaseClient = supabase): P
     // ambos quedan null si todavia no tiene finca: sin FK el embed a fincas no resuelve
     fincaId: data.finca_id,
     fincaNombre: data.finca?.nombre ?? data.finca_id,
+    organizacionNombre: data.organizacion?.nombre ?? null,
     activo: data.activo,
     rol: data.rol.nombre,
   }

@@ -131,7 +131,24 @@ Al partir el dashboard en una página por unidad, un mes sin producción se qued
 
 **Importar `vitest/config` dentro de `vite.config.ts` rompe `tsc -b`**: el proyecto compila con vite 8 pero pnpm le resuelve vite 7 a vitest, y se mezclan los dos juegos de tipos. Por eso hay dos configs separados.
 
+## Multi-organización
+
+**Una rama de policy sin alcance es una fuga entre clientes, no una comodidad.**
+Tres reglas que eran razonables con un solo dueño (`activo = true` en `trabajadores`, `activa = true` en `fincas`, y `es_admin_oficina()` como booleano global) exponían, con dos empresas adentro, los trabajadores, las fincas y la planilla del otro cliente. Cerradas en `20260828174851`. La regla a partir de ahora: **ninguna rama de un `using` puede quedar sin comparar contra la organización**, ni siquiera "temporalmente para que traslados funcione". Si hace falta abrir algo, se abre acotado a `private.fincas_de_mi_organizacion()`.
+
+**El test de aislamiento deja su tabla de andamiaje si aborta, y eso ensucia `pnpm db:types`.**
+`supabase/tests/aislamiento.sql` crea `public._aislamiento_fixture` y la borra al final. Si el archivo aborta en un `FALLO`, el drop no corre y la tabla queda viva — y el generador de tipos la mete en `supabase.types.ts` como si fuera del dominio. Si aparece `_aislamiento_fixture` en el diff de tipos, no es drift de esquema: `drop table public._aislamiento_fixture` y regenerar. Un `supabase db reset` también la barre.
+
+**Un usuario sin organización no lo puede rescatar ningún admin desde la UI.**
+Las policies acotan por `organizacion_id`, así que una fila con la columna en null no la alcanza nadie: ni él (no ve nada, cae en `SinFincaAsignada`) ni un admin (su policy exige que la organización coincida con la propia, y null no coincide con nada). Por eso `invitar-usuario` borra el usuario de auth si no puede estampar la organización. Si igual aparece uno, se arregla por SQL, no por pantalla.
+
+**El admin no puede leer el id de la organización ajena — y eso rompe los tests ingenuos.**
+Al escribir un chequeo de "no puedo escribir en la otra empresa", un `select id from organizaciones where slug = 'otra'` corriendo como ese admin devuelve **null**, no el id. El insert que sigue falla, pero por "organización inexistente" (lo tira el trigger) y no por la policy: el test pasa por el motivo equivocado y no probaría nada. En `aislamiento.sql` los ids ajenos salen del fixture, que se calcula como `postgres` antes de hacerse pasar por nadie.
+
 ## Deuda silenciosa
+
+**Las 11 labores son de banano y son iguales para todas las organizaciones. Es el bloqueante comercial número uno.**
+`shared/constants/tipos-labor.constants.ts` está hardcodeado en el front, con icono, color y unidad, y son labores de banano/plátano (`amarre_1`–`amarre_4`, `deshija`, `deshoja`, `despunte`). Un cliente que cultive otra cosa **no puede usar la app**: no hay forma de que defina sus labores. Quedó explícitamente fuera de la rama de multi-organización porque es una rama entera aparte — hay que hacer que el front lea la tabla `labores` (hoy ni la toca), mover icono/color/unidad a la base, y reescribir los tres dashboards, el PDF multipágina y el stepper de cantidad de captura.
 
 **`shared/constants/tipos-labor.constants.ts` duplica la tabla `labores`** y nada verifica que coincidan: se desincronizan sin que ningún test ni build se queje.
 Desde que los dashboards agrupan por unidad (`decisiones.md` 5e) el costo subió: la unidad sale de esa constante, así que una labor que exista en `labores` pero no ahí no pierde un gráfico — **desaparece del dashboard entero**, tarjetas incluidas, sin error ni fila en cero. Si una producción cargada no aparece en ningún bloque, mirar primero si la labor está en la constante.

@@ -34,24 +34,51 @@ async function invitar(req: Request): Promise<Response> {
   const authorization = req.headers.get('Authorization')
   if (!authorization) return responder({ error: 'No hay sesión activa.' }, 401)
 
-  const esAdmin = await verificarAdminOficina(authorization)
-  if (!esAdmin) return responder({ error: 'Solo la oficina puede invitar usuarios.' }, 403)
+  // La organizacion del invitado sale de la fila del admin que invita, leida server-side
+  // con SU token. Nunca del cuerpo del request: eso reabriria el agujero de escalada que
+  // cerro 20260708183000, solo que un nivel mas arriba (elegir en que empresa nacer).
+  const organizacionId = await organizacionDelAdminOficina(authorization)
+  if (!organizacionId) return responder({ error: 'Solo la oficina puede invitar usuarios.' }, 403)
 
   const email = await leerEmail(req)
   if (!email) return responder({ error: 'Correo inválido.' }, 400)
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
-  const { error } = await admin.auth.admin.inviteUserByEmail(email, {
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${APP_URL!.replace(/\/$/, '')}/reset-password?invitacion=1`,
   })
 
   // 502 y no 400 cuando falla el SMTP: el correo pedido era valido, lo que falló es el envio.
   // Con 400 el log del edge no distingue "dato malo" de "SMTP caido" y el diagnostico se pierde.
   if (error) return responder({ error: traducirErrorInvitacion(error.message) }, esFallaDeEnvio(error.message) ? 502 : 400)
-  return responder({ ok: true }, 200)
+
+  return await estamparOrganizacion(admin, data.user.id, organizacionId)
 }
 
-async function verificarAdminOficina(authorization: string): Promise<boolean> {
+// El trigger crear_usuario_desde_auth crea la fila de `usuario` sin organizacion: tiene
+// prohibido leer raw_user_meta_data (decision 9), asi que no puede saber a que empresa
+// pertenece el invitado. Se la ponemos aca, con service_role.
+//
+// Si el update falla, el usuario existe en auth pero sin organizacion: no veria nada
+// (RouteGuard lo manda a SinFincaAsignada) y ningun admin podria arreglarlo desde la UI,
+// porque las policies acotan por organizacion y la suya es null. Antes que dejar ese
+// huerfano, se deshace el alta.
+async function estamparOrganizacion(
+  admin: ReturnType<typeof createClient>,
+  authUserId: string,
+  organizacionId: string,
+): Promise<Response> {
+  const { error } = await admin.from('usuario').update({ organizacion_id: organizacionId }).eq('auth_user_id', authUserId)
+  if (!error) return responder({ ok: true }, 200)
+
+  console.error('invitar-usuario: no se pudo asignar la organizacion, se revierte el alta:', error)
+  await admin.auth.admin.deleteUser(authUserId)
+  return responder({ error: 'No se pudo asignar la organización al invitado. No se creó la cuenta; intentá de nuevo.' }, 500)
+}
+
+// Devuelve la organizacion del llamador si es un admin_oficina activo, o null si no lo es.
+// `verify_jwt` no alcanza: un supervisor tambien tiene un JWT valido.
+async function organizacionDelAdminOficina(authorization: string): Promise<string | null> {
   const client = createClient(SUPABASE_URL, ANON_KEY, {
     global: { headers: { Authorization: authorization } },
   })
@@ -59,18 +86,21 @@ async function verificarAdminOficina(authorization: string): Promise<boolean> {
   const {
     data: { user },
   } = await client.auth.getUser()
-  if (!user) return false
+  if (!user) return null
 
-  // Lo que acota a una fila es el .eq() de abajo, no la RLS: a un admin_oficina
-  // `usuario_select_admin_oficina` le alcanza la tabla entera.
+  // Lo que acota a una fila es el .eq(), no la RLS: a un admin_oficina la policy de
+  // `usuario` le alcanza todas las filas de su organizacion.
   const { data, error } = await client
     .from('usuario')
-    .select('activo, rol:roles(nombre)')
+    .select('activo, organizacion_id, rol:roles(nombre)')
     .eq('auth_user_id', user.id)
-    .single<{ activo: boolean; rol: { nombre: string } | null }>()
+    .single<{ activo: boolean; organizacion_id: string | null; rol: { nombre: string } | null }>()
 
-  if (error) return false
-  return data?.activo === true && data.rol?.nombre === 'admin_oficina'
+  if (error) return null
+  if (data?.activo !== true || data.rol?.nombre !== 'admin_oficina') return null
+
+  // Un admin sin organizacion no puede invitar: el invitado no tendria a donde nacer.
+  return data.organizacion_id
 }
 
 async function leerEmail(req: Request): Promise<string | null> {

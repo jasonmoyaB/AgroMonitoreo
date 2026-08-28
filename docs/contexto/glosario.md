@@ -6,10 +6,11 @@ Términos del dominio, tal como aparecen en el código.
 
 | Término | Qué es | Dónde |
 |---|---|---|
-| **Finca** | Unidad de aislamiento de todo el sistema. La única real hoy es `birrisito`. Tiene `valor_hora` y `valor_hora_usd`, que fijan el costo del día ausente. | tabla `fincas`, `Finca` en `domain.types.ts` |
+| **Organización** | La empresa que compró la app. Es el aislamiento **externo**: varias conviven en la misma base y jamás pueden verse entre sí. Tiene todas las fincas que quiera. Se da de alta por SQL (`docs/instruccions/10-alta-de-organizacion.md`), no por pantalla. | tabla `organizaciones` (`20260828174850`) |
+| **Finca** | Unidad de aislamiento **dentro** de una organización. Tiene `valor_hora` y `valor_hora_usd`, que fijan el costo del día ausente. Su `id` es un slug que arma la base con el prefijo de la organización (`chayotes-la-esperanza`); el admin solo escribe el nombre. | tabla `fincas`, `Finca` en `domain.types.ts` |
 | **Capataz / supervisor** | Quien carga los datos en campo. Rol `supervisor`. Toda alta crea uno, y **sin finca**: la asigna el admin después. | rol `supervisor`, `features/supervisor` |
 | **Admin de oficina** | Lee lo que cargó el campo y gestiona fincas, supervisores, salarios y planilla. Cruza todas las fincas. Se promueve por SQL. | rol `admin_oficina`, `features/admin` |
-| **Usuario** | Fila 1:1 con `auth.users` vía `auth_user_id`; guarda `rol_id`, `finca_id`, `nombre`. Es por donde todas las policies RLS hacen join. `finca_id` es nullable: null = invitado a la espera de que el admin le asigne finca. | tabla `usuario` |
+| **Usuario** | Fila 1:1 con `auth.users` vía `auth_user_id`; guarda `rol_id`, `organizacion_id`, `finca_id`, `nombre`. Es por donde todas las policies RLS hacen join. `organizacion_id` es el alcance real y es **columna propia**, no derivada de la finca: el admin administra N fincas y el invitado nace sin ninguna. Los dos son nullable, y null significa lo mismo en ambos: no ve nada. | tabla `usuario` |
 
 El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inverso.
 
@@ -53,7 +54,7 @@ El flujo es de un solo sentido: supervisor carga → admin lee. No hay flujo inv
 
 ## Siglas
 
-- **RLS** — Row Level Security de Postgres. Acá todas las policies hacen join a través de `usuario`.
+- **RLS** — Row Level Security de Postgres. Acá todas las policies hacen join a través de `usuario`, y acotan por los dos ejes: `private.organizacion_del_usuario()` / `private.fincas_de_mi_organizacion()` para la empresa, `private.finca_del_usuario()` para la finca.
 - **PWA** — Progressive Web App. La app se instala y tiene service worker (`vite-plugin-pwa`).
 - **KPI** — los indicadores de los dashboards (horas, cantidad, productividad, rankings, tendencia). Los que dependen de la cantidad producida van siempre por unidad.
 - **MCP `codebase-memory`** — el servidor con el que se navega este repo. Es la primera opción para buscar código, antes que Grep/Glob.

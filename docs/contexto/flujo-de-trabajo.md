@@ -62,6 +62,10 @@ pnpm build              # tsc -b && vite build
 pnpm lint               # oxlint
 pnpm exec vitest run    # tests
 pnpm dlx react-doctor --verbose   # debe dar 100%
+
+# si tocaste RLS, policies, helpers de private, storage o el esquema:
+supabase db reset
+docker exec -i supabase_db_AgroMonitoreo psql -U postgres -d postgres   -v ON_ERROR_STOP=1 -f - < supabase/tests/aislamiento.sql   # debe imprimir AISLAMIENTO OK
 ```
 
 - Los cuatro en verde. React Doctor por debajo de 100% → arreglar y reescanear, en loop. Si es falso positivo: verificar contra el código/bundle real (no asumir), anotarlo en `.react-doctor/false-positives.md` y reescanear.

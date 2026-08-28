@@ -6,7 +6,8 @@ const TRABAJADOR: Trabajador = {
   id: 't1',
   fincaId: 'birrisito',
   nombreCompleto: 'Alvin Alcantara',
-  fotoUrl: 'foto.jpg',
+  fotoRuta: 'birrisito/foto.jpg',
+  fotoUrl: 'https://firmada.example/birrisito/foto.jpg?token=abc',
   activo: true,
   asegurado: true,
   cedula: '1-2345-6789',
@@ -37,7 +38,7 @@ describe('construirValuesTrabajador', () => {
   // un input controlado con value={null} pasa a no controlado y React avisa; ademas
   // el null viajaria al service, donde aNullSiVacio espera string y haria .trim()
   it('convierte cada null del dominio en cadena vacia, no en null', () => {
-    const values = construirValuesTrabajador({ ...TRABAJADOR, cedula: null, fechaIngreso: null, telefono: null, fotoUrl: null })
+    const values = construirValuesTrabajador({ ...TRABAJADOR, cedula: null, fechaIngreso: null, telefono: null, fotoRuta: null })
 
     expect(values.cedula).toBe('')
     expect(values.fechaIngreso).toBe('')
